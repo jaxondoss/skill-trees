@@ -2,6 +2,7 @@ import Link from "next/link";
 import { regionOpacity } from "@/engine/scoring";
 import type { CategoryView } from "@/lib/data/dashboard";
 import { CategoryIcon } from "./CategoryIcon";
+import { PulseLayer } from "./PulseLayer";
 
 /**
  * Figure stage (spec 4.1 C). Everything is laid out in one 100 x 130 coordinate space:
@@ -98,6 +99,14 @@ export function FigureStage({ categories, overall }: { categories: CategoryView[
             </g>
           );
         })}
+
+        <PulseLayer
+          lines={categories.flatMap((c) => {
+            const box = BOX[c.position];
+            const to = REGION_TARGET[c.region];
+            return box && to ? [{ categoryId: c.id, from: box.anchor, to, color: c.color }] : [];
+          })}
+        />
 
         {/* figure: stone base, then each category's region glowing gold by its score */}
         <g className="figure-idle">

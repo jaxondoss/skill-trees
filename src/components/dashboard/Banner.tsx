@@ -15,7 +15,7 @@ export function Banner({ overall, todayP, streak }: Props) {
   const delta = overall.trendDelta;
 
   return (
-    <header className="glass sticky top-2 z-20 flex items-center justify-between gap-3 px-4 py-2.5">
+    <header className="glass sticky top-2 z-20 flex items-center justify-between gap-3 bg-[#141416]/92 px-4 py-2.5 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.8)]">
       <div className="leading-none">
         <div className="num text-3xl font-semibold tracking-tight" aria-label={`Overall score ${overall.display}`}>
           {overall.display}

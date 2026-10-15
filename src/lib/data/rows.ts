@@ -6,6 +6,8 @@ export type ProfileRow = {
   rollover_hour: number;
   daily_budget_min: number;
   focus_line: string | null;
+  sound_on: boolean;
+  onboarded_at: string | null;
 };
 
 export type CategoryRow = {
@@ -30,9 +32,27 @@ export type SkillRow = {
   sort: number;
   created_at: string;
   final_score: number | null;
+  identity: string;
+  hundred_means: string;
+  metrics_note: string | null;
+  tips: { foundation?: string[]; development?: string[]; mastery?: string[] };
+  config: Record<string, unknown>;
+  archived_at: string | null;
 };
 
-export type MilestoneRow = { skill_id: string; points: number; claimed_at: string | null };
+export type MilestoneRow = {
+  id: string;
+  skill_id: string;
+  title: string;
+  points: number;
+  type: "manual" | "metric" | "streak" | "count";
+  rule: { key: string; op: "gte" | "lte"; value: number } | null;
+  suggest_claim: boolean;
+  sort: number;
+  claimed_at: string | null;
+  proof_url: string | null;
+  proof_value: number | null;
+};
 
 export type NonNegotiableRow = {
   id: string;
@@ -52,7 +72,7 @@ export type NonNegotiableRow = {
   sort: number;
 };
 
-export type RackPinRow = { slot: number; skill_id: string; locked_until: string };
+export type RackPinRow = { slot: number; skill_id: string; locked_until: string; pinned_at: string };
 
 export type ScheduleDayRow = { weekday: number; day_type: DayType };
 
@@ -73,6 +93,7 @@ export type PlanGoalRow = {
   engine_note: string | null;
   sort: number;
   result_tier: Tier | null;
+  user_note: string | null;
   daily_plans: { day: string };
 };
 

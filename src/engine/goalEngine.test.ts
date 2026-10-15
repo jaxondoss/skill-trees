@@ -7,7 +7,9 @@ import {
   MAX_CORE_GOALS,
   NEVER_MISS_TWICE_NOTE,
   resolveDay,
+  scheduledToday,
   suggestDifficulty,
+  swapCandidate,
   type DayOverride,
   type PlanInput,
   type Race,
@@ -336,5 +338,43 @@ describe("suggestDifficulty", () => {
     expect(suggestDifficulty("chess:0", days(6, "floor"), TUE)).toMatchObject({ kind: "ease", message: expect.stringContaining("50%") });
     expect(suggestDifficulty("chess:0", days(3, null), TUE)).toBeNull();
     expect(suggestDifficulty("chess:0", [], TUE)).toBeNull();
+  });
+});
+
+describe("swapCandidate", () => {
+  const input = (day: string): PlanInput => ({
+    resolved: resolveDay(day, schedule, [], []),
+    now: new Date(`${day}T15:00:00Z`),
+    budgetMin: 125,
+    categories,
+    skills: seedSkills(),
+    rack: defaultRack,
+    history: [],
+  });
+  const current = (day: string) => generatePlan(input(day)).goals.filter((g) => g.kind !== "stretch");
+
+  it("swaps a zero-minute habit for the next zero-minute habit when no time is free", () => {
+    const g = swapCandidate(input(TUE), current(TUE), "food");
+    expect(g).toMatchObject({ skillId: "gut-health", kind: "balance", reason: "Swapped in" });
+  });
+
+  it("uses the time the removed goal frees, dropping to Floor when only Floor fits", () => {
+    // Removing Store work (40 min) frees 40: AI Building (45) fits only at Floor (15).
+    const g = swapCandidate(input(TUE), current(TUE), "dropshipping");
+    expect(g).toMatchObject({ skillId: "ai-building", tier: "floor", estMin: 15, note: BUDGET_FLOOR_NOTE });
+  });
+
+  it("returns null when every scheduled skill is already planned", () => {
+    const all = seedSkills().map((s) => ({ skillId: s.id, estMin: 0, countsAgainstBudget: false }));
+    expect(swapCandidate(input(TUE), all, "food")).toBeNull();
+  });
+
+  it("scheduledToday follows weekdays, day types, and status", () => {
+    const skills = seedSkills();
+    const running = skills.find((s) => s.slug === "running")!;
+    expect(scheduledToday({ resolved: resolveDay(TUE, schedule, [], []) }, running)?.name).toBe("Planned run");
+    expect(scheduledToday({ resolved: resolveDay(MON, schedule, [], []) }, running)).toBeUndefined();
+    const triathlon = skills.find((s) => s.slug === "triathlon")!;
+    expect(scheduledToday({ resolved: resolveDay(MON, schedule, [], []) }, triathlon)).toBeUndefined();
   });
 });

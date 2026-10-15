@@ -117,17 +117,13 @@ type Draft = Omit<PlannedGoal, "text" | "estMin" | "note"> & {
   notes: string[];
 };
 
-/** Builds today's plan (spec 7.2). Deterministic for the same input. */
-export function generatePlan(input: PlanInput): Plan {
-  const { resolved, categories, skills, rack } = input;
+/** Scheduling and priority rules shared by the planner and swaps. */
+function planningContext(input: PlanInput) {
+  const { resolved, categories } = input;
   const today = resolved.day;
-  const wd = weekday(today);
-  const has = (k: OverrideKind) => resolved.overrides.includes(k);
   const raceBuild = resolved.daysToRace !== null && resolved.daysToRace < RACE_BUILD_DAYS;
 
   const catById = new Map(categories.map((c) => [c.id, c]));
-  const skillById = new Map(skills.map((s) => [s.id, s]));
-  const pinned = new Set(rack);
   const history = input.history.filter((h) => h.day < today);
 
   const lastDone = new Map<string, DayKey>();
@@ -135,10 +131,7 @@ export function generatePlan(input: PlanInput): Plan {
     if (h.result && (lastDone.get(h.skillId) ?? "") < h.day) lastDone.set(h.skillId, h.day);
   }
 
-  const scheduledNN = (s: EngineSkill) =>
-    s.status === "active"
-      ? s.nonNegotiables.find((n) => n.daysOfWeek.includes(wd) && (!n.dayTypes || n.dayTypes.includes(resolved.dayType)))
-      : undefined;
+  const scheduledNN = (s: EngineSkill) => scheduledToday(input, s);
 
   const priorityOf = (s: EngineSkill): number => {
     const last = lastDone.get(s.id);
@@ -167,6 +160,17 @@ export function generatePlan(input: PlanInput): Plan {
     textOverride: null,
     notes: [],
   });
+
+  return { today, raceBuild, catById, history, scheduledNN, priorityOf, draft };
+}
+
+/** Builds today's plan (spec 7.2). Deterministic for the same input. */
+export function generatePlan(input: PlanInput): Plan {
+  const { resolved, skills, rack } = input;
+  const { today, raceBuild, catById, history, scheduledNN, priorityOf, draft } = planningContext(input);
+  const has = (k: OverrideKind) => resolved.overrides.includes(k);
+  const skillById = new Map(skills.map((s) => [s.id, s]));
+  const pinned = new Set(rack);
 
   const goals: Draft[] = [];
   const used = () => goals.reduce((sum, g) => sum + (g.countsAgainstBudget ? g.nn.minutes[g.tier] : 0), 0);
@@ -337,6 +341,47 @@ export function generatePlan(input: PlanInput): Plan {
     plannedMin,
     overBudget: plannedMin > input.budgetMin,
   };
+}
+
+/**
+ * Swipe-left swap (once per day): the next-best goal not already in today's plan, at a tier
+ * that fits the time the removed goal frees up. Null when nothing else is scheduled today.
+ */
+export function swapCandidate(
+  input: PlanInput,
+  current: { skillId: string; estMin: number; countsAgainstBudget: boolean }[],
+  removedSkillId: string,
+): PlannedGoal | null {
+  const { scheduledNN, priorityOf, draft } = planningContext(input);
+  const inPlan = new Set(current.map((g) => g.skillId));
+  const usedMin = current.filter((g) => g.skillId !== removedSkillId && g.countsAgainstBudget).reduce((s, g) => s + g.estMin, 0);
+  const free = Math.max(0, input.budgetMin - usedMin);
+
+  const candidates = input.skills
+    .filter((s) => !inPlan.has(s.id))
+    .flatMap((s) => {
+      const nn = scheduledNN(s);
+      return nn ? [{ s, nn, priority: priorityOf(s) }] : [];
+    })
+    .sort((a, b) => b.priority - a.priority || a.s.slug.localeCompare(b.s.slug));
+
+  for (const c of candidates) {
+    const cost = (t: Tier) => (c.nn.countsAgainstBudget ? c.nn.minutes[t] : 0);
+    const tier: Tier | null = cost(c.nn.defaultTier) <= free ? c.nn.defaultTier : cost("floor") <= free ? "floor" : null;
+    if (!tier) continue;
+    const g = draft(c.s, c.nn, "balance", tier, "Swapped in");
+    if (tier !== c.nn.defaultTier) g.notes.push(BUDGET_FLOOR_NOTE);
+    return finalize(g);
+  }
+  return null;
+}
+
+/** The non-negotiable a skill would get today, if any (used when pinning mid-day). */
+export function scheduledToday(input: Pick<PlanInput, "resolved">, skill: EngineSkill): EngineNonNegotiable | undefined {
+  const wd = weekday(input.resolved.day);
+  return skill.status === "active"
+    ? skill.nonNegotiables.find((n) => n.daysOfWeek.includes(wd) && (!n.dayTypes || n.dayTypes.includes(input.resolved.dayType)))
+    : undefined;
 }
 
 function finalize({ nn, textOverride, notes, ...g }: Draft): PlannedGoal {

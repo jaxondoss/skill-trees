@@ -1,8 +1,7 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { connection } from "next/server";
 import { computeStreak, dailyCompletion, STREAK_THRESHOLD } from "@/engine/completion";
-import { generatePlan, resolveDay, type Plan } from "@/engine/goalEngine";
+import { generatePlan } from "@/engine/goalEngine";
 import {
   buildSnapshots,
   categoryScore,
@@ -10,33 +9,16 @@ import {
   figureTier,
   isNeglected,
   overallScore,
-  scoreBreakdown,
   trend,
-  type SkillBreakdown,
 } from "@/engine/scoring";
 import { addDays, dayKey } from "@/engine/time";
-import type { EngineSkill, GoalRecord, Tier } from "@/engine/types";
+import type { Tier } from "@/engine/types";
 import { createClient } from "@/lib/supabase/server";
-import type {
-  CategoryRow,
-  CompletionRow,
-  DayOverrideRow,
-  KeyDateRow,
-  MilestoneRow,
-  NonNegotiableRow,
-  PlanGoalRow,
-  ProfileRow,
-  RackPinRow,
-  ScheduleDayRow,
-  SkillRow,
-  SnapshotRow,
-} from "./rows";
-
-/** Goal history pulled per load. Covers the 28-day consistency window and never-miss-twice lookbacks. */
-const HISTORY_DAYS = 90;
+import { HISTORY_DAYS, loadGoals, loadUserContext, must } from "./context";
+import type { CompletionRow, PlanGoalRow, SnapshotRow } from "./rows";
 
 export type BottleShape = "faceted" | "round" | "vial" | "sturdy" | "teardrop";
-const SHAPE_BY_CATEGORY: Record<string, BottleShape> = {
+export const SHAPE_BY_CATEGORY: Record<string, BottleShape> = {
   business: "faceted",
   school: "round",
   mind: "vial",
@@ -51,7 +33,7 @@ export type SkillView = {
   categoryId: string;
   color: string;
   shape: BottleShape;
-  status: SkillRow["status"];
+  status: "active" | "dormant" | "archived";
   score: number;
   display: number;
   level: number;
@@ -60,6 +42,7 @@ export type SkillView = {
   trendDelta: number | null;
   trendArrow: "up" | "down" | null;
   finalScore: number | null;
+  pinned: boolean;
 };
 
 export type CategoryView = {
@@ -79,6 +62,7 @@ export type CategoryView = {
 export type GoalView = {
   id: string;
   skillId: string;
+  categoryId: string;
   kind: PlanGoalRow["kind"];
   tier: Tier;
   title: string;
@@ -86,6 +70,9 @@ export type GoalView = {
   estMin: number;
   reason: string | null;
   note: string | null;
+  userNote: string | null;
+  intention: string | null;
+  tierTexts: Record<Tier, string> | null;
   resultTier: Tier | null;
   skillName: string;
   color: string;
@@ -96,159 +83,53 @@ export type DashboardData = {
   overall: { score: number; display: number; tierNumeral: string; tierName: string; trendDelta: number | null };
   todayP: number | null;
   streak: { current: number; best: number; todayCounted: boolean };
+  /** A break the user has not seen yet: show the crack, then "Streak ended at N. Best: M." */
+  streakBreak: { length: number; best: number } | null;
   focusLine: string | null;
+  soundOn: boolean;
+  onboarded: boolean;
   categories: CategoryView[];
   /** daysLocked: whole days left on the 7-day pin lock, 0 when unlocked. */
   rack: { slot: number; skill: SkillView | null; daysLocked: number }[];
   goals: GoalView[];
   skills: SkillView[];
-  plan: { overBudget: boolean; plannedMin: number; budgetMin: number; overrides: string[] };
+  /** Day completion for the calendar: closed days plus today. */
+  calendar: { day: string; p: number }[];
+  plan: { overBudget: boolean; plannedMin: number; budgetMin: number; overrides: string[]; swapUsed: boolean };
 };
-
-function must<T>(res: { data: T | null; error: { message: string } | null }, what: string): T {
-  if (res.error) throw new Error(`Loading ${what} failed: ${res.error.message}`);
-  return res.data as T;
-}
-
-const toRecord = (g: PlanGoalRow): GoalRecord => ({
-  day: g.daily_plans.day,
-  skillId: g.skill_id,
-  nonNegotiableId: g.non_negotiable_id,
-  kind: g.kind,
-  plannedTier: g.tier,
-  result: g.result_tier,
-});
-
-async function loadGoals(supabase: SupabaseClient, since: string): Promise<PlanGoalRow[]> {
-  return must(
-    await supabase
-      .from("plan_goals")
-      .select(
-        "id, skill_id, non_negotiable_id, kind, tier, title, text, est_min, reason, engine_note, sort, result_tier, daily_plans!inner(day)",
-      )
-      .gte("daily_plans.day", since)
-      .order("sort"),
-    "goals",
-  ) as unknown as PlanGoalRow[];
-}
 
 /**
  * Everything the dashboard shows, computed by the engines from the user's rows.
  * Side effects (all idempotent): creates today's plan if missing, records closed days'
- * completion, and refreshes today's score snapshots.
+ * completion, refreshes today's score snapshots, and caches streak state.
  */
 export async function loadDashboard(at?: Date): Promise<DashboardData> {
   // Request-time only: this reads the clock and writes today's plan, so it must never be prerendered.
   await connection();
   const supabase = await createClient();
-  const now = at ?? new Date();
-
-  const profile = must(
-    await supabase.from("profiles").select("timezone, rollover_hour, daily_budget_min, focus_line").single(),
-    "profile",
-  ) as ProfileRow;
-  const today = dayKey(now, profile.timezone, profile.rollover_hour);
-  const since = addDays(today, -HISTORY_DAYS);
-
-  const [cats, skillRows, milestoneRows, nnRows, pins, sched, overrides, races, completions, weekAgo, goalRowsInitial] =
-    await Promise.all([
-      supabase.from("categories").select("id, slug, name, color, icon, region, position, goal_weight, sort").order("sort"),
-      supabase.from("skills").select("id, slug, name, category_id, status, priority_weight, sort, created_at, final_score").order("sort"),
-      supabase.from("milestones").select("skill_id, points, claimed_at"),
-      supabase
-        .from("non_negotiables")
-        .select(
-          "id, skill_id, name, floor_text, standard_text, stretch_text, floor_min, standard_min, stretch_min, counts_against_budget, intention, days_of_week, day_types, default_tier, sort",
-        )
-        .eq("active", true)
-        .order("sort"),
-      supabase.from("rack_pins").select("slot, skill_id, locked_until").order("slot"),
-      supabase.from("schedule_days").select("weekday, day_type, schedule_templates!inner(is_active)").eq("schedule_templates.is_active", true),
-      supabase.from("day_overrides").select("kind, starts_on, ends_on").gte("ends_on", today),
-      supabase.from("key_dates").select("label, date").eq("kind", "race").not("date", "is", null),
-      supabase.from("daily_completions").select("day, p, n_core, kept_streak").order("day", { ascending: false }).limit(1000),
-      supabase.from("score_snapshots").select("scope, ref_id, score").eq("day", addDays(today, -7)),
-      loadGoals(supabase, since),
-    ]);
-
-  const categories = must(cats, "categories") as CategoryRow[];
-  const skills = must(skillRows, "skills") as SkillRow[];
-  const milestones = must(milestoneRows, "milestones") as MilestoneRow[];
-  const nns = must(nnRows, "non-negotiables") as NonNegotiableRow[];
-  const rackPins = must(pins, "rack") as RackPinRow[];
-  const schedule = must(sched, "schedule") as ScheduleDayRow[];
-  const dayOverrides = must(overrides, "overrides") as DayOverrideRow[];
-  const raceDates = must(races, "races") as KeyDateRow[];
-  const completionRows = must(completions, "completions") as CompletionRow[];
-  const snapshots = must(weekAgo, "snapshots") as SnapshotRow[];
-  let goalRows = goalRowsInitial;
-
-  const catById = new Map(categories.map((c) => [c.id, c]));
-
-  // ── Scores, from claimed milestones and goal history.
-  const history = goalRows.map(toRecord);
-  const breakdowns = new Map<string, SkillBreakdown>();
-  for (const s of skills) {
-    breakdowns.set(
-      s.id,
-      scoreBreakdown(
-        milestones.filter((m) => m.skill_id === s.id).map((m) => ({ points: m.points, claimed: m.claimed_at !== null })),
-        history.filter((h) => h.skillId === s.id),
-        today,
-      ),
-    );
-  }
+  const ctx = await loadUserContext(supabase, at ?? new Date());
+  const { profile, today, categories, skills, breakdowns, rackPins, now } = ctx;
+  let goalRows = ctx.goalRows;
 
   // ── Today's plan: generated once, on first open of the day.
   if (!goalRows.some((g) => g.daily_plans.day === today)) {
-    const engineSkills: EngineSkill[] = skills.map((s) => ({
-      id: s.id,
-      slug: s.slug,
-      name: s.name,
-      categoryId: s.category_id,
-      status: s.status,
-      priorityWeight: s.priority_weight,
-      score: breakdowns.get(s.id)!.score,
-      nonNegotiables: nns
-        .filter((n) => n.skill_id === s.id)
-        .map((n) => ({
-          id: n.id,
-          skillId: n.skill_id,
-          name: n.name,
-          text: { floor: n.floor_text, standard: n.standard_text, stretch: n.stretch_text },
-          minutes: { floor: n.floor_min, standard: n.standard_min, stretch: n.stretch_min },
-          countsAgainstBudget: n.counts_against_budget,
-          intention: n.intention,
-          daysOfWeek: n.days_of_week,
-          dayTypes: n.day_types,
-          defaultTier: n.default_tier,
-        })),
-    }));
-    const plan: Plan = generatePlan({
-      resolved: resolveDay(
-        today,
-        schedule.map((d) => ({ weekday: d.weekday, dayType: d.day_type })),
-        dayOverrides.map((o) => ({ kind: o.kind, startsOn: o.starts_on, endsOn: o.ends_on })),
-        raceDates.flatMap((r) => (r.date ? [{ date: r.date, label: r.label }] : [])),
-      ),
-      now,
-      budgetMin: profile.daily_budget_min,
-      categories: categories.map((c) => ({ id: c.id, slug: c.slug, name: c.name, goalWeight: Number(c.goal_weight) })),
-      skills: engineSkills,
-      rack: rackPins.map((p) => p.skill_id),
-      history,
-    });
-    const saved = await supabase.rpc("save_plan", { p_day: today, p_plan: plan });
+    const saved = await supabase.rpc("save_plan", { p_day: today, p_plan: generatePlan(ctx.planInput()) });
     if (saved.error) throw new Error(`Saving today's plan failed: ${saved.error.message}`);
-    goalRows = await loadGoals(supabase, since);
+    goalRows = await loadGoals(supabase, addDays(today, -HISTORY_DAYS));
   }
-
   const todayRows = goalRows.filter((g) => g.daily_plans.day === today);
-  const { data: planRow } = await supabase
-    .from("daily_plans")
-    .select("over_budget, planned_min, budget_min, overrides")
-    .eq("day", today)
-    .maybeSingle();
+
+  const [planRes, completionRes, snapshotRes, streakRes, authRes] = await Promise.all([
+    supabase.from("daily_plans").select("over_budget, planned_min, budget_min, overrides, swap_used").eq("day", today).maybeSingle(),
+    supabase.from("daily_completions").select("day, p, n_core, kept_streak").order("day", { ascending: false }).limit(1000),
+    supabase.from("score_snapshots").select("scope, ref_id, score").eq("day", addDays(today, -7)),
+    supabase.from("streak_state").select("broken_on, broken_length").maybeSingle(),
+    supabase.auth.getClaims(),
+  ]);
+  const planRow = planRes.data;
+  const completionRows = must(completionRes, "completions") as CompletionRow[];
+  const snapshots = must(snapshotRes, "snapshots") as SnapshotRow[];
+  const userId = authRes.data?.claims?.sub;
 
   // ── Completion per day, cached for closed days so streaks reach past the history window.
   const byDay = new Map<string, PlanGoalRow[]>();
@@ -267,28 +148,29 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
       known.set(day, row);
     }
   }
-  if (upserts.length) {
-    const { data: auth } = await supabase.auth.getClaims();
-    const userId = auth?.claims?.sub;
-    if (userId) {
-      const res = await supabase.from("daily_completions").upsert(upserts.map((u) => ({ ...u, user_id: userId })));
-      if (res.error) throw new Error(`Saving completions failed: ${res.error.message}`);
-    }
+  if (upserts.length && userId) {
+    const res = await supabase.from("daily_completions").upsert(upserts.map((u) => ({ ...u, user_id: userId })));
+    if (res.error) throw new Error(`Saving completions failed: ${res.error.message}`);
   }
 
   const todayP = dailyCompletion(todayRows.map((r) => ({ kind: r.kind, result: r.result_tier }))).p;
-  const streak = computeStreak(
-    [...[...known.values()].map((c) => ({ day: c.day, p: Number(c.p) })), { day: today, p: todayP }],
-    today,
-  );
+  const closedDays = [...known.values()].map((c) => ({ day: c.day, p: Number(c.p) }));
+  const streak = computeStreak([...closedDays, { day: today, p: todayP }], today);
 
-  // ── Category and overall scores.
+  // A break not yet shown: compare with the last break the user acknowledged.
+  const seen = streakRes.data as { broken_on: string | null } | null;
+  const streakBreak =
+    streak.lastBreak && streak.lastBreak.on !== seen?.broken_on ? { length: streak.lastBreak.length, best: streak.best } : null;
+
+  // ── Views.
+  const catById = new Map(categories.map((c) => [c.id, c]));
   const weekAgoScore = (scope: SnapshotRow["scope"], id: string | null) => {
     const row = snapshots.find((r) => r.scope === scope && r.ref_id === id);
     return row ? Number(row.score) : null;
   };
   const lastDone = new Map<string, string>();
-  for (const h of history) if (h.result && (lastDone.get(h.skillId) ?? "") < h.day) lastDone.set(h.skillId, h.day);
+  for (const h of ctx.history) if (h.result && (lastDone.get(h.skillId) ?? "") < h.day) lastDone.set(h.skillId, h.day);
+  const pinnedIds = new Set(rackPins.map((p) => p.skill_id));
 
   const skillViews: SkillView[] = skills.map((s) => {
     const b = breakdowns.get(s.id)!;
@@ -307,20 +189,25 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
       level: b.level,
       consistency: b.consistency,
       neglected: isNeglected(
-        { status: s.status, lastDone: lastDone.get(s.id) ?? null, activeSince: dayKey(new Date(s.created_at), profile.timezone, profile.rollover_hour) },
+        {
+          status: s.status,
+          lastDone: lastDone.get(s.id) ?? null,
+          activeSince: dayKey(new Date(s.created_at), profile.timezone, profile.rollover_hour),
+        },
         today,
       ),
       trendDelta: t.delta,
       trendArrow: t.arrow,
       finalScore: s.final_score === null ? null : Number(s.final_score),
+      pinned: pinnedIds.has(s.id),
     };
   });
+  const skillById = new Map(skillViews.map((s) => [s.id, s]));
+  const weightOf = new Map(skills.map((s) => [s.id, s.priority_weight]));
 
   const categoryViews: CategoryView[] = categories.map((c) => {
     const members = skillViews.filter((s) => s.categoryId === c.id);
-    const score = categoryScore(
-      members.map((s) => ({ status: s.status, priorityWeight: skills.find((r) => r.id === s.id)!.priority_weight, score: s.score })),
-    );
+    const score = categoryScore(members.map((s) => ({ status: s.status, priorityWeight: weightOf.get(s.id)!, score: s.score })));
     const lowest = members.filter((s) => s.status === "active").sort((a, b) => a.score - b.score)[0];
     const memberIds = new Set(members.map((s) => s.id));
     return {
@@ -352,26 +239,23 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
         id: s.id,
         categoryId: s.categoryId,
         status: s.status,
-        priorityWeight: skills.find((r) => r.id === s.id)!.priority_weight,
+        priorityWeight: weightOf.get(s.id)!,
         breakdown: { score: s.score, level: s.level, consistency: s.consistency },
       })),
     ),
   });
   if (snap.error) throw new Error(`Saving snapshots failed: ${snap.error.message}`);
 
-  const skillById = new Map(skillViews.map((s) => [s.id, s]));
+  const nnById = new Map(ctx.nonNegotiables.map((n) => [n.id, n]));
   return {
     today,
-    overall: {
-      score: overall,
-      display: displayScore(overall),
-      tierNumeral: tier.numeral,
-      tierName: tier.name,
-      trendDelta: overallTrend.delta,
-    },
+    overall: { score: overall, display: displayScore(overall), tierNumeral: tier.numeral, tierName: tier.name, trendDelta: overallTrend.delta },
     todayP,
     streak: { current: streak.current, best: streak.best, todayCounted: streak.todayCounted },
+    streakBreak,
     focusLine: profile.focus_line,
+    soundOn: profile.sound_on,
+    onboarded: profile.onboarded_at !== null,
     categories: categoryViews,
     rack: [1, 2, 3, 4, 5].map((slot) => {
       const pin = rackPins.find((p) => p.slot === slot);
@@ -380,9 +264,11 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
     }),
     goals: todayRows.map((g) => {
       const s = skillById.get(g.skill_id);
+      const nn = g.non_negotiable_id ? nnById.get(g.non_negotiable_id) : undefined;
       return {
         id: g.id,
         skillId: g.skill_id,
+        categoryId: s?.categoryId ?? "",
         kind: g.kind,
         tier: g.tier,
         title: g.title,
@@ -390,17 +276,22 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
         estMin: g.est_min,
         reason: g.reason,
         note: g.engine_note,
+        userNote: g.user_note,
+        intention: nn?.intention ?? null,
+        tierTexts: nn ? { floor: nn.floor_text, standard: nn.standard_text, stretch: nn.stretch_text } : null,
         resultTier: g.result_tier,
         skillName: s?.name ?? "",
         color: s?.color ?? "#8E8A84",
       };
     }),
     skills: skillViews,
+    calendar: [...closedDays, ...(todayP === null ? [] : [{ day: today, p: todayP }])].sort((a, b) => (a.day < b.day ? -1 : 1)),
     plan: {
       overBudget: planRow?.over_budget ?? false,
       plannedMin: planRow?.planned_min ?? 0,
       budgetMin: planRow?.budget_min ?? profile.daily_budget_min,
       overrides: planRow?.overrides ?? [],
+      swapUsed: planRow?.swap_used ?? false,
     },
   };
 }

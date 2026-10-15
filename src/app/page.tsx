@@ -2,7 +2,9 @@ import { Suspense } from "react";
 import { Archive } from "@/components/archive/Archive";
 import { Banner } from "@/components/dashboard/Banner";
 import { FigureStage } from "@/components/dashboard/FigureStage";
-import { TodaySection } from "@/components/dashboard/TodaySection";
+import { CompletionCalendar } from "@/components/calendar/CompletionCalendar";
+import { StreakBreak } from "@/components/dashboard/StreakBreak";
+import { TodayPanel } from "@/components/today/TodayPanel";
 import { loadDashboard } from "@/lib/data/dashboard";
 import { supabasePublicEnv } from "@/lib/supabase/env";
 
@@ -29,6 +31,7 @@ async function Dashboard() {
 
   return (
     <>
+      {data.streakBreak && <StreakBreak length={data.streakBreak.length} best={data.streakBreak.best} soundOn={data.soundOn} />}
       <Banner overall={data.overall} todayP={data.todayP} streak={data.streak} />
 
       <p className="-mt-2 px-1 text-center font-display text-sm text-muted italic">
@@ -36,7 +39,15 @@ async function Dashboard() {
       </p>
 
       <FigureStage categories={data.categories} overall={data.overall.score} />
-      <TodaySection data={data} />
+      <TodayPanel
+        goals={data.goals}
+        rack={data.rack}
+        skills={data.skills}
+        categories={data.categories}
+        plan={data.plan}
+        soundOn={data.soundOn}
+      />
+      <CompletionCalendar days={data.calendar} today={data.today} />
       <Archive categories={data.categories} skills={data.skills} />
 
       <form action="/auth/signout" method="post" className="pt-4 text-center">

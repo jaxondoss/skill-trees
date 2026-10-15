@@ -53,6 +53,40 @@ begin
 end $$;
 commit;
 
+-- swap_goal: once per day, open core goals only.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', 'cccccccc-0000-0000-0000-000000000003', true) \g /dev/null
+do $$
+declare
+  v_plan uuid := (select id from public.daily_plans where day = '2026-10-20');
+  v_rack uuid := (select id from public.plan_goals where plan_id = v_plan and kind = 'rack');
+  v_chess uuid := (select id from public.skills where slug = 'chess');
+  v_new uuid;
+begin
+  begin
+    perform public.swap_goal('2026-10-20', (select id from public.plan_goals where plan_id = v_plan and kind = 'stretch'),
+      jsonb_build_object('skillId', v_chess, 'tier', 'standard', 'text', 'x', 'estMin', 30));
+    raise exception 'stretch goal was swapped';
+  exception when raise_exception then
+    if sqlerrm like 'stretch%' then raise; end if;
+  end;
+
+  v_new := public.swap_goal('2026-10-20', v_rack,
+    jsonb_build_object('skillId', v_chess, 'tier', 'standard', 'title', 'Chess training', 'text', 'Puzzles', 'estMin', 30, 'reason', 'Swapped in'));
+  assert (select skill_id from public.plan_goals where id = v_new) = v_chess, 'swapped goal inserted';
+  assert (select count(*) from public.plan_goals where plan_id = v_plan) = 1, 'old goal and its stretch removed';
+  assert (select swap_used from public.daily_plans where id = v_plan), 'swap marked used';
+
+  begin
+    perform public.swap_goal('2026-10-20', v_new, jsonb_build_object('skillId', v_chess, 'tier', 'floor', 'text', 'x', 'estMin', 10));
+    raise exception 'second swap allowed';
+  exception when raise_exception then
+    if sqlerrm like 'second%' then raise; end if;
+  end;
+end $$;
+commit;
+
 -- User D cannot see or reuse C's plan, and a plan pointing at C's skill is rejected.
 select set_config('forge.c_skill', (select id::text from public.skills where user_id = :c and slug = 'strength'), false) \g /dev/null
 begin;

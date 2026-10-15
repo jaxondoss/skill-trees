@@ -1,12 +1,11 @@
-import { expect, test, type Page } from "@playwright/test";
-import { AUTH_COOKIE, sessionCookieValue } from "./stack/config.mjs";
-
-async function signIn(page: Page) {
-  await page.context().addCookies([{ name: AUTH_COOKIE, value: sessionCookieValue(), domain: "localhost", path: "/" }]);
-}
+import { expect, test } from "@playwright/test";
+import { resetUser, signIn } from "./helpers";
 
 test.describe("dashboard with real data", () => {
-  test.beforeEach(async ({ page }) => signIn(page));
+  test.beforeEach(async ({ page }) => {
+    resetUser();
+    await signIn(page);
+  });
 
   test("renders banner, five categories, today's plan, and the archive at 390px", async ({ page }) => {
     const errors: string[] = [];

@@ -41,6 +41,10 @@ update public.milestones set claimed_at = now() where suggest_claim;
 commit;
 SQL
 
+# Tests reset state and seed history over SQL; tell them where Postgres is.
+printf '{"pgHost":"%s","pgPort":%s}\n' "$PG_WORK" "$(cfg PG_PORT)" > "$ROOT/.e2e-stack.json"
+trap 'rm -f "$ROOT/.e2e-stack.json"; cleanup' EXIT
+
 PGRST_DB_URI="postgres://authenticator@/postgres?host=$PG_WORK&port=$(cfg PG_PORT)" \
 PGRST_DB_SCHEMAS=public PGRST_DB_ANON_ROLE=anon PGRST_JWT_SECRET="$(cfg JWT_SECRET)" \
 PGRST_SERVER_PORT="$(cfg POSTGREST_PORT)" PGRST_LOG_LEVEL=warn \
