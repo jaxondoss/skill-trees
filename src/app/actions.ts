@@ -53,6 +53,33 @@ export async function completeGoal(goalId: string, tier: Tier | null, note?: str
   return { ok: true };
 }
 
+const REPLAY_WINDOW_MS = 36 * 3_600_000;
+
+/**
+ * Replays a goal log made offline. It lands on the plan for the day it was tapped (so a log
+ * from 11 PM still counts for that day after the 4 AM rollover), within a 36-hour window.
+ */
+export async function replayGoal(goalId: string, tier: Tier | null, note: string | null | undefined, at: string): Promise<ActionResult> {
+  if (tier !== null && !TIERS.includes(tier)) return fail("Unknown tier.");
+  const tapped = new Date(at);
+  const now = Date.now();
+  if (Number.isNaN(tapped.getTime()) || tapped.getTime() > now + 5 * 60_000 || now - tapped.getTime() > REPLAY_WINDOW_MS) {
+    return fail("That offline log is too old to sync.");
+  }
+  const supabase = await createClient();
+  const profile = await loadProfile(supabase);
+  const { data } = await supabase.from("plan_goals").select("id, daily_plans!inner(day)").eq("id", goalId).maybeSingle();
+  const goal = data as { id: string; daily_plans: { day: string } } | null;
+  if (!goal || goal.daily_plans.day !== todayFor(profile, tapped)) return fail("That offline log no longer matches a plan.");
+
+  const patch: Record<string, unknown> = { result_tier: tier, completed_at: tier ? tapped.toISOString() : null };
+  if (note !== undefined) patch.user_note = note?.trim().slice(0, NOTE_MAX) || null;
+  const { error } = await supabase.from("plan_goals").update(patch).eq("id", goalId);
+  if (error) return fail(error.message);
+  refresh();
+  return { ok: true };
+}
+
 /** Long-press: a one-line note without changing the result. */
 export async function saveNote(goalId: string, note: string): Promise<ActionResult> {
   const supabase = await createClient();

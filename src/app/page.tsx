@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { Archive } from "@/components/archive/Archive";
 import { Banner } from "@/components/dashboard/Banner";
@@ -52,6 +53,15 @@ async function Dashboard() {
         {data.focusLine ?? "No focus line yet. Write one in the Sunday review."}
       </p>
 
+      {(data.review.weekly || data.review.monthly) && (
+        <Link href={data.review.monthly ? "/review/month" : "/review"} className="glass flex min-h-12 items-center justify-between gap-3 px-4 py-3 text-sm">
+          <span>{data.review.monthly ? "First Sunday: monthly review, then the weekly one." : "Sunday review. About three minutes."}</span>
+          <span className="text-gold" aria-hidden>
+            Start
+          </span>
+        </Link>
+      )}
+
       <FigureStage categories={data.categories} tier={data.overall.tier} />
       <TodayPanel
         goals={data.goals}
@@ -65,9 +75,12 @@ async function Dashboard() {
       <Archive categories={data.categories} skills={data.skills} />
 
       <nav className="flex justify-center gap-6 pt-4 text-xs text-muted">
-        <a href="/settings" className="min-h-11 content-center underline-offset-4 hover:underline">
+        <Link href="/review" className="min-h-11 content-center underline-offset-4 hover:underline">
+          Review
+        </Link>
+        <Link href="/settings" className="min-h-11 content-center underline-offset-4 hover:underline">
           Settings
-        </a>
+        </Link>
       </nav>
       <form action="/auth/signout" method="post" className="text-center">
         <button type="submit" className="min-h-11 px-4 text-xs text-muted underline-offset-4 hover:underline">

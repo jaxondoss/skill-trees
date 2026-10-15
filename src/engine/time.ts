@@ -56,3 +56,11 @@ export function weekday(day: DayKey): number {
 export function weekStart(day: DayKey): DayKey {
   return addDays(day, -((weekday(day) + 6) % 7));
 }
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "2026-10-15" -> "Oct 15". */
+export function shortDate(day: string): string {
+  const [, m, d] = day.split("-").map(Number);
+  return `${MONTHS[(m ?? 1) - 1]} ${d}`;
+}

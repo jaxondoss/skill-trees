@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0A0A0B"/>
+  <g transform="translate(0 0) scale(1)">
+    <defs>
+      <radialGradient id="aura" cx="256" cy="256" r="250" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#D4AF37" stop-opacity="0.22"/>
+        <stop offset="1" stop-color="#D4AF37" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="stone" x1="150" y1="90" x2="360" y2="430" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#34333a"/>
+        <stop offset="1" stop-color="#18171a"/>
+      </linearGradient>
+    </defs>
+    <circle cx="256" cy="256" r="250" fill="url(#aura)"/>
+    <circle cx="256" cy="256" r="170" fill="url(#stone)"/>
+    <path d="M190 112 L236 196 L208 250 L276 318 L250 400" fill="none" stroke="#D4AF37" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M236 196 L322 168 M276 318 L352 300" fill="none" stroke="#D4AF37" stroke-width="9" stroke-linecap="round" opacity="0.85"/>
+  </g>
+</svg>

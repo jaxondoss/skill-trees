@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import "./globals.css";
+import { OfflineSync } from "@/components/pwa/OfflineSync";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:max-w-2xl">
           {children}
         </div>
+        <OfflineSync />
       </body>
     </html>
   );

@@ -198,6 +198,11 @@ A practical routine follows naturally. After a lecture, spend a few minutes reca
   },
 ];
 
+/** Spec 12.4: a test every two weeks. */
+export const READING_TEST_EVERY_DAYS = 14;
+
+export const passageById = (id: string) => PASSAGES.find((p) => p.id === id);
+
 export const wordCount = (text: string) => text.trim().split(/\s+/).length;
 
 /** Words per minute, comprehension percent, and effective rate = wpm x comprehension (spec 12.4). */

@@ -81,7 +81,7 @@ async function Integrations() {
                   <span className="text-gold">Needs from you:</span> {a.needs.join("; ")}.
                 </p>
               )}
-              <Link href={a.available ? a.fallback.href : a.fallback.href} className="inline-flex min-h-9 items-center text-xs text-muted underline underline-offset-4">
+              <Link href={a.fallback.href} className="inline-flex min-h-11 items-center text-xs text-muted underline underline-offset-4">
                 {a.available ? (row ? "Manage" : "Connect") : a.fallback.label}
               </Link>
             </li>

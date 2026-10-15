@@ -96,8 +96,9 @@ async function Category({ params }: { params: PageProps<"/c/[slug]">["params"] }
                 <span
                   className="size-2 rounded-full"
                   style={g.resultTier ? { background: g.color } : { boxShadow: `inset 0 0 0 1px ${g.color}` }}
-                  aria-label={g.resultTier ? "Done" : "Not done"}
+                  aria-hidden
                 />
+                <span className="sr-only">{g.resultTier ? "Done: " : "Not done: "}</span>
                 {g.skillName}: {g.text}
               </li>
             ))}

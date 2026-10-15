@@ -8,6 +8,9 @@ import { loadProfile, loadUserContext, todayFor } from "@/lib/data/context";
 import { syncProvider } from "@/lib/data/integrations";
 import { chessAdapter } from "@/integrations/chess";
 import type { ProviderId } from "@/integrations/types";
+import { passageById, scoreReading, wordCount } from "@/content/reading-passages";
+import { analyzeMeal, claudeAvailable, generateReadingTest } from "@/lib/claude";
+import type { MealAnalysis, ReadingTest } from "@/lib/claude-prompts";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "./actions";
 
@@ -207,4 +210,80 @@ export async function saveWoop(input: z.infer<typeof Woop>): Promise<ActionResul
   const { error } = await supabase.from("skill_logs").insert({ user_id: uid, skill_id: await skillId(supabase, "visualization"), day: today, body });
   if (error) return fail(error.message);
   return completeSkillGoalToday("visualization", "standard");
+}
+
+// ───────────────────────────── Reading tests (spec 12.4)
+
+const ReadingResult = z.object({
+  passageId: z.string().max(60).nullable(),
+  words: z.number().int().min(100).max(2000),
+  seconds: z.number().min(15).max(3600),
+  correct: z.number().int().min(0).max(10),
+  total: z.number().int().min(1).max(10),
+});
+
+/** Saves one timed test as an effective rate, with wpm and comprehension kept alongside. */
+export async function saveReadingTest(input: z.infer<typeof ReadingResult>): Promise<ActionResult> {
+  const parsed = ReadingResult.safeParse(input);
+  if (!parsed.success || parsed.data.correct > parsed.data.total) return fail("That result does not look right.");
+  const r = parsed.data;
+  // Curated passages: count the words on the server, not from the client.
+  const curated = r.passageId ? passageById(r.passageId) : undefined;
+  const words = curated ? wordCount(curated.text) : r.words;
+  const score = scoreReading(words, r.seconds, r.correct, r.total);
+  if (score.wpm > 2000) return fail("Over 2,000 wpm is not a real reading speed. Read it again.");
+  const { supabase, uid, today } = await session();
+  if (!uid) return fail("Sign in again.");
+  const { error } = await supabase.from("metrics").insert({
+    user_id: uid,
+    skill_id: await skillId(supabase, "reading"),
+    key: "reading_effective_rate",
+    value: Math.round(score.effectiveRate),
+    unit: "wpm",
+    day: today,
+    source: "reading_test",
+    meta: { passageId: r.passageId, words, seconds: Math.round(r.seconds), wpm: Math.round(score.wpm), comprehensionPct: Math.round(score.comprehensionPct) },
+  });
+  if (error) return fail(error.message);
+  await claimAndRefresh(supabase);
+  return { ok: true };
+}
+
+export type ActionData<T> = { ok: true; data: T } | { ok: false; error: string };
+
+/** Optional: a fresh passage from Claude when ANTHROPIC_API_KEY is set. */
+export async function generateReadingPassage(topic: string): Promise<ActionData<ReadingTest>> {
+  const clean = topic.trim().slice(0, 80);
+  if (!clean) return { ok: false, error: "Name a topic." };
+  if (!claudeAvailable()) return { ok: false, error: "Claude is not connected. Use a curated passage." };
+  const { uid } = await session();
+  if (!uid) return { ok: false, error: "Sign in again." };
+  try {
+    return { ok: true, data: await generateReadingTest(clean) };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Could not generate a passage." };
+  }
+}
+
+// ───────────────────────────── Meal photos (spec 12.10)
+
+const MEDIA = ["image/jpeg", "image/png", "image/webp"] as const;
+const MAX_PHOTO_BYTES = 4_500_000;
+
+/** Reads a meal photo into an editable table. Nothing is saved until the user confirms. */
+export async function analyzeMealPhoto(form: FormData): Promise<ActionData<MealAnalysis>> {
+  if (!claudeAvailable()) return { ok: false, error: "Claude is not connected. Use quick-add." };
+  const file = form.get("photo");
+  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Choose a photo." };
+  if (file.size > MAX_PHOTO_BYTES) return { ok: false, error: "That photo is too large. Try one under 4.5 MB." };
+  const media = MEDIA.find((m) => m === file.type);
+  if (!media) return { ok: false, error: "Use a JPEG, PNG, or WebP photo." };
+  const { uid } = await session();
+  if (!uid) return { ok: false, error: "Sign in again." };
+  try {
+    const base64 = Buffer.from(await file.arrayBuffer()).toString("base64");
+    return { ok: true, data: await analyzeMeal(base64, media) };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Could not read the photo." };
+  }
 }

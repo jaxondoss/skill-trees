@@ -17,6 +17,7 @@ const TRACKER_TITLE: Record<string, string> = {
   chess: "Rating sync",
   timer: "Sit",
   woop: "WOOP",
+  reading: "Reading test",
 };
 
 const TIER_NAME = { foundation: "Foundation", development: "Development", mastery: "Mastery" } as const;
@@ -77,7 +78,7 @@ async function Skill({ params }: { params: PageProps<"/s/[slug]">["params"] }) {
           label={`${d.skill.name} bottle`}
         />
         <div className="min-w-0 space-y-1">
-          <Link href={`/c/${d.category.slug}`} className="text-[11px] tracking-wider uppercase" style={{ color }}>
+          <Link href={`/c/${d.category.slug}`} className="-my-3 inline-flex min-h-11 items-center text-[11px] tracking-wider uppercase" style={{ color }}>
             {d.category.name}
           </Link>
           <h1 className="font-display text-3xl leading-tight">{d.skill.name}</h1>

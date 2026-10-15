@@ -67,7 +67,8 @@ export function CompletionCalendar({ days, today }: { days: { day: string; p: nu
           if (info.offset.x < -60 && canNext) shift(1);
         }}
         className="grid touch-pan-y grid-cols-7 gap-1.5"
-        role="grid"
+        role="group"
+        aria-label="Days"
       >
         {WEEKDAYS.map((w, i) => (
           <span key={i} className="pb-1 text-center text-[10px] text-muted" aria-hidden>
@@ -85,7 +86,6 @@ export function CompletionCalendar({ days, today }: { days: { day: string; p: nu
             <button
               key={day}
               type="button"
-              role="gridcell"
               disabled={p === null && day !== today}
               onClick={() => open(day)}
               aria-label={label}

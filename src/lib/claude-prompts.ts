@@ -36,12 +36,12 @@ export function debriefPrompt(f: WeeklyFacts): string {
     f.riser ? `Biggest riser: ${f.riser.name} (+${f.riser.delta.toFixed(1)}).` : "",
     f.slipper ? `Biggest slipper: ${f.slipper.name} (${f.slipper.delta.toFixed(1)}).` : "",
     f.missedMost.length ? `Most missed: ${f.missedMost.map((m) => `${m.name} ${m.missed} of ${m.scheduled}`).join(", ")}.` : "",
-    f.obstacle ? `What got in the way, in his words: "${f.obstacle}"` : "",
+    f.obstacle ? `What got in the way, in their own words: "${f.obstacle}"` : "",
     f.focusLine ? `Next week's focus line: "${f.focusLine}"` : "",
   ].filter(Boolean);
   return [
     "You are writing a short weekly debrief for a college student's personal skill tracker.",
-    "Using only the facts below, write 4 to 6 sentences: what went well, what slipped and the most likely reason, and one concrete adjustment for next week tied to his focus line. Do not invent numbers.",
+    "Using only the facts below, write 4 to 6 sentences: what went well, what slipped and the most likely reason, and one concrete adjustment for next week tied to the focus line. Do not invent numbers.",
     "",
     ...lines,
   ].join("\n");

@@ -6,6 +6,8 @@ import { addDays } from "@/engine/time";
 import type { Tier } from "@/engine/types";
 import { createClient } from "@/lib/supabase/server";
 import { calorieTarget, formatAfterNoon, nights, sleepAnchor } from "@/engine/trackers";
+import { PASSAGES, READING_TEST_EVERY_DAYS } from "@/content/reading-passages";
+import { claudeAvailable } from "@/lib/claude";
 import { autoClaim, foodTargets, metricValues, sleepSettings } from "./claims";
 import { loadUserContext, must } from "./context";
 import { SHAPE_BY_CATEGORY, type BottleShape } from "./dashboard";
@@ -47,6 +49,8 @@ export type SkillPageData = {
   rawConsistency: number | null;
   countedDays: number;
   atCeiling: boolean;
+  /** Sum of milestone points; a new skill builds up to 100. */
+  milestonePoints: number;
   tipTier: TipTier;
   tips: string[];
   /** Crossed into a new tip tier since the last visit. */
@@ -74,13 +78,21 @@ export type SkillPageData = {
 
 export type Tracker =
   | { kind: "sleep"; anchorTonight: string; open: boolean; nights: { day: string; hours: number | null; bedtime: string; inWindow: boolean }[] }
-  | { kind: "food"; totals: { calories: number; proteinG: number; fiberG: number }; targets: { calories: number; proteinG: number; fiberG: number }; meals: number }
+  | { kind: "food"; totals: { calories: number; proteinG: number; fiberG: number }; targets: { calories: number; proteinG: number; fiberG: number }; meals: number; claude: boolean }
   | { kind: "gut"; today: number | null }
   | { kind: "adherence"; today: number | null }
   | { kind: "assignments"; items: { id: string; name: string; course: string | null; dueAt: string; started: boolean; source: string; urgent: boolean }[] }
   | { kind: "chess"; connection: { platform: string; username: string; timeControl: string; lastSyncedAt: string | null; lastError: string | null } | null }
   | { kind: "timer" }
   | { kind: "woop" }
+  | {
+      kind: "reading";
+      tests: { day: string; wpm: number | null; comprehensionPct: number | null; effectiveRate: number }[];
+      nextDue: string | null;
+      due: boolean;
+      passageId: string;
+      claude: boolean;
+    }
   | { kind: "none" };
 
 const TIP_ORDER: TipTier[] = ["foundation", "development", "mastery"];
@@ -200,6 +212,7 @@ export async function loadSkillPage(slug: string): Promise<SkillPageData | null>
     rawConsistency: b.rawConsistency,
     countedDays: b.countedDays,
     atCeiling: b.atCeiling,
+    milestonePoints: ctx.milestones.filter((m) => m.skill_id === row.id).reduce((sum, m) => sum + m.points, 0),
     tipTier: tier,
     tips: row.tips?.[tier] ?? [],
     tipUnlocked: row.status === "active" && TIP_ORDER.indexOf(tier) > TIP_ORDER.indexOf(seenTier) ? tier : null,
@@ -242,6 +255,7 @@ function trackerFor(slug: string, ctx: Awaited<ReturnType<typeof loadUserContext
         totals: { calories: sum("meal_calories"), proteinG: sum("meal_protein_g"), fiberG: sum("meal_fiber_g") },
         targets: { calories: calorieTarget(t.calories, longRunToday), proteinG: t.proteinG, fiberG: 38 },
         meals: ctx.metrics.filter((m) => m.key === "meal_calories" && m.day === ctx.today).length,
+        claude: claudeAvailable(),
       };
     }
     case "gut-health":
@@ -274,6 +288,16 @@ function trackerFor(slug: string, ctx: Awaited<ReturnType<typeof loadUserContext
       return { kind: "timer" };
     case "visualization":
       return { kind: "woop" };
+    case "reading": {
+      const rows = ctx.metrics.filter((m) => m.key === "reading_effective_rate");
+      const num = (v: unknown) => (typeof v === "number" ? v : null);
+      const tests = rows.map((m) => ({ day: m.day, wpm: num(m.meta?.wpm), comprehensionPct: num(m.meta?.comprehensionPct), effectiveRate: m.value }));
+      const last = tests.at(-1);
+      const nextDue = last ? addDays(last.day, READING_TEST_EVERY_DAYS) : null;
+      const taken = new Set(rows.map((m) => m.meta?.passageId).filter((id): id is string => typeof id === "string"));
+      const passage = PASSAGES.find((p) => !taken.has(p.id)) ?? PASSAGES[tests.length % PASSAGES.length]!;
+      return { kind: "reading", tests: tests.slice(-6).reverse(), nextDue, due: !nextDue || nextDue <= ctx.today, passageId: passage.id, claude: claudeAvailable() };
+    }
     default:
       return { kind: "none" };
   }

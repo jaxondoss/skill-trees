@@ -1,7 +1,7 @@
 "use client";
 
 import { Moon, Sun, Trash2 } from "lucide-react";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ActionResult } from "@/app/actions";
 import {
   addAssignment,
@@ -18,23 +18,9 @@ import {
 } from "@/app/tracker-actions";
 import type { Tracker } from "@/lib/data/skill";
 import { playTink } from "@/lib/sound";
-
-function useAction() {
-  const [pending, start] = useTransition();
-  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
-  const run = (fn: () => Promise<ActionResult>, success?: string, after?: () => void) =>
-    start(async () => {
-      const r = await fn();
-      setMessage(r.ok ? (success ? { ok: true, text: success } : null) : { ok: false, text: r.error });
-      if (r.ok) after?.();
-    });
-  const line = message && (
-    <p role={message.ok ? "status" : "alert"} className={`text-xs ${message.ok ? "text-nutrition" : "text-athletics"}`}>
-      {message.text}
-    </p>
-  );
-  return { pending, run, line };
-}
+import { MealPhoto } from "./MealPhoto";
+import { ReadingTest } from "./ReadingTest";
+import { useAction } from "./useAction";
 
 const input = "h-11 min-w-0 rounded-xl border border-border bg-black/30 px-3 text-sm";
 const button = "min-h-11 rounded-xl border border-border px-4 text-sm disabled:opacity-40";
@@ -65,6 +51,8 @@ export function SkillTracker({ tracker, color }: { tracker: Tracker; color: stri
       return <MeditationTimer />;
     case "woop":
       return <WoopFlow />;
+    case "reading":
+      return <ReadingTest t={tracker} />;
     default:
       return null;
   }
@@ -129,9 +117,10 @@ function FoodTracker({ t, color }: { t: Extract<Tracker, { kind: "food" }>; colo
           </div>
         ))}
         <p className="text-[11px] text-muted">
-          <span className="num">{t.meals}</span> meals logged today. Photo analysis arrives when the Anthropic key is connected; quick-add works now.
+          <span className="num">{t.meals}</span> meals logged today.{t.claude ? "" : " Photo logging turns on when Claude is connected. Quick-add works now."}
         </p>
       </div>
+      {t.claude && <MealPhoto />}
       <form
         className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2"
         onSubmit={(e) => {
@@ -200,15 +189,15 @@ function Assignments({ t }: { t: Extract<Tracker, { kind: "assignments" }> }) {
                       {urgent && <span className="text-athletics">, within 48 hours</span>}
                     </p>
                   </div>
-                  <button type="button" onClick={() => run(() => deleteAssignment(a.id))} className="flex size-9 shrink-0 items-center justify-center text-muted" aria-label={`Delete ${a.name}`}>
+                  <button type="button" onClick={() => run(() => deleteAssignment(a.id))} className="flex size-11 shrink-0 items-center justify-center text-muted" aria-label={`Delete ${a.name}`}>
                     <Trash2 size={14} />
                   </button>
                 </div>
                 <div className="mt-2 flex gap-2">
-                  <button type="button" aria-pressed={a.started} onClick={() => run(() => updateAssignment(a.id, { started: !a.started }))} className={`min-h-9 rounded-chip border px-3 text-xs ${a.started ? "border-gold/60 text-gold" : "border-border text-muted"}`}>
+                  <button type="button" aria-pressed={a.started} onClick={() => run(() => updateAssignment(a.id, { started: !a.started }))} className={`min-h-11 rounded-chip border px-3 text-xs ${a.started ? "border-gold/60 text-gold" : "border-border text-muted"}`}>
                     {a.started ? "Started" : "Mark started"}
                   </button>
-                  <button type="button" onClick={() => run(() => updateAssignment(a.id, { submitted: true }), "Submitted.")} className="min-h-9 rounded-chip border border-border px-3 text-xs text-muted">
+                  <button type="button" onClick={() => run(() => updateAssignment(a.id, { submitted: true }), "Submitted.")} className="min-h-11 rounded-chip border border-border px-3 text-xs text-muted">
                     Submitted
                   </button>
                 </div>

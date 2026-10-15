@@ -239,7 +239,7 @@ export function MilestoneLadder({ milestones, color, soundOn }: { milestones: Mi
           />
           <div
             className={`rounded-xl border p-3 ${
-              m.state === "claimed" ? "border-gold/30 bg-gold/[0.06]" : m.state === "next" ? "border-white/20 bg-white/[0.04]" : "border-transparent opacity-55"
+              m.state === "claimed" ? "border-gold/30 bg-gold/[0.06]" : m.state === "next" ? "border-white/20 bg-white/[0.04]" : "border-dashed border-white/10 text-muted"
             }`}
           >
             <div className="flex items-start justify-between gap-3">
@@ -256,7 +256,7 @@ export function MilestoneLadder({ milestones, color, soundOn }: { milestones: Mi
                     Photo
                   </a>
                 )}
-                <button type="button" onClick={() => run(() => unclaimMilestone(m.id))} className="min-h-8 underline underline-offset-2">
+                <button type="button" onClick={() => run(() => unclaimMilestone(m.id))} className="min-h-11 px-1 underline underline-offset-2">
                   Undo
                 </button>
               </div>
@@ -265,7 +265,7 @@ export function MilestoneLadder({ milestones, color, soundOn }: { milestones: Mi
               <button
                 type="button"
                 onClick={() => setClaiming(m)}
-                className={`mt-2 min-h-10 rounded-chip px-4 text-xs ${m.state === "next" ? "bg-gold text-bg" : "border border-border text-muted"}`}
+                className={`mt-2 min-h-11 rounded-chip px-4 text-xs ${m.state === "next" ? "bg-gold text-bg" : "border border-border text-muted"}`}
               >
                 Claim
               </button>
@@ -388,14 +388,14 @@ function MetricRow({ skillId, metric, today }: { skillId: string; metric: SkillP
             <li key={e.id} className="flex items-center justify-between text-xs text-muted">
               <span className="num">{e.day}</span>
               <span className="num text-text">{formatMetric(def, e.value)}</span>
-              <button type="button" onClick={() => run(() => deleteMetric(e.id))} className="flex size-8 items-center justify-center" aria-label={`Delete ${e.day} entry`}>
+              <button type="button" onClick={() => run(() => deleteMetric(e.id))} className="flex size-11 items-center justify-center" aria-label={`Delete ${e.day} entry`}>
                 <Trash2 size={13} />
               </button>
             </li>
           ))}
           {metric.entries.length > 3 && (
             <li>
-              <button type="button" onClick={() => setShowAll((v) => !v)} className="min-h-8 text-xs text-muted underline underline-offset-2">
+              <button type="button" onClick={() => setShowAll((v) => !v)} className="min-h-11 text-xs text-muted underline underline-offset-2">
                 {showAll ? "Show less" : `Show all ${metric.entries.length}`}
               </button>
             </li>
@@ -468,7 +468,7 @@ export function SkillActions({ data }: { data: SkillPageData }) {
 
   return (
     <div className="space-y-3">
-      {data.atCeiling && status === "active" && (
+      {(data.atCeiling || data.milestonePoints < 100) && status === "active" && (
         <form
           className="glass space-y-2 p-3"
           onSubmit={(e) => {
@@ -476,7 +476,15 @@ export function SkillActions({ data }: { data: SkillPageData }) {
             run(() => addMilestone(data.skill.id, ceiling), () => setCeiling({ title: "", points: 10 }));
           }}
         >
-          <p className="text-sm">Every milestone is claimed. Raise the ceiling with a harder one.</p>
+          <p className="text-sm">
+            {data.milestonePoints < 100 ? (
+              <>
+                Milestones total <span className="num">{data.milestonePoints}</span> of 100. Add more until they reach 100.
+              </>
+            ) : (
+              "Every milestone is claimed. Raise the ceiling with a harder one."
+            )}
+          </p>
           <div className="flex gap-2">
             <input
               aria-label="New milestone"

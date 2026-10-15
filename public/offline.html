@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0A0A0B" />
+    <title>Offline</title>
+    <style>
+      :root { color-scheme: dark; }
+      body { margin: 0; min-height: 100dvh; display: grid; place-items: center; background: #0a0a0b; color: #edeae4; font: 15px/1.5 system-ui, sans-serif; padding: 0 16px; }
+      main { max-width: 340px; text-align: center; }
+      h1 { font-family: Georgia, serif; font-weight: 500; font-size: 28px; margin: 0 0 8px; }
+      p { color: #8e8a84; margin: 0 0 20px; }
+      button { min-height: 44px; padding: 0 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #d4af37; font: inherit; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>You are offline</h1>
+      <p>Open the dashboard once while online and it will load from this phone next time. Goals you log offline sync when you reconnect.</p>
+      <button type="button" onclick="location.reload()">Try again</button>
+    </main>
+  </body>
+</html>

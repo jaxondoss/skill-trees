@@ -26,11 +26,21 @@ About 10 minutes. Nothing here needs a secret key in the app: the browser and se
 See Settings, Integrations in the app for what each one needs. Two server env vars cover the ones that need secrets:
 
 - `INTEGRATIONS_KEY`: 32 random bytes, base64 (`openssl rand -base64 32`). Encrypts stored tokens.
-- `ANTHROPIC_API_KEY`: food photo analysis, weekly debrief, reading test generation.
+- `ANTHROPIC_API_KEY`: food photo analysis, weekly debrief, reading test generation. Without it those buttons stay hidden and everything has a manual path (quick-add meals, curated reading passages, the review without a debrief).
 
 Chess needs neither: connect a public username on the Chess page.
 
-## 4. Local development
+## 4. Install on the phone
+
+Open the deployed URL in Safari, Share, Add to Home Screen. It opens full screen. After one online visit the dashboard loads offline; goals you tap offline are kept on the phone and sync when you reconnect (within 36 hours, to the day you tapped them). Signing out clears the cached pages and any unsynced logs on that device.
+
+## 5. Reviews
+
+Sunday: the dashboard shows a review prompt until the weekly review is saved (focus line, difficulty decisions, store numbers). First Sunday of the month: the monthly review comes first (calibration, figure comparison, add or archive skills). Both are also linked at the bottom of the dashboard.
+
+Data export: Settings, Data, Export everything (JSON).
+
+## 6. Local development
 
 ```bash
 cp .env.example .env.local   # fill in the two values
@@ -45,6 +55,7 @@ pnpm test        # Vitest: engines, seed integrity, copy rules
 pnpm test:db     # migrations + RLS against a throwaway local Postgres (needs Postgres 15+ binaries)
 pnpm test:e2e    # Playwright against a local stand-in for Supabase (Postgres + PostgREST + auth stub),
                  # booted by scripts/e2e-stack.sh. Set PW_CHROMIUM_PATH to use a preinstalled Chromium.
+                 # E2E_MODE=start runs a production build, which also runs the offline (PWA) tests.
 pnpm typecheck
 pnpm lint
 pnpm build

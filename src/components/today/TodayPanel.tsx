@@ -2,13 +2,15 @@
 
 import { motion, useAnimationControls } from "framer-motion";
 import { Lock, Plus } from "lucide-react";
-import { useOptimistic, useRef, useState, useTransition } from "react";
+import { useMemo, useOptimistic, useRef, useState, useTransition } from "react";
 import { completeGoal, pinSkill, saveNote, swapGoal, unpinSkill } from "@/app/actions";
 import { Bottle } from "@/components/bottle/Bottle";
+import { useQueue } from "@/components/pwa/OfflineSync";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { Sheet } from "@/components/ui/Sheet";
 import type { Tier } from "@/engine/types";
 import type { DashboardData, GoalView, SkillView } from "@/lib/data/dashboard";
+import { enqueue, isNetworkError } from "@/lib/offline-queue";
 import { emitPulse } from "@/lib/pulse";
 import { playTink } from "@/lib/sound";
 
@@ -21,7 +23,17 @@ type Props = Pick<DashboardData, "goals" | "rack" | "skills" | "categories" | "p
 
 /** Focus Rack and today's checklist (spec 4.1 D): tap, long-press, swipe, pin. */
 export function TodayPanel({ goals: serverGoals, rack, skills, categories, plan, soundOn }: Props) {
-  const [goals, setOptimistic] = useOptimistic(serverGoals, (state, u: { id: string; tier: Tier | null; note?: string | null }) =>
+  // Logs waiting to sync from offline show as done until the server has them.
+  const queue = useQueue();
+  const base = useMemo(() => {
+    if (!queue.length) return serverGoals;
+    const byId = new Map(queue.map((q) => [q.goalId, q]));
+    return serverGoals.map((g) => {
+      const q = byId.get(g.id);
+      return q ? { ...g, resultTier: q.tier, userNote: q.note === undefined ? g.userNote : q.note } : g;
+    });
+  }, [serverGoals, queue]);
+  const [goals, setOptimistic] = useOptimistic(base, (state, u: { id: string; tier: Tier | null; note?: string | null }) =>
     state.map((g) => (g.id === u.id ? { ...g, resultTier: u.tier, userNote: u.note === undefined ? g.userNote : u.note } : g)),
   );
   const [, startTransition] = useTransition();
@@ -44,7 +56,17 @@ export function TodayPanel({ goals: serverGoals, rack, skills, categories, plan,
         emitPulse(g.categoryId);
         if (soundOn) playTink(doneToday.current++);
       } else doneToday.current = Math.max(0, doneToday.current - 1);
-      return completeGoal(g.id, tier, note);
+      const offline = () =>
+        enqueue({ goalId: g.id, tier, note, at: new Date().toISOString() })
+          ? { ok: true as const }
+          : { ok: false as const, error: "Offline, and this phone would not save the log. Try again when connected." };
+      if (!navigator.onLine) return offline();
+      try {
+        return await completeGoal(g.id, tier, note);
+      } catch (err) {
+        if (isNetworkError(err)) return offline();
+        throw err;
+      }
     });
   };
 

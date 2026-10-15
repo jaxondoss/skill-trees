@@ -40,7 +40,7 @@ export function ScoreChart({ points, color, today }: { points: { day: string; sc
               role="tab"
               aria-selected={range === r.label}
               onClick={() => setRange(r.label)}
-              className={`min-h-8 rounded-chip px-3 text-xs ${range === r.label ? "bg-white/10 text-text" : "text-muted"}`}
+              className={`min-h-11 rounded-chip px-3 text-xs ${range === r.label ? "bg-white/10 text-text" : "text-muted"}`}
             >
               {r.label}
             </button>

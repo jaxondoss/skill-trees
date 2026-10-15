@@ -73,7 +73,7 @@ export function Archive({ categories, skills }: { categories: CategoryView[]; sk
             type="button"
             onClick={() => setFilter(chip.filter)}
             aria-pressed={isActive(chip.filter)}
-            className={`min-h-9 shrink-0 rounded-chip border px-3.5 text-xs transition-colors ${
+            className={`min-h-11 shrink-0 rounded-chip border px-3.5 text-xs transition-colors ${
               isActive(chip.filter) ? "border-gold/60 bg-gold/10 text-gold" : "border-border text-muted"
             }`}
           >

@@ -107,7 +107,7 @@ export function Onboarding({ data }: { data: OnboardingData }) {
                         aria-label={`${DAY_NAMES[d.weekday]} day type`}
                         value={d.dayType}
                         onChange={(e) => setSchedule(schedule.map((x, j) => (j === i ? { ...x, dayType: e.target.value as DayType } : x)))}
-                        className={`${input} h-9 text-xs`}
+                        className={`${input} h-11 text-xs`}
                       >
                         {DAY_TYPES.map((t) => (
                           <option key={t.value} value={t.value}>
@@ -127,7 +127,7 @@ export function Onboarding({ data }: { data: OnboardingData }) {
                         type="time"
                         value={d.trainingTime ?? ""}
                         onChange={(e) => setSchedule(schedule.map((x, j) => (j === i ? { ...x, trainingTime: e.target.value || null } : x)))}
-                        className={`${input} num h-9 text-xs`}
+                        className={`${input} num h-11 text-xs`}
                       />
                     </label>
                   </li>

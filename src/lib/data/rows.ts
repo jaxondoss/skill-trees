@@ -99,7 +99,7 @@ export type PlanGoalRow = {
   daily_plans: { day: string };
 };
 
-export type MetricRow = { id: string; skill_id: string | null; key: string; value: number; day: string; recorded_at: string; source: string };
+export type MetricRow = { id: string; skill_id: string | null; key: string; value: number; day: string; recorded_at: string; source: string; meta: Record<string, unknown> | null };
 
 export type AssignmentRow = { id: string; course: string | null; name: string; due_at: string; started: boolean; submitted: boolean; source: string };
 

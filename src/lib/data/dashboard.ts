@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/server";
 import { autoClaim } from "./claims";
 import { HISTORY_DAYS, loadGoals, loadUserContext, must } from "./context";
 import { syncDue } from "./integrations";
+import { reviewPrompt } from "./reviews";
 import type { CompletionRow, PlanGoalRow, SnapshotRow } from "./rows";
 
 export type BottleShape = "faceted" | "round" | "vial" | "sturdy" | "teardrop";
@@ -102,6 +103,8 @@ export type DashboardData = {
   /** Day completion for the calendar: closed days plus today. */
   calendar: { day: string; p: number }[];
   plan: { overBudget: boolean; plannedMin: number; budgetMin: number; overrides: string[]; swapUsed: boolean };
+  /** Sunday nudges until the review is saved (spec 4.4). */
+  review: { weekly: boolean; monthly: boolean };
 };
 
 /**
@@ -134,12 +137,13 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
   }
   const todayRows = goalRows.filter((g) => g.daily_plans.day === today);
 
-  const [planRes, completionRes, snapshotRes, streakRes, authRes] = await Promise.all([
+  const [planRes, completionRes, snapshotRes, streakRes, authRes, review] = await Promise.all([
     supabase.from("daily_plans").select("over_budget, planned_min, budget_min, overrides, swap_used").eq("day", today).maybeSingle(),
     supabase.from("daily_completions").select("day, p, n_core, kept_streak").order("day", { ascending: false }).limit(1000),
     supabase.from("score_snapshots").select("scope, ref_id, score").eq("day", addDays(today, -7)),
     supabase.from("streak_state").select("broken_on, broken_length").maybeSingle(),
     supabase.auth.getClaims(),
+    reviewPrompt(supabase, today),
   ]);
   const planRow = planRes.data;
   const completionRows = must(completionRes, "completions") as CompletionRow[];
@@ -315,5 +319,6 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
       overrides: planRow?.overrides ?? [],
       swapUsed: planRow?.swap_used ?? false,
     },
+    review,
   };
 }

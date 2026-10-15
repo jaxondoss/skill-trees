@@ -89,7 +89,7 @@ export function Bottle({ shape, color, level, neglected, dormant, fillFromEmpty,
   const spring = { type: "spring" as const, stiffness: 120, damping: 14, delay };
 
   return (
-    <svg viewBox="0 0 60 100" className={className} role="img" aria-label={label}>
+    <svg viewBox="0 0 60 100" className={className} {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}>
       <defs>
         <clipPath id={`in-${id}`}>
           <path d={s.interior} />

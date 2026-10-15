@@ -22,6 +22,8 @@ const TABLES: Record<string, string> = {
   streak_state: "*",
   assignments: "*",
   sleep_sessions: "*",
+  weekly_reviews: "*",
+  monthly_reviews: "*",
   integrations: "provider, status, config, last_synced_at, last_error, created_at",
 };
 const PAGE = 1000;

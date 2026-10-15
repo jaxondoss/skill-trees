@@ -105,7 +105,7 @@ export async function loadUserContext(supabase: SupabaseClient, now: Date): Prom
     supabase.from("day_overrides").select("kind, starts_on, ends_on").gte("ends_on", today),
     supabase.from("key_dates").select("label, date").eq("kind", "race").not("date", "is", null),
     loadGoals(supabase, addDays(today, -HISTORY_DAYS)),
-    supabase.from("metrics").select("id, skill_id, key, value, day, recorded_at, source").order("day").order("recorded_at").limit(5000),
+    supabase.from("metrics").select("id, skill_id, key, value, day, recorded_at, source, meta").order("day").order("recorded_at").limit(5000),
     supabase
       .from("assignments")
       .select("id, course, name, due_at, started, submitted, source")
