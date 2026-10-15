@@ -15,7 +15,7 @@ function nn(n: Omit<NonNegotiableTemplate, "defaultTier" | "daysOfWeek"> & Parti
 
 export const SEED_TEMPLATE: SeedTemplate = {
   version: 1,
-  profile: { timezone: "America/Chicago", rolloverHour: 4, dailyBudgetMin: 120 },
+  profile: { timezone: "America/Chicago", rolloverHour: 4, dailyBudgetMin: 125 },
   rack: ["dropshipping", "strength", "running", "time-blocking", "academics"],
 
   categories: [

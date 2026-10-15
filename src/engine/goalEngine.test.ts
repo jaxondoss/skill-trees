@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { dailyCompletion } from "./completion";
 import { categories, defaultRack, rec, schedule, seedSkills } from "./fixtures";
 import {
+  BUDGET_FLOOR_NOTE,
   generatePlan,
   MAX_CORE_GOALS,
   NEVER_MISS_TWICE_NOTE,
@@ -33,7 +34,7 @@ function plan(
   return generatePlan({
     resolved: resolveDay(day, schedule, opts.overrides ?? [], opts.races ?? []),
     now: new Date(`${day}T15:00:00Z`),
-    budgetMin: opts.budgetMin ?? 120,
+    budgetMin: opts.budgetMin ?? 125,
     categories,
     skills: opts.skills ?? seedSkills(),
     rack: opts.rack ?? defaultRack,
@@ -76,17 +77,23 @@ describe("generatePlan: Jaxon's default Tuesday", () => {
     expect(p.goals.filter((g) => g.kind === "rack").map((g) => g.skillId)).toEqual(defaultRack);
   });
 
-  it("adds balance goals only from categories the rack does not cover", () => {
+  it("adds a balance goal from the one uncovered category, then fills the last slot within open time", () => {
     const balance = p.goals.filter((g) => g.kind === "balance");
-    expect(balance).toHaveLength(1);
-    expect(categoryOf(balance[0]!.skillId)).toBe("nutrition");
+    expect(balance.find((g) => g.reason === "Balance: Nutrition")?.skillId).toBe("food");
+    // The rack uses all 125 minutes, so only a zero-minute habit fits the open slot.
+    expect(balance.find((g) => g.reason === "Balance: fits open time")).toMatchObject({ skillId: "sleep", estMin: 0 });
   });
 
-  it("fits the 120-minute budget by downgrading the lowest-priority goal to Floor", () => {
-    // Store 40 + Plan tomorrow 10 + Deep study 75 = 125 > 120. Academics has the lowest priority.
-    expect(bySkill(p, "academics")).toMatchObject({ tier: "floor", estMin: 20, text: "20 min reviewing today's notes" });
-    expect(bySkill(p, "academics")!.note).toContain("time budget");
-    expect(p).toMatchObject({ plannedMin: 70, overBudget: false });
+  it("fits the default rack in the 125-minute budget at Standard", () => {
+    // Store 40 + Plan tomorrow 10 + Deep study 75 = 125.
+    expect(bySkill(p, "academics")).toMatchObject({ tier: "standard", estMin: 75 });
+    expect(p).toMatchObject({ plannedMin: 125, overBudget: false });
+  });
+
+  it("at 120 minutes downgrades the lowest-priority goal to Floor", () => {
+    const tight = plan(TUE, { budgetMin: 120 });
+    expect(bySkill(tight, "academics")).toMatchObject({ tier: "floor", estMin: 20, note: BUDGET_FLOOR_NOTE });
+    expect(tight).toMatchObject({ plannedMin: 70, overBudget: false });
   });
 
   it("does not count training or zero-minute habits against the budget", () => {
@@ -155,7 +162,7 @@ describe("generatePlan: balance goals", () => {
     const skills = seedSkills(Object.fromEntries(fresh.map((s) => [s, { score: 90 }])));
     const history = fresh.map((s) => rec(s, addDays(TUE, -1), "standard", "balance"));
     const p = plan(TUE, { rack: ["dropshipping", "strength", "academics", "food"], skills, history });
-    expect(p.goals.find((g) => g.kind === "balance")!.skillId).toBe("chess");
+    expect(p.goals.filter((g) => g.kind === "balance" && categoryOf(g.skillId) === "mind").map((g) => g.skillId)).toEqual(["chess"]);
   });
 });
 
@@ -214,9 +221,12 @@ describe("generatePlan: Canvas override", () => {
   });
 
   it("adds an Academics goal when there is no balance goal to replace", () => {
+    // Rack covers every category, the rest is dormant, and no time is free: no balance goals at all.
     const rack = ["dropshipping", "reading", "chess", "strength", "food"];
-    expect(plan(TUE, { rack }).goals.filter((g) => g.kind === "balance")).toHaveLength(0);
-    const p = plan(TUE, { rack, assignments: [{ name: "Lab 6", dueAt: soon(TUE, 10), started: false }] });
+    const others = seedSkills().filter((s) => !rack.includes(s.slug) && s.slug !== "academics");
+    const skills = seedSkills(Object.fromEntries(others.map((s) => [s.slug, { status: "dormant" as const }])));
+    expect(plan(TUE, { rack, skills, budgetMin: 100 }).goals.filter((g) => g.kind === "balance")).toHaveLength(0);
+    const p = plan(TUE, { rack, skills, budgetMin: 100, assignments: [{ name: "Lab 6", dueAt: soon(TUE, 10), started: false }] });
     expect(bySkill(p, "academics")).toMatchObject({ kind: "balance", text: "Start Lab 6" });
   });
 
@@ -282,6 +292,18 @@ describe("generatePlan: limits", () => {
     expect(core(tight)).toHaveLength(core(normal).length);
     expect(tight.goals.filter((g) => g.countsAgainstBudget && g.kind !== "stretch").every((g) => g.tier === "floor")).toBe(true);
     expect(tight).toMatchObject({ plannedMin: 10 + 5 + 20, overBudget: true });
+  });
+
+  it("fills the open slot at Standard when there is time, at Floor when only Floor fits", () => {
+    // Free time after the rack: 75 minutes, then 15. AI Building is the top remaining candidate.
+    expect(bySkill(plan(TUE, { budgetMin: 200 }), "ai-building")).toMatchObject({ tier: "standard", reason: "Balance: fits open time" });
+    expect(bySkill(plan(TUE, { budgetMin: 140 }), "ai-building")).toMatchObject({ tier: "floor", note: BUDGET_FLOOR_NOTE });
+  });
+
+  it("never pushes another goal down to make room for the fill", () => {
+    const p = plan(TUE, { budgetMin: 130 });
+    expect(p.goals.filter((g) => g.kind === "rack").every((g) => g.tier === "standard")).toBe(true);
+    expect(p.plannedMin).toBeLessThanOrEqual(130);
   });
 
   it("caps core goals at 7 plus 1 stretch, keeping every rack goal", () => {

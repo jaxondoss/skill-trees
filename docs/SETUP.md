@@ -34,6 +34,8 @@ pnpm dev
 ```bash
 pnpm test        # Vitest: engines, seed integrity, copy rules
 pnpm test:db     # migrations + RLS against a throwaway local Postgres (needs Postgres 15+ binaries)
+pnpm test:e2e    # Playwright against a local stand-in for Supabase (Postgres + PostgREST + auth stub),
+                 # booted by scripts/e2e-stack.sh. Set PW_CHROMIUM_PATH to use a preinstalled Chromium.
 pnpm typecheck
 pnpm lint
 pnpm build

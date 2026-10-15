@@ -27,6 +27,7 @@ export const LEG_VOLUME_CUT_DAYS = 21;
 export const RACE_WEEK_DAYS = 7;
 export const CANVAS_WINDOW_HOURS = 48;
 export const NEVER_MISS_TWICE_NOTE = "Get back on it. Floor counts.";
+export const BUDGET_FLOOR_NOTE = "Floor to fit today's time budget.";
 
 // ───────────────────────────── Day resolution
 
@@ -168,6 +169,7 @@ export function generatePlan(input: PlanInput): Plan {
   });
 
   const goals: Draft[] = [];
+  const used = () => goals.reduce((sum, g) => sum + (g.countsAgainstBudget ? g.nn.minutes[g.tier] : 0), 0);
   const goalFor = (skillId: string | undefined) => goals.find((g) => g.skillId === skillId && g.kind !== "stretch");
 
   // 1. Rack goals: one per pinned skill scheduled today.
@@ -204,6 +206,23 @@ export function generatePlan(input: PlanInput): Plan {
     if (represented.has(c.s.categoryId)) continue;
     goals.push(draft(c.s, c.nn, "balance", c.nn.defaultTier, `Balance: ${catById.get(c.s.categoryId)?.name ?? "category"}`));
     represented.add(c.s.categoryId);
+    slots -= 1;
+  }
+
+  // 3b. Fill: a slot still open goes to the next-best candidate from any category, but only
+  //     if it fits in the time the plan leaves free (at its default tier, else at Floor).
+  //     It never pushes another goal down to make room.
+  let free = Math.max(0, input.budgetMin - used());
+  for (const c of candidates) {
+    if (slots <= 0) break;
+    if (goalFor(c.s.id)) continue;
+    const cost = (t: Tier) => (c.nn.countsAgainstBudget ? c.nn.minutes[t] : 0);
+    const tier: Tier | null = cost(c.nn.defaultTier) <= free ? c.nn.defaultTier : cost("floor") <= free ? "floor" : null;
+    if (!tier) continue;
+    const g = draft(c.s, c.nn, "balance", tier, "Balance: fits open time");
+    if (tier !== c.nn.defaultTier) g.notes.push(BUDGET_FLOOR_NOTE);
+    goals.push(g);
+    free -= cost(tier);
     slots -= 1;
   }
 
@@ -282,8 +301,6 @@ export function generatePlan(input: PlanInput): Plan {
   }
 
   // 7. Time budget: downgrade lowest-priority goals to Floor until the plan fits.
-  const minutesOf = (g: Draft) => g.nn.minutes[g.tier];
-  const used = () => goals.reduce((sum, g) => sum + (g.countsAgainstBudget ? minutesOf(g) : 0), 0);
   const downgradeOrder = [
     ...goals.filter((g) => g.kind === "balance").sort((a, b) => a.priority - b.priority),
     ...goals.filter((g) => g.kind === "rack").sort((a, b) => a.priority - b.priority),
@@ -292,7 +309,7 @@ export function generatePlan(input: PlanInput): Plan {
     if (used() <= input.budgetMin) break;
     if (!g.countsAgainstBudget || g.tierLocked || g.tier === "floor") continue;
     g.tier = "floor";
-    g.notes.push("Floor to fit today's time budget.");
+    g.notes.push(BUDGET_FLOOR_NOTE);
   }
   const plannedMin = used();
 

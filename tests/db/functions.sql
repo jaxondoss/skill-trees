@@ -1,0 +1,87 @@
+-- save_plan and save_snapshots. Run by scripts/test-db.sh after rls.sql.
+\set ON_ERROR_STOP on
+\set c '''cccccccc-0000-0000-0000-000000000003'''
+\set d '''dddddddd-0000-0000-0000-000000000004'''
+
+insert into auth.users (id, email) values (:c, 'c@test'), (:d, 'd@test');
+
+do $$ begin
+  assert (select daily_budget_min from public.profiles where user_id = 'cccccccc-0000-0000-0000-000000000003') = 125,
+    'new profiles default to a 125-minute budget';
+end $$;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', :c, true) \g /dev/null
+select public.seed_user(current_setting('forge.template')::jsonb) \g /dev/null
+
+do $$
+declare
+  v_skill uuid := (select id from public.skills where slug = 'strength');
+  v_nn uuid := (select id from public.non_negotiables where skill_id = v_skill);
+  v_plan jsonb;
+  v_first uuid;
+  v_second uuid;
+begin
+  v_plan := jsonb_build_object(
+    'dayType', 'class_heavy', 'overrides', '[]'::jsonb, 'budgetMin', 125, 'plannedMin', 0, 'overBudget', false,
+    'goals', jsonb_build_array(
+      jsonb_build_object('skillId', v_skill, 'nonNegotiableId', v_nn, 'kind', 'rack', 'tier', 'standard',
+                         'title', 'Training session', 'text', 'Full planned session', 'estMin', 75, 'reason', 'Rack', 'note', null),
+      jsonb_build_object('skillId', v_skill, 'nonNegotiableId', v_nn, 'kind', 'stretch', 'tier', 'stretch',
+                         'title', 'Training session', 'text', 'PR attempt', 'estMin', 90, 'reason', 'Stretch (optional)', 'note', null)
+    ));
+
+  v_first := public.save_plan('2026-10-20', v_plan);
+  assert v_first is not null, 'plan saved';
+  assert (select count(*) from public.plan_goals where plan_id = v_first) = 2, 'two goals saved';
+  assert (select title from public.plan_goals where plan_id = v_first and sort = 0) = 'Training session', 'title saved';
+
+  -- Second save for the same day keeps the first plan untouched.
+  v_second := public.save_plan('2026-10-20', jsonb_set(v_plan, '{goals}', '[]'::jsonb));
+  assert v_second = v_first, 'same plan id returned';
+  assert (select count(*) from public.plan_goals where plan_id = v_first) = 2, 'goals unchanged on second save';
+
+  -- Snapshots replace the day's rows.
+  perform public.save_snapshots('2026-10-20', jsonb_build_array(
+    jsonb_build_object('scope', 'skill', 'refId', v_skill, 'score', 41.234, 'level', 16, 'consistency', 100),
+    jsonb_build_object('scope', 'overall', 'refId', null, 'score', 12.5, 'level', null, 'consistency', null)));
+  perform public.save_snapshots('2026-10-20', jsonb_build_array(
+    jsonb_build_object('scope', 'overall', 'refId', null, 'score', 13, 'level', null, 'consistency', null)));
+  assert (select count(*) from public.score_snapshots where day = '2026-10-20') = 1, 'snapshots replaced';
+  assert (select score from public.score_snapshots where scope = 'overall') = 13, 'latest snapshot kept';
+end $$;
+commit;
+
+-- User D cannot see or reuse C's plan, and a plan pointing at C's skill is rejected.
+select set_config('forge.c_skill', (select id::text from public.skills where user_id = :c and slug = 'strength'), false) \g /dev/null
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', :d, true) \g /dev/null
+do $$ begin
+  assert (select count(*) from public.daily_plans) = 0, 'D sees no plans';
+  begin
+    perform public.save_plan('2026-10-20', jsonb_build_object(
+      'dayType', 'weekend', 'budgetMin', 125, 'plannedMin', 0, 'overBudget', false,
+      'goals', jsonb_build_array(jsonb_build_object('skillId', current_setting('forge.c_skill'), 'nonNegotiableId', null,
+        'kind', 'rack', 'tier', 'standard', 'text', 'x', 'estMin', 0))));
+    raise exception 'cross-user plan goal saved';
+  exception when foreign_key_violation then null;
+  end;
+end $$;
+commit;
+
+-- Signed out: both functions refuse.
+begin;
+set local role authenticated;
+do $$ begin
+  begin
+    perform public.save_snapshots('2026-10-20', '[]'::jsonb);
+    raise exception 'anonymous save succeeded';
+  exception when raise_exception then
+    if sqlerrm like 'anonymous%' then raise; end if;
+  end;
+end $$;
+commit;
+
+\echo 'Function checks passed'
