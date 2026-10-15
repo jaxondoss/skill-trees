@@ -81,7 +81,7 @@ export type GoalView = {
 
 export type DashboardData = {
   today: string;
-  overall: { score: number; display: number; tierNumeral: string; tierName: string; trendDelta: number | null };
+  overall: { score: number; display: number; tier: number; tierNumeral: string; tierName: string; trendDelta: number | null };
   todayP: number | null;
   streak: { current: number; best: number; todayCounted: boolean };
   /** A break the user has not seen yet: show the crack, then "Streak ended at N. Best: M." */
@@ -89,6 +89,8 @@ export type DashboardData = {
   focusLine: string | null;
   soundOn: boolean;
   onboarded: boolean;
+  /** Overall rose into a tier not yet celebrated: play the tier-up moment. */
+  tierUp: { tier: number; numeral: string; name: string } | null;
   /** Milestones auto-claimed on this load. */
   claimed: string[];
   categories: CategoryView[];
@@ -234,6 +236,11 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
   const overall = overallScore(categoryViews.map((c) => c.score));
   const tier = figureTier(overall);
   const overallTrend = trend(overall, weekAgoScore("overall", null));
+  // A drop is recorded quietly, so rising back into a tier celebrates it again.
+  if (tier.tier < profile.seen_figure_tier && userId) {
+    await supabase.from("profiles").update({ seen_figure_tier: tier.tier }).eq("user_id", userId);
+  }
+  const tierUp = tier.tier > profile.seen_figure_tier ? { tier: tier.tier, numeral: tier.numeral, name: tier.name } : null;
 
   // ── Today's snapshot, overwritten through the day so the last write is the closing value.
   const snap = await supabase.rpc("save_snapshots", {
@@ -255,7 +262,7 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
   const nnById = new Map(ctx.nonNegotiables.map((n) => [n.id, n]));
   return {
     today,
-    overall: { score: overall, display: displayScore(overall), tierNumeral: tier.numeral, tierName: tier.name, trendDelta: overallTrend.delta },
+    overall: { score: overall, display: displayScore(overall), tier: tier.tier, tierNumeral: tier.numeral, tierName: tier.name, trendDelta: overallTrend.delta },
     todayP,
     streak: { current: streak.current, best: streak.best, todayCounted: streak.todayCounted },
     streakBreak,
@@ -263,6 +270,7 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
     soundOn: profile.sound_on,
     onboarded: profile.onboarded_at !== null,
     claimed,
+    tierUp,
     categories: categoryViews,
     rack: [1, 2, 3, 4, 5].map((slot) => {
       const pin = rackPins.find((p) => p.slot === slot);

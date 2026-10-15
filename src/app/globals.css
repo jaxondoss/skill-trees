@@ -102,6 +102,91 @@ body {
   box-shadow: inset 0 0 0 1.5px rgba(237, 234, 228, 0.2);
 }
 
+/* Figure layers (spec 5.3). */
+@keyframes particle-rise {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-18px);
+    opacity: 0;
+  }
+}
+.particle {
+  animation: particle-rise 7s ease-in-out infinite;
+}
+@keyframes rays-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.rays {
+  transform-box: view-box;
+  transform-origin: 50px 52px;
+  animation: rays-turn 90s linear infinite;
+}
+@keyframes vein-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.vein-draw path {
+  stroke-dasharray: 1;
+  animation: vein-draw 2.2s cubic-bezier(0.3, 0.6, 0.2, 1) both;
+}
+
+/* Bottle liquid surface (spec 11.4). */
+@keyframes wave-drift {
+  to {
+    transform: translateX(-30px);
+  }
+}
+.wave {
+  animation: wave-drift 5s ease-in-out infinite alternate;
+}
+@keyframes bubble-rise {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(var(--rise, -30px));
+    opacity: 0;
+  }
+}
+.bubble {
+  animation: bubble-rise 4.5s ease-in infinite;
+}
+
+@keyframes burst {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-7px) scale(1.4);
+    opacity: 0;
+  }
+}
+.burst {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: burst 0.7s ease-out both;
+}
+
 /* Shelf surface for the archive and rack. */
 @utility shelf {
   background:

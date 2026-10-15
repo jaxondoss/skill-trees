@@ -48,7 +48,7 @@ export async function loadGoals(supabase: SupabaseClient, since: string, until?:
 
 export async function loadProfile(supabase: SupabaseClient): Promise<ProfileRow> {
   return must(
-    await supabase.from("profiles").select("timezone, rollover_hour, daily_budget_min, focus_line, sound_on, onboarded_at").single(),
+    await supabase.from("profiles").select("timezone, rollover_hour, daily_budget_min, focus_line, sound_on, onboarded_at, seen_figure_tier").single(),
     "profile",
   ) as ProfileRow;
 }

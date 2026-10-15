@@ -4,6 +4,7 @@ import { Banner } from "@/components/dashboard/Banner";
 import { FigureStage } from "@/components/dashboard/FigureStage";
 import { CompletionCalendar } from "@/components/calendar/CompletionCalendar";
 import { StreakBreak } from "@/components/dashboard/StreakBreak";
+import { TierUp } from "@/components/figure/TierUp";
 import { TodayPanel } from "@/components/today/TodayPanel";
 import { redirect } from "next/navigation";
 import { loadDashboard } from "@/lib/data/dashboard";
@@ -35,14 +36,23 @@ async function Dashboard() {
 
   return (
     <>
-      {data.streakBreak && <StreakBreak length={data.streakBreak.length} best={data.streakBreak.best} soundOn={data.soundOn} />}
+      {data.tierUp && (
+        <TierUp
+          tier={data.tierUp.tier}
+          numeral={data.tierUp.numeral}
+          name={data.tierUp.name}
+          scores={Object.fromEntries(data.categories.map((c) => [c.region, c.score ?? 0]))}
+          soundOn={data.soundOn}
+        />
+      )}
+      {!data.tierUp && data.streakBreak && <StreakBreak length={data.streakBreak.length} best={data.streakBreak.best} soundOn={data.soundOn} />}
       <Banner overall={data.overall} todayP={data.todayP} streak={data.streak} />
 
       <p className="-mt-2 px-1 text-center font-display text-sm text-muted italic">
         {data.focusLine ?? "No focus line yet. Write one in the Sunday review."}
       </p>
 
-      <FigureStage categories={data.categories} overall={data.overall.score} />
+      <FigureStage categories={data.categories} tier={data.overall.tier} />
       <TodayPanel
         goals={data.goals}
         rack={data.rack}

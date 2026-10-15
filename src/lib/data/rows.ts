@@ -8,6 +8,7 @@ export type ProfileRow = {
   focus_line: string | null;
   sound_on: boolean;
   onboarded_at: string | null;
+  seen_figure_tier: number;
 };
 
 export type CategoryRow = {

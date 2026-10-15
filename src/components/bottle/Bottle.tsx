@@ -62,6 +62,9 @@ const SHAPES: Record<BottleShape, ShapeDef> = {
   },
 };
 
+/** Two wave periods (30 units each) so the drift can loop seamlessly. */
+const WAVE = "Q-22.5 -1.4 -15 0 T0 0 T15 0 T30 0 T45 0 T60 0 T75 0 T90 0";
+
 export type BottleProps = {
   shape: BottleShape;
   color: string;
@@ -104,27 +107,38 @@ export function Bottle({ shape, color, level, neglected, dormant, fillFromEmpty,
       {/* glass body */}
       <path d={s.outline} fill="rgba(255,255,255,0.04)" />
 
-      {/* liquid */}
+      {/* liquid: the whole group rises to the level with a spring; the surface drifts as a wave */}
       <g clipPath={`url(#in-${id})`} opacity={neglected ? 0.6 : 1}>
-        <motion.rect
-          x="0"
-          width="60"
-          height="100"
-          fill={`url(#liq-${id})`}
-          initial={{ y: from }}
-          animate={{ y: surface }}
-          transition={spring}
-        />
-        <motion.rect
-          x="0"
-          width="60"
-          height="1.2"
-          fill={color}
-          style={{ filter: "brightness(1.6)" }}
-          initial={{ y: from - 0.6 }}
-          animate={{ y: surface - 0.6 }}
-          transition={spring}
-        />
+        <motion.g initial={{ y: from }} animate={{ y: surface }} transition={spring}>
+          <g className={reduce ? undefined : "wave"}>
+            <path d={`M-30 0 ${WAVE} V110 H-30 Z`} fill={`url(#liq-${id})`} />
+            <path d={`M-30 0 ${WAVE}`} fill="none" stroke={color} strokeWidth="1.2" style={{ filter: "brightness(1.7)" }} opacity="0.9" />
+          </g>
+          {pct > 0.5 && !reduce && !dormant && (
+            <g aria-hidden>
+              {[14, 30, 44].map((x, i) => (
+                <circle
+                  key={x}
+                  cx={x}
+                  cy={(s.bottom - surface) * 0.9}
+                  r={0.9 + (i % 2) * 0.4}
+                  fill="white"
+                  opacity="0.5"
+                  className="bubble"
+                  style={{ animationDelay: `${i * 1.4}s`, ["--rise" as string]: `${-(s.bottom - surface) * 0.85}px` }}
+                />
+              ))}
+            </g>
+          )}
+          {/* A burst of bubbles each time the level changes. */}
+          {pct > 0 && !reduce && (
+            <g key={Math.round(level)} aria-hidden>
+              {[22, 30, 38, 27].map((x, i) => (
+                <circle key={i} cx={x} cy={3} r={0.8} fill="white" className="burst" style={{ animationDelay: `${0.5 + i * 0.07}s` }} />
+              ))}
+            </g>
+          )}
+        </motion.g>
       </g>
 
       {/* glass outline and highlight */}

@@ -5,6 +5,7 @@ import { Lock, Plus } from "lucide-react";
 import { useOptimistic, useRef, useState, useTransition } from "react";
 import { completeGoal, pinSkill, saveNote, swapGoal, unpinSkill } from "@/app/actions";
 import { Bottle } from "@/components/bottle/Bottle";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { Sheet } from "@/components/ui/Sheet";
 import type { Tier } from "@/engine/types";
 import type { DashboardData, GoalView, SkillView } from "@/lib/data/dashboard";
@@ -68,8 +69,8 @@ export function TodayPanel({ goals: serverGoals, rack, skills, categories, plan,
               <>
                 <Bottle shape={skill.shape} color={skill.color} level={skill.score} neglected={skill.neglected} className="h-14 w-9" />
                 <span className="w-full truncate text-center text-[10px] leading-tight text-muted">{skill.name}</span>
-                <span className="num flex items-center gap-0.5 text-[11px]">
-                  {skill.display}
+                <span className="flex items-center gap-0.5 text-[11px]">
+                  <AnimatedNumber value={skill.display} />
                   {daysLocked > 0 && (
                     <span className="flex items-center text-[9px] text-muted">
                       <Lock size={9} aria-hidden />

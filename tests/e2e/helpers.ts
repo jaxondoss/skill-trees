@@ -31,7 +31,7 @@ export function resetUser() {
     update public.skills set status = case when slug = 'triathlon' then 'dormant' else 'active' end,
       archived_at = null, final_score = null, seen_tip_tier = 'foundation' where user_id = '${USER_ID}';
     update public.streak_state set current = 0, best = 0, broken_on = null, broken_length = null where user_id = '${USER_ID}';
-    update public.profiles set sound_on = false, onboarded_at = coalesce(onboarded_at, now()) where user_id = '${USER_ID}';
+    update public.profiles set sound_on = false, seen_figure_tier = 1, onboarded_at = coalesce(onboarded_at, now()) where user_id = '${USER_ID}';
     insert into public.rack_pins (user_id, slot, skill_id, locked_until)
     select '${USER_ID}', s.slot, k.id, now()
     from unnest(array[${RACK.map((r) => `'${r}'`).join(",")}]) with ordinality as s(slug, slot)

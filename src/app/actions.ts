@@ -157,6 +157,17 @@ export async function unpinSkill(slot: number): Promise<ActionResult> {
   return { ok: true };
 }
 
+/** The tier-up moment played: remember the tier so it plays once. */
+export async function ackTierUp(tier: number): Promise<ActionResult> {
+  if (!Number.isInteger(tier) || tier < 1 || tier > 5) return fail("Unknown tier.");
+  const supabase = await createClient();
+  const uid = await userId(supabase);
+  if (!uid) return fail("Sign in again.");
+  const { error } = await supabase.from("profiles").update({ seen_figure_tier: tier }).eq("user_id", uid);
+  if (error) return fail(error.message);
+  return { ok: true };
+}
+
 /** Marks the latest streak break as seen, after the crack animation plays. */
 export async function ackStreakBreak(): Promise<ActionResult> {
   const supabase = await createClient();
