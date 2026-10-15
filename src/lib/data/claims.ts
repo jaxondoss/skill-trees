@@ -1,16 +1,42 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { aggregateEntries, deriveFromHistory } from "@/engine/metrics";
+import { adherenceDerived, DEFAULT_SLEEP, foodDerived, nights, ratingDerived, sleepDerived, type SleepConfig } from "@/engine/trackers";
 import { milestonesToClaim } from "@/engine/scoring";
 import type { UserContext } from "./context";
+
+/** Sleep anchor settings and the day the 15-minute weekly shift started. */
+export function sleepSettings(ctx: UserContext): { cfg: SleepConfig; startDay: string } {
+  const sleep = ctx.skills.find((s) => s.slug === "sleep");
+  const c = (sleep?.config ?? {}) as Partial<SleepConfig>;
+  const cfg = { ...DEFAULT_SLEEP, ...Object.fromEntries(Object.entries(c).filter(([k]) => k in DEFAULT_SLEEP)) } as SleepConfig;
+  const startDay = (ctx.profile.onboarded_at ?? sleep?.created_at ?? new Date().toISOString()).slice(0, 10);
+  return { cfg, startDay };
+}
+
+export function foodTargets(ctx: UserContext) {
+  const c = (ctx.skills.find((s) => s.slug === "food")?.config ?? {}) as { caloriesTarget?: number; proteinTargetG?: number; calorieTolerancePct?: number };
+  return { calories: c.caloriesTarget ?? 3500, proteinG: c.proteinTargetG ?? 200, calorieTolerancePct: c.calorieTolerancePct ?? 10 };
+}
 
 /** Current value of every metric and derived counter, for progress bars and auto-claims. */
 export function metricValues(ctx: UserContext): Record<string, number> {
   const slugById = new Map(ctx.skills.map((s) => [s.id, s.slug]));
-  return {
-    ...aggregateEntries(ctx.metrics.map((m) => ({ key: m.key, value: m.value, day: m.day, recordedAt: m.recorded_at }))),
-    ...deriveFromHistory(ctx.history, slugById, ctx.today),
-  };
+  const entries = ctx.metrics.map((m) => ({ key: m.key, value: m.value, day: m.day, recordedAt: m.recorded_at }));
+  const { cfg, startDay } = sleepSettings(ctx);
+  const sessions = ctx.sleepSessions.map((s) => ({ day: s.day, sleptAt: s.slept_at, wokeAt: s.woke_at }));
+  const sources = [
+    aggregateEntries(entries),
+    deriveFromHistory(ctx.history, slugById, ctx.today),
+    sleepDerived(nights(sessions, ctx.profile.timezone, startDay, cfg), ctx.today),
+    foodDerived(entries, ctx.today, foodTargets(ctx)),
+    ratingDerived(entries),
+    adherenceDerived(entries),
+  ];
+  // Several sources can report the same counter (goal history and a tracker): take the larger.
+  const out: Record<string, number> = {};
+  for (const src of sources) for (const [k, v] of Object.entries(src)) out[k] = Math.max(out[k] ?? -Infinity, v);
+  return out;
 }
 
 /**

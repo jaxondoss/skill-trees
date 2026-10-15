@@ -5,7 +5,9 @@ import { scoreBreakdown, type SkillBreakdown } from "@/engine/scoring";
 import { addDays, dayKey } from "@/engine/time";
 import type { EngineSkill, GoalRecord } from "@/engine/types";
 import type {
+  AssignmentRow,
   CategoryRow,
+  IntegrationRow,
   DayOverrideRow,
   KeyDateRow,
   MetricRow,
@@ -16,6 +18,7 @@ import type {
   RackPinRow,
   ScheduleDayRow,
   SkillRow,
+  SleepSessionRow,
 } from "./rows";
 
 /** Goal history pulled per load. Covers the 28-day consistency window and never-miss-twice lookbacks. */
@@ -67,6 +70,9 @@ export type UserContext = {
   nonNegotiables: NonNegotiableRow[];
   rackPins: RackPinRow[];
   metrics: MetricRow[];
+  assignments: AssignmentRow[];
+  sleepSessions: SleepSessionRow[];
+  integrations: IntegrationRow[];
   resolved: ResolvedDay;
   goalRows: PlanGoalRow[];
   history: GoalRecord[];
@@ -80,7 +86,7 @@ export async function loadUserContext(supabase: SupabaseClient, now: Date): Prom
   const profile = await loadProfile(supabase);
   const today = todayFor(profile, now);
 
-  const [cats, skillRows, milestoneRows, nnRows, pins, sched, overrides, races, goalRows, metricRows] = await Promise.all([
+  const [cats, skillRows, milestoneRows, nnRows, pins, sched, overrides, races, goalRows, metricRows, assignmentRows, sleepRows, integrationRows] = await Promise.all([
     supabase.from("categories").select("id, slug, name, color, icon, region, position, goal_weight, sort").order("sort"),
     supabase
       .from("skills")
@@ -100,6 +106,15 @@ export async function loadUserContext(supabase: SupabaseClient, now: Date): Prom
     supabase.from("key_dates").select("label, date").eq("kind", "race").not("date", "is", null),
     loadGoals(supabase, addDays(today, -HISTORY_DAYS)),
     supabase.from("metrics").select("id, skill_id, key, value, day, recorded_at, source").order("day").order("recorded_at").limit(5000),
+    supabase
+      .from("assignments")
+      .select("id, course, name, due_at, started, submitted, source")
+      .eq("submitted", false)
+      .gte("due_at", new Date(now.getTime() - 7 * 86_400_000).toISOString())
+      .order("due_at")
+      .limit(200),
+    supabase.from("sleep_sessions").select("id, day, slept_at, woke_at").gte("day", addDays(today, -120)).order("slept_at").limit(500),
+    supabase.from("integrations").select("provider, status, config, last_synced_at, last_error"),
   ]);
 
   const categories = must(cats, "categories") as CategoryRow[];
@@ -111,6 +126,9 @@ export async function loadUserContext(supabase: SupabaseClient, now: Date): Prom
   const dayOverrides = must(overrides, "overrides") as DayOverrideRow[];
   const raceDates = must(races, "races") as KeyDateRow[];
   const metrics = (must(metricRows, "metrics") as MetricRow[]).map((m) => ({ ...m, value: Number(m.value) }));
+  const assignments = must(assignmentRows, "assignments") as AssignmentRow[];
+  const sleepSessions = must(sleepRows, "sleep") as SleepSessionRow[];
+  const integrations = must(integrationRows, "integrations") as IntegrationRow[];
 
   const history = goalRows.map(toRecord);
   const breakdowns = new Map<string, SkillBreakdown>();
@@ -166,6 +184,9 @@ export async function loadUserContext(supabase: SupabaseClient, now: Date): Prom
     nonNegotiables,
     rackPins,
     metrics,
+    assignments,
+    sleepSessions,
+    integrations,
     resolved,
     goalRows,
     history,
@@ -179,6 +200,7 @@ export async function loadUserContext(supabase: SupabaseClient, now: Date): Prom
       skills: engineSkills,
       rack: rackPins.map((p) => p.skill_id),
       history,
+      assignments: assignments.map((a) => ({ name: a.course ? `${a.course}: ${a.name}` : a.name, dueAt: new Date(a.due_at), started: a.started })),
     }),
   };
 }

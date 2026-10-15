@@ -27,6 +27,9 @@ export function resetUser() {
     delete from public.rack_pins where user_id = '${USER_ID}';
     delete from public.metrics where user_id = '${USER_ID}';
     delete from public.skill_logs where user_id = '${USER_ID}';
+    delete from public.assignments where user_id = '${USER_ID}';
+    delete from public.sleep_sessions where user_id = '${USER_ID}';
+    delete from public.integrations where user_id = '${USER_ID}';
     update public.milestones set claimed_at = case when suggest_claim then now() end, proof_value = null, proof_url = null where user_id = '${USER_ID}';
     update public.skills set status = case when slug = 'triathlon' then 'dormant' else 'active' end,
       archived_at = null, final_score = null, seen_tip_tier = 'foundation' where user_id = '${USER_ID}';

@@ -53,7 +53,8 @@ begin
   foreach t in array array[
     'profiles', 'categories', 'skills', 'milestones', 'non_negotiables', 'schedule_templates',
     'schedule_days', 'day_overrides', 'key_dates', 'rack_pins', 'daily_plans', 'plan_goals',
-    'metrics', 'skill_logs', 'score_snapshots', 'daily_completions', 'streak_state'
+    'metrics', 'skill_logs', 'score_snapshots', 'daily_completions', 'streak_state',
+    'integrations', 'assignments', 'sleep_sessions'
   ] loop
     execute format('select count(*) from public.%I where user_id <> $1', t) into foreign_rows using me;
     assert foreign_rows = 0, format('A can read other users rows in %s', t);

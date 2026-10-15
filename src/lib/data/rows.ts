@@ -101,6 +101,18 @@ export type PlanGoalRow = {
 
 export type MetricRow = { id: string; skill_id: string | null; key: string; value: number; day: string; recorded_at: string; source: string };
 
+export type AssignmentRow = { id: string; course: string | null; name: string; due_at: string; started: boolean; submitted: boolean; source: string };
+
+export type SleepSessionRow = { id: string; day: string; slept_at: string; woke_at: string | null };
+
+export type IntegrationRow = {
+  provider: "chess" | "google_calendar" | "canvas" | "lifta" | "claude";
+  status: "connected" | "error";
+  config: Record<string, unknown>;
+  last_synced_at: string | null;
+  last_error: string | null;
+};
+
 export type CompletionRow = { day: string; p: number; n_core: number; kept_streak: boolean };
 
 export type SnapshotRow = { scope: "skill" | "category" | "overall"; ref_id: string | null; score: number };

@@ -5,7 +5,19 @@ import { Suspense, type ReactNode } from "react";
 import { Bottle } from "@/components/bottle/Bottle";
 import { ScoreChart } from "@/components/charts/ScoreChart";
 import { LogPanel, MetricsPanel, MilestoneLadder, NonNegotiableCard, SkillActions, TipUnlock } from "@/components/skill/SkillClient";
+import { SkillTracker } from "@/components/skill/Trackers";
 import { loadSkillPage } from "@/lib/data/skill";
+
+const TRACKER_TITLE: Record<string, string> = {
+  sleep: "Sleep log",
+  food: "Today's fuel",
+  gut: "Daily rating",
+  adherence: "Block adherence",
+  assignments: "Assignments",
+  chess: "Rating sync",
+  timer: "Sit",
+  woop: "WOOP",
+};
 
 const TIER_NAME = { foundation: "Foundation", development: "Development", mastery: "Mastery" } as const;
 
@@ -98,6 +110,13 @@ async function Skill({ params }: { params: PageProps<"/s/[slug]">["params"] }) {
           Score = 0.7 x {Math.round(d.level)} + 0.3 x {Math.round(d.consistency)} = {d.score.toFixed(1)}
         </p>
       </Section>
+
+      {/* Daily tracker for this skill (manual stand-ins for integrations). */}
+      {d.tracker.kind !== "none" && d.skill.status === "active" && (
+        <Section title={TRACKER_TITLE[d.tracker.kind] ?? "Track"}>
+          <SkillTracker tracker={d.tracker} color={color} />
+        </Section>
+      )}
 
       {/* 3. History */}
       <Section title="History">

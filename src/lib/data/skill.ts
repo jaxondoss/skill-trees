@@ -5,7 +5,8 @@ import { displayScore, tipTier, type TipTier } from "@/engine/scoring";
 import { addDays } from "@/engine/time";
 import type { Tier } from "@/engine/types";
 import { createClient } from "@/lib/supabase/server";
-import { autoClaim, metricValues } from "./claims";
+import { calorieTarget, formatAfterNoon, nights, sleepAnchor } from "@/engine/trackers";
+import { autoClaim, foodTargets, metricValues, sleepSettings } from "./claims";
 import { loadUserContext, must } from "./context";
 import { SHAPE_BY_CATEGORY, type BottleShape } from "./dashboard";
 
@@ -68,7 +69,19 @@ export type SkillPageData = {
   rack: { pinned: boolean; daysLocked: number };
   claimed: string[];
   soundOn: boolean;
+  tracker: Tracker;
 };
+
+export type Tracker =
+  | { kind: "sleep"; anchorTonight: string; open: boolean; nights: { day: string; hours: number | null; bedtime: string; inWindow: boolean }[] }
+  | { kind: "food"; totals: { calories: number; proteinG: number; fiberG: number }; targets: { calories: number; proteinG: number; fiberG: number }; meals: number }
+  | { kind: "gut"; today: number | null }
+  | { kind: "adherence"; today: number | null }
+  | { kind: "assignments"; items: { id: string; name: string; course: string | null; dueAt: string; started: boolean; source: string; urgent: boolean }[] }
+  | { kind: "chess"; connection: { platform: string; username: string; timeControl: string; lastSyncedAt: string | null; lastError: string | null } | null }
+  | { kind: "timer" }
+  | { kind: "woop" }
+  | { kind: "none" };
 
 const TIP_ORDER: TipTier[] = ["foundation", "development", "mastery"];
 
@@ -198,5 +211,70 @@ export async function loadSkillPage(slug: string): Promise<SkillPageData | null>
     rack: { pinned: Boolean(pin), daysLocked },
     claimed,
     soundOn: ctx.profile.sound_on,
+    tracker: trackerFor(row.slug, ctx),
   };
+}
+
+function trackerFor(slug: string, ctx: Awaited<ReturnType<typeof loadUserContext>>): Tracker {
+  const todayValue = (key: string) => ctx.metrics.filter((m) => m.key === key && m.day === ctx.today).at(-1)?.value ?? null;
+  switch (slug) {
+    case "sleep": {
+      const { cfg, startDay } = sleepSettings(ctx);
+      const list = nights(
+        ctx.sleepSessions.map((s) => ({ day: s.day, sleptAt: s.slept_at, wokeAt: s.woke_at })),
+        ctx.profile.timezone,
+        startDay,
+        cfg,
+      );
+      return {
+        kind: "sleep",
+        anchorTonight: formatAfterNoon(sleepAnchor(ctx.today, startDay, cfg)),
+        open: ctx.sleepSessions.some((s) => !s.woke_at && ctx.now.getTime() - new Date(s.slept_at).getTime() < 18 * 3_600_000),
+        nights: list.slice(-7).reverse().map((n) => ({ day: n.day, hours: n.hours, bedtime: formatAfterNoon(n.bedtime), inWindow: n.inWindow })),
+      };
+    }
+    case "food": {
+      const t = foodTargets(ctx);
+      const sum = (key: string) => ctx.metrics.filter((m) => m.key === key && m.day === ctx.today).reduce((s, m) => s + m.value, 0);
+      const longRunToday = ctx.metrics.filter((m) => m.key === "long_run_mi" && m.day === ctx.today).at(-1)?.value ?? null;
+      return {
+        kind: "food",
+        totals: { calories: sum("meal_calories"), proteinG: sum("meal_protein_g"), fiberG: sum("meal_fiber_g") },
+        targets: { calories: calorieTarget(t.calories, longRunToday), proteinG: t.proteinG, fiberG: 38 },
+        meals: ctx.metrics.filter((m) => m.key === "meal_calories" && m.day === ctx.today).length,
+      };
+    }
+    case "gut-health":
+      return { kind: "gut", today: todayValue("gut_rating") };
+    case "time-blocking":
+      return { kind: "adherence", today: todayValue("block_adherence_pct") };
+    case "academics":
+      return {
+        kind: "assignments",
+        items: ctx.assignments.map((a) => ({
+          id: a.id,
+          name: a.name,
+          course: a.course,
+          dueAt: a.due_at,
+          started: a.started,
+          source: a.source,
+          // Same 48-hour rule the goal engine applies.
+          urgent: !a.started && new Date(a.due_at).getTime() - ctx.now.getTime() <= 48 * 3_600_000,
+        })),
+      };
+    case "chess": {
+      const row = ctx.integrations.find((i) => i.provider === "chess");
+      const c = (row?.config ?? {}) as { platform?: string; username?: string; timeControl?: string };
+      return {
+        kind: "chess",
+        connection: row ? { platform: c.platform ?? "", username: c.username ?? "", timeControl: c.timeControl ?? "rapid", lastSyncedAt: row.last_synced_at, lastError: row.last_error } : null,
+      };
+    }
+    case "meditation":
+      return { kind: "timer" };
+    case "visualization":
+      return { kind: "woop" };
+    default:
+      return { kind: "none" };
+  }
 }

@@ -64,7 +64,12 @@ async function Dashboard() {
       <CompletionCalendar days={data.calendar} today={data.today} />
       <Archive categories={data.categories} skills={data.skills} />
 
-      <form action="/auth/signout" method="post" className="pt-4 text-center">
+      <nav className="flex justify-center gap-6 pt-4 text-xs text-muted">
+        <a href="/settings" className="min-h-11 content-center underline-offset-4 hover:underline">
+          Settings
+        </a>
+      </nav>
+      <form action="/auth/signout" method="post" className="text-center">
         <button type="submit" className="min-h-11 px-4 text-xs text-muted underline-offset-4 hover:underline">
           Sign out
         </button>

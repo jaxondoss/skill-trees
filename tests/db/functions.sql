@@ -152,3 +152,19 @@ end $$;
 commit;
 
 \echo 'Onboarding checks passed'
+
+-- New tables are owner-only too: D cannot read C's assignments or write C's integrations.
+insert into public.assignments (user_id, name, due_at) values ('cccccccc-0000-0000-0000-000000000003', 'Calc PS 5', now() + interval '1 day');
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', 'dddddddd-0000-0000-0000-000000000004', true) \g /dev/null
+do $$ begin
+  assert (select count(*) from public.assignments) = 0, 'D sees no assignments';
+  begin
+    insert into public.integrations (user_id, provider) values ('cccccccc-0000-0000-0000-000000000003', 'chess');
+    raise exception 'inserted integration for another user';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+commit;
+\echo 'Integration table checks passed'

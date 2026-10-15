@@ -16,6 +16,7 @@ import type { Tier } from "@/engine/types";
 import { createClient } from "@/lib/supabase/server";
 import { autoClaim } from "./claims";
 import { HISTORY_DAYS, loadGoals, loadUserContext, must } from "./context";
+import { syncDue } from "./integrations";
 import type { CompletionRow, PlanGoalRow, SnapshotRow } from "./rows";
 
 export type BottleShape = "faceted" | "round" | "vial" | "sturdy" | "teardrop";
@@ -113,6 +114,12 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
   await connection();
   const supabase = await createClient();
   let ctx = await loadUserContext(supabase, at ?? new Date());
+  // Connected integrations re-sync on open when their last sync is older than 6 hours.
+  if (ctx.integrations.length) {
+    const { data: who } = await supabase.auth.getClaims();
+    const uid = typeof who?.claims?.sub === "string" ? who.claims.sub : null;
+    if (uid && (await syncDue(supabase, uid, ctx.today, ctx.integrations, ctx.now))) ctx = await loadUserContext(supabase, ctx.now);
+  }
   // Milestones whose rule is now met are claimed before scoring, so the numbers include them.
   const claimed = await autoClaim(supabase, ctx);
   if (claimed.length) ctx = await loadUserContext(supabase, ctx.now);

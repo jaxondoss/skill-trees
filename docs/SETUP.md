@@ -21,7 +21,16 @@ About 10 minutes. Nothing here needs a secret key in the app: the browser and se
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 3. Deploy. Open the URL, enter your email, tap the link. The first sign-in seeds your categories, skills, milestones, schedule, and rack.
 
-## 3. Local development
+## 3. Optional integrations
+
+See Settings, Integrations in the app for what each one needs. Two server env vars cover the ones that need secrets:
+
+- `INTEGRATIONS_KEY`: 32 random bytes, base64 (`openssl rand -base64 32`). Encrypts stored tokens.
+- `ANTHROPIC_API_KEY`: food photo analysis, weekly debrief, reading test generation.
+
+Chess needs neither: connect a public username on the Chess page.
+
+## 4. Local development
 
 ```bash
 cp .env.example .env.local   # fill in the two values
