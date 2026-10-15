@@ -30,8 +30,11 @@ export const METRIC_DEFS: MetricDef[] = [
   { key: "marathon_best_s", skill: "running", label: "Marathon time", unit: "", format: "time", agg: "min" },
   { key: "chess_rating", skill: "chess", label: "Rating", unit: "", format: "number", agg: "latest", step: 1 },
   { key: "books_finished", skill: "reading", label: "Books finished", unit: "books", format: "number", agg: "sum", step: 1 },
-  { key: "effective_rate_gain_pct", skill: "reading", label: "Effective rate vs baseline", unit: "%", format: "percent", agg: "latest", step: 1 },
+  { key: "reading_effective_rate", skill: "reading", label: "Effective reading rate (wpm x comprehension)", unit: "wpm", format: "number", agg: "latest", step: 1 },
   { key: "revenue_month_usd", skill: "dropshipping", label: "Monthly revenue", unit: "$", format: "usd", agg: "sum", step: 1 },
+  { key: "revenue_week_usd", skill: "dropshipping", label: "Weekly revenue", unit: "$", format: "usd", agg: "sum", step: 1 },
+  { key: "ad_spend_week_usd", skill: "dropshipping", label: "Weekly ad spend", unit: "$", format: "usd", agg: "sum", step: 1 },
+  { key: "orders_week", skill: "dropshipping", label: "Weekly orders", unit: "", format: "number", agg: "sum", step: 1 },
   { key: "store_teardowns", skill: "dropshipping", label: "Store teardowns", unit: "", format: "number", agg: "sum", step: 1 },
   { key: "shipped_products", skill: "ai-building", label: "Shipped products with users", unit: "", format: "number", agg: "sum", step: 1 },
   { key: "semester_gpa", skill: "academics", label: "Semester GPA", unit: "", format: "number", agg: "latest", step: 0.01 },
@@ -75,18 +78,28 @@ export function aggregateEntries(entries: MetricEntry[]): Record<string, number>
             : latest(list).value;
   }
 
-  // Derived from entries.
-  const months = byKey.get("revenue_month_usd") ?? [];
-  if (months.length) {
-    out.revenue_total_usd = months.reduce((a, e) => a + e.value, 0);
-    out.revenue_best_month_usd = Math.max(...months.map((e) => e.value));
-    out.revenue_10k_month_streak = longestRun(chronological(months).map((e) => e.value >= 10_000));
+  // Derived from entries. Revenue arrives monthly or weekly (Sunday review); both roll up by month.
+  const revenue = [...(byKey.get("revenue_month_usd") ?? []), ...(byKey.get("revenue_week_usd") ?? [])];
+  if (revenue.length) {
+    const byMonth = new Map<string, number>();
+    for (const e of revenue) byMonth.set(e.day.slice(0, 7), (byMonth.get(e.day.slice(0, 7)) ?? 0) + e.value);
+    const months = [...byMonth.entries()].sort(([a], [b]) => (a < b ? -1 : 1));
+    out.revenue_total_usd = months.reduce((a, [, v]) => a + v, 0);
+    out.revenue_best_month_usd = Math.max(...months.map(([, v]) => v));
+    out.revenue_10k_month_streak = longestRun(months.map(([, v]) => v >= 10_000));
   }
   const gpas = byKey.get("semester_gpa") ?? [];
   if (gpas.length) {
     out.first_semester_gpa = chronological(gpas)[0]!.value;
     out.best_semester_gpa = Math.max(...gpas.map((e) => e.value));
     out.semesters_at_4_0 = gpas.filter((e) => e.value >= 4).length;
+  }
+  // Reading tests (spec 12.4): the first effective rate is the baseline.
+  const tests = chronological(byKey.get("reading_effective_rate") ?? []);
+  if (tests.length) {
+    out.reading_tests_taken = tests.length;
+    const base = tests[0]!.value;
+    if (base > 0 && tests.length > 1) out.effective_rate_gain_pct = (100 * (tests.at(-1)!.value - base)) / base;
   }
   const ratings = byKey.get("chess_rating") ?? [];
   if (ratings.length) out.chess_ratings_recorded = ratings.length;
