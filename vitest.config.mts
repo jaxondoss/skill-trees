@@ -10,7 +10,7 @@ export default defineConfig({
     environment: "node",
     coverage: {
       include: ["src/engine/**/*.ts"],
-      exclude: ["src/engine/**/*.test.ts"],
+      exclude: ["src/engine/**/*.test.ts", "src/engine/fixtures.ts"],
     },
   },
 });

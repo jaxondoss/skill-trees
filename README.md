@@ -13,6 +13,7 @@ Next.js 16 (App Router, Cache Components) with TypeScript strict, Tailwind 4, Su
 | Path | What |
 |---|---|
 | `src/app` | Routes: dashboard, login, auth callback |
+| `src/engine` | Scoring, goal, and completion engines. Pure TypeScript, no I/O, unit tested |
 | `src/seed` | Starting content (spec Section 12) seeded per user on first sign-in |
 | `src/lib/supabase` | Browser, server, and proxy clients |
 | `supabase/migrations` | Schema, RLS policies, rack lock trigger, `seed_user` |
