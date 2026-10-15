@@ -8,6 +8,7 @@ import type {
   CategoryRow,
   DayOverrideRow,
   KeyDateRow,
+  MetricRow,
   MilestoneRow,
   NonNegotiableRow,
   PlanGoalRow,
@@ -65,6 +66,7 @@ export type UserContext = {
   milestones: MilestoneRow[];
   nonNegotiables: NonNegotiableRow[];
   rackPins: RackPinRow[];
+  metrics: MetricRow[];
   resolved: ResolvedDay;
   goalRows: PlanGoalRow[];
   history: GoalRecord[];
@@ -78,11 +80,11 @@ export async function loadUserContext(supabase: SupabaseClient, now: Date): Prom
   const profile = await loadProfile(supabase);
   const today = todayFor(profile, now);
 
-  const [cats, skillRows, milestoneRows, nnRows, pins, sched, overrides, races, goalRows] = await Promise.all([
+  const [cats, skillRows, milestoneRows, nnRows, pins, sched, overrides, races, goalRows, metricRows] = await Promise.all([
     supabase.from("categories").select("id, slug, name, color, icon, region, position, goal_weight, sort").order("sort"),
     supabase
       .from("skills")
-      .select("id, slug, name, category_id, status, priority_weight, sort, created_at, final_score, identity, hundred_means, metrics_note, tips, config, archived_at")
+      .select("id, slug, name, category_id, status, priority_weight, sort, created_at, final_score, identity, hundred_means, metrics_note, tips, config, archived_at, seen_tip_tier")
       .order("sort"),
     supabase.from("milestones").select("id, skill_id, title, points, type, rule, suggest_claim, sort, claimed_at, proof_url, proof_value").order("sort"),
     supabase
@@ -97,6 +99,7 @@ export async function loadUserContext(supabase: SupabaseClient, now: Date): Prom
     supabase.from("day_overrides").select("kind, starts_on, ends_on").gte("ends_on", today),
     supabase.from("key_dates").select("label, date").eq("kind", "race").not("date", "is", null),
     loadGoals(supabase, addDays(today, -HISTORY_DAYS)),
+    supabase.from("metrics").select("id, skill_id, key, value, day, recorded_at, source").order("day").order("recorded_at").limit(5000),
   ]);
 
   const categories = must(cats, "categories") as CategoryRow[];
@@ -107,6 +110,7 @@ export async function loadUserContext(supabase: SupabaseClient, now: Date): Prom
   const schedule = must(sched, "schedule") as ScheduleDayRow[];
   const dayOverrides = must(overrides, "overrides") as DayOverrideRow[];
   const raceDates = must(races, "races") as KeyDateRow[];
+  const metrics = (must(metricRows, "metrics") as MetricRow[]).map((m) => ({ ...m, value: Number(m.value) }));
 
   const history = goalRows.map(toRecord);
   const breakdowns = new Map<string, SkillBreakdown>();
@@ -161,6 +165,7 @@ export async function loadUserContext(supabase: SupabaseClient, now: Date): Prom
     milestones,
     nonNegotiables,
     rackPins,
+    metrics,
     resolved,
     goalRows,
     history,

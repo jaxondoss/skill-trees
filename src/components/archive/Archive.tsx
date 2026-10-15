@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Bottle } from "@/components/bottle/Bottle";
 import type { CategoryView, SkillView } from "@/lib/data/dashboard";
@@ -117,7 +118,7 @@ export function Archive({ categories, skills }: { categories: CategoryView[]; sk
 function BottleSlot({ skill: s, cascade, delay }: { skill: SkillView; cascade: boolean; delay: number }) {
   const dormant = s.status === "dormant";
   return (
-    <div className="flex w-[72px] shrink-0 flex-col items-center gap-1">
+    <Link href={`/s/${s.slug}`} className="flex w-[72px] shrink-0 flex-col items-center gap-1">
       <Bottle
         shape={s.shape}
         color={s.color}
@@ -138,6 +139,6 @@ function BottleSlot({ skill: s, cascade, delay }: { skill: SkillView; cascade: b
           </span>
         )}
       </span>
-    </div>
+    </Link>
   );
 }

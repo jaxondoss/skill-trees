@@ -14,6 +14,7 @@ import {
 import { addDays, dayKey } from "@/engine/time";
 import type { Tier } from "@/engine/types";
 import { createClient } from "@/lib/supabase/server";
+import { autoClaim } from "./claims";
 import { HISTORY_DAYS, loadGoals, loadUserContext, must } from "./context";
 import type { CompletionRow, PlanGoalRow, SnapshotRow } from "./rows";
 
@@ -88,6 +89,8 @@ export type DashboardData = {
   focusLine: string | null;
   soundOn: boolean;
   onboarded: boolean;
+  /** Milestones auto-claimed on this load. */
+  claimed: string[];
   categories: CategoryView[];
   /** daysLocked: whole days left on the 7-day pin lock, 0 when unlocked. */
   rack: { slot: number; skill: SkillView | null; daysLocked: number }[];
@@ -107,7 +110,10 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
   // Request-time only: this reads the clock and writes today's plan, so it must never be prerendered.
   await connection();
   const supabase = await createClient();
-  const ctx = await loadUserContext(supabase, at ?? new Date());
+  let ctx = await loadUserContext(supabase, at ?? new Date());
+  // Milestones whose rule is now met are claimed before scoring, so the numbers include them.
+  const claimed = await autoClaim(supabase, ctx);
+  if (claimed.length) ctx = await loadUserContext(supabase, ctx.now);
   const { profile, today, categories, skills, breakdowns, rackPins, now } = ctx;
   let goalRows = ctx.goalRows;
 
@@ -256,6 +262,7 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
     focusLine: profile.focus_line,
     soundOn: profile.sound_on,
     onboarded: profile.onboarded_at !== null,
+    claimed,
     categories: categoryViews,
     rack: [1, 2, 3, 4, 5].map((slot) => {
       const pin = rackPins.find((p) => p.slot === slot);

@@ -38,6 +38,7 @@ export type SkillRow = {
   tips: { foundation?: string[]; development?: string[]; mastery?: string[] };
   config: Record<string, unknown>;
   archived_at: string | null;
+  seen_tip_tier: "foundation" | "development" | "mastery";
 };
 
 export type MilestoneRow = {
@@ -96,6 +97,8 @@ export type PlanGoalRow = {
   user_note: string | null;
   daily_plans: { day: string };
 };
+
+export type MetricRow = { id: string; skill_id: string | null; key: string; value: number; day: string; recorded_at: string; source: string };
 
 export type CompletionRow = { day: string; p: number; n_core: number; kept_streak: boolean };
 

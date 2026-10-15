@@ -138,6 +138,16 @@ export async function pinSkill(slot: number, skillId: string): Promise<ActionRes
   return { ok: true };
 }
 
+/** Pin into the first empty slot. Never replaces another pin. */
+export async function pinToFreeSlot(skillId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("rack_pins").select("slot");
+  const taken = new Set(((data ?? []) as { slot: number }[]).map((p) => p.slot));
+  const slot = [1, 2, 3, 4, 5].find((s) => !taken.has(s));
+  if (!slot) return fail("The rack is full. Remove a pin from the dashboard first.");
+  return pinSkill(slot, skillId);
+}
+
 /** Remove a pin once its lock has expired. The database refuses while locked. */
 export async function unpinSkill(slot: number): Promise<ActionResult> {
   const supabase = await createClient();

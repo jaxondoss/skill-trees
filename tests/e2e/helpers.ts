@@ -18,13 +18,18 @@ export function sql(query: string): string {
 
 export const RACK = ["dropshipping", "strength", "running", "time-blocking", "academics"];
 
-/** Back to a freshly onboarded user: no plans, no history, default rack (unlocked). */
+/** Back to a freshly onboarded user: no plans, history, or metrics; default rack (unlocked); suggested milestones claimed. */
 export function resetUser() {
   sql(`
     delete from public.daily_plans where user_id = '${USER_ID}';
     delete from public.daily_completions where user_id = '${USER_ID}';
     delete from public.score_snapshots where user_id = '${USER_ID}';
     delete from public.rack_pins where user_id = '${USER_ID}';
+    delete from public.metrics where user_id = '${USER_ID}';
+    delete from public.skill_logs where user_id = '${USER_ID}';
+    update public.milestones set claimed_at = case when suggest_claim then now() end, proof_value = null, proof_url = null where user_id = '${USER_ID}';
+    update public.skills set status = case when slug = 'triathlon' then 'dormant' else 'active' end,
+      archived_at = null, final_score = null, seen_tip_tier = 'foundation' where user_id = '${USER_ID}';
     update public.streak_state set current = 0, best = 0, broken_on = null, broken_length = null where user_id = '${USER_ID}';
     update public.profiles set sound_on = false, onboarded_at = coalesce(onboarded_at, now()) where user_id = '${USER_ID}';
     insert into public.rack_pins (user_id, slot, skill_id, locked_until)

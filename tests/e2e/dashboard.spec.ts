@@ -15,7 +15,7 @@ test.describe("dashboard with real data", () => {
     await page.goto("/");
 
     const banner = page.locator("header").first();
-    await expect(banner.getByLabel(/^Overall score \d+$/)).toBeVisible();
+    await expect(banner.getByLabel(/^Overall score \d+, /)).toBeVisible();
     await expect(banner).toContainText(/Raw|Awakened|Forged|Ascendant|Sovereign/);
 
     for (const name of ["Business", "School", "Mind", "Athletics", "Nutrition"]) {

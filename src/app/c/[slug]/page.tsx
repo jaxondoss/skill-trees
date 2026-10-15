@@ -3,13 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Bottle } from "@/components/bottle/Bottle";
+import { ScoreChart } from "@/components/charts/ScoreChart";
 import { CategoryIcon } from "@/components/dashboard/CategoryIcon";
 import { loadDashboard } from "@/lib/data/dashboard";
+import { loadHistory } from "@/lib/data/history";
 
-/** Category page. Phase 4 adds the score history chart; this version explains every score. */
+/** Category page (spec 4.2): every skill as a bottle, score history, and today's goals. */
 export default function CategoryPage({ params }: PageProps<"/c/[slug]">) {
   return (
-    <main className="flex flex-1 flex-col gap-5 py-4">
+    <main className="flex flex-1 flex-col gap-5 py-4 pb-16">
       <Link href="/" className="-ml-2 flex min-h-11 w-fit items-center gap-1 pr-3 text-sm text-muted">
         <ChevronLeft size={18} aria-hidden />
         Dashboard
@@ -26,6 +28,7 @@ async function Category({ params }: { params: PageProps<"/c/[slug]">["params"] }
   const data = await loadDashboard();
   const category = data.categories.find((c) => c.slug === slug);
   if (!category) notFound();
+  const history = await loadHistory("category", category.id);
 
   const skills = data.skills
     .filter((s) => s.categoryId === category.id && s.status !== "archived")
@@ -46,34 +49,38 @@ async function Category({ params }: { params: PageProps<"/c/[slug]">["params"] }
         </div>
       </header>
 
+      <ScoreChart points={history} color={category.color} today={data.today} />
+
       <ul className="space-y-2">
         {skills.map((s) => (
-          <li key={s.id} className="glass flex items-center gap-4 p-3">
-            <Bottle
-              shape={s.shape}
-              color={s.color}
-              level={s.score}
-              neglected={s.neglected}
-              dormant={s.status === "dormant"}
-              className="h-16 w-10 shrink-0"
-              label={s.name}
-            />
-            <div className="min-w-0 flex-1">
-              <p className="font-display text-lg leading-tight">{s.name}</p>
-              {s.status === "dormant" ? (
-                <p className="text-xs text-muted">Dormant. Not counted in scores or goals.</p>
-              ) : (
-                <p className="text-xs text-muted">
-                  Level <span className="num text-text">{Math.round(s.level)}</span>, Consistency{" "}
-                  <span className="num text-text">{Math.round(s.consistency)}</span>
-                  {s.neglected && <span className="text-business">, neglected</span>}
-                </p>
-              )}
-            </div>
-            <div className="text-right">
-              <div className="num text-xl">{s.status === "dormant" ? "--" : s.display}</div>
-              <div className="text-[10px] text-muted">0.7 L + 0.3 C</div>
-            </div>
+          <li key={s.id}>
+            <Link href={`/s/${s.slug}`} className="glass flex items-center gap-4 p-3">
+              <Bottle
+                shape={s.shape}
+                color={s.color}
+                level={s.score}
+                neglected={s.neglected}
+                dormant={s.status === "dormant"}
+                className="h-16 w-10 shrink-0"
+                label={s.name}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="font-display text-lg leading-tight">{s.name}</p>
+                {s.status === "dormant" ? (
+                  <p className="text-xs text-muted">Dormant. Not counted in scores or goals.</p>
+                ) : (
+                  <p className="text-xs text-muted">
+                    Level <span className="num text-text">{Math.round(s.level)}</span>, Consistency{" "}
+                    <span className="num text-text">{Math.round(s.consistency)}</span>
+                    {s.neglected && <span className="text-business">, neglected</span>}
+                  </p>
+                )}
+              </div>
+              <div className="text-right">
+                <div className="num text-xl">{s.status === "dormant" ? "--" : s.display}</div>
+                <div className="text-[10px] text-muted">0.7 L + 0.3 C</div>
+              </div>
+            </Link>
           </li>
         ))}
       </ul>

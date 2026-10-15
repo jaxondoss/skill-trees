@@ -5,7 +5,9 @@ import { FigureStage } from "@/components/dashboard/FigureStage";
 import { CompletionCalendar } from "@/components/calendar/CompletionCalendar";
 import { StreakBreak } from "@/components/dashboard/StreakBreak";
 import { TodayPanel } from "@/components/today/TodayPanel";
+import { redirect } from "next/navigation";
 import { loadDashboard } from "@/lib/data/dashboard";
+import { isOnboarded } from "@/lib/data/onboarding";
 import { supabasePublicEnv } from "@/lib/supabase/env";
 
 export default function Home() {
@@ -27,6 +29,8 @@ async function Dashboard() {
     );
   }
 
+  // First run: onboarding comes before the first plan, so that plan uses the chosen rack.
+  if (!(await isOnboarded())) redirect("/onboarding");
   const data = await loadDashboard();
 
   return (

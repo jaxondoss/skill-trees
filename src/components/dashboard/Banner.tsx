@@ -1,6 +1,7 @@
 "use client";
 
 import { Flame } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 type Props = {
@@ -16,14 +17,12 @@ export function Banner({ overall, todayP, streak }: Props) {
 
   return (
     <header className="glass sticky top-2 z-20 flex items-center justify-between gap-3 bg-[#141416]/92 px-4 py-2.5 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.8)]">
-      <div className="leading-none">
-        <div className="num text-3xl font-semibold tracking-tight" aria-label={`Overall score ${overall.display}`}>
-          {overall.display}
-        </div>
+      <Link href="/overall" className="min-h-11 leading-none" aria-label={`Overall score ${overall.display}, ${overall.tierName}. How it is calculated`}>
+        <div className="num text-3xl font-semibold tracking-tight">{overall.display}</div>
         <div className="mt-1 font-display text-xs tracking-wide text-gold">
           {overall.tierNumeral}. {overall.tierName}
         </div>
-      </div>
+      </Link>
 
       <div className="flex items-center gap-4">
         <button

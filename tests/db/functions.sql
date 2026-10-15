@@ -119,3 +119,36 @@ end $$;
 commit;
 
 \echo 'Function checks passed'
+
+-- complete_onboarding: claims, baselines, locked rack, focus line, today's plan reset.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', 'cccccccc-0000-0000-0000-000000000003', true) \g /dev/null
+do $$
+declare
+  v_claims jsonb := (select jsonb_agg(id) from public.milestones where suggest_claim);
+  v_bench uuid := (select id from public.skills where slug = 'strength');
+  v_rack jsonb := (select jsonb_agg(id order by slug) from public.skills where slug in ('chess', 'reading', 'strength'));
+begin
+  perform public.complete_onboarding('2026-10-20', jsonb_build_object(
+    'claims', v_claims,
+    'metrics', jsonb_build_array(jsonb_build_object('skillId', v_bench, 'key', 'bench_1rm', 'value', 240)),
+    'rack', v_rack,
+    'schedule', jsonb_build_array(jsonb_build_object('weekday', 6, 'dayType', 'weekend', 'trainingTime', '09:00')),
+    'chess', jsonb_build_object('platform', 'lichess', 'username', 'jaxon'),
+    'focusLine', 'Win the morning'));
+
+  assert (select count(*) from public.milestones where claimed_at is not null) = 5, 'five milestones claimed';
+  assert (select value from public.metrics where key = 'bench_1rm') = 240, 'baseline recorded';
+  assert (select count(*) from public.rack_pins) = 3, 'rack replaced';
+  assert (select bool_and(locked_until > now() + interval '6 days') from public.rack_pins), 'rack locked 7 days';
+  assert (select training_time from public.schedule_days where weekday = 6) = '09:00', 'schedule updated';
+  assert (select config ->> 'username' from public.skills where slug = 'chess') = 'jaxon', 'chess username saved';
+  assert (select focus_line from public.profiles) = 'Win the morning', 'focus line saved';
+  assert (select onboarded_at is not null from public.profiles), 'onboarded';
+  -- The 2026-10-20 plan had no completed goal (it was swapped once, never logged), so it is cleared.
+  assert not exists (select 1 from public.daily_plans where day = '2026-10-20'), 'untouched plan cleared';
+end $$;
+commit;
+
+\echo 'Onboarding checks passed'

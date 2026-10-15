@@ -120,6 +120,10 @@ export function FigureStage({ categories, overall }: { categories: CategoryView[
               ))}
             </Link>
           ))}
+          {/* Torso center opens the overall breakdown. */}
+          <Link href="/overall" aria-label="Overall score">
+            <circle cx="50" cy="58" r="4" fill="transparent" />
+          </Link>
         </g>
       </svg>
 
