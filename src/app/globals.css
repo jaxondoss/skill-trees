@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+/* Design tokens (spec 11.1). The app is dark only. */
+:root {
+  --bg: #0a0a0b; /* warm near-black, never pure black */
+  --surface: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.1);
+  --text: #edeae4;
+  --text-muted: #8e8a84;
+  --gold: #d4af37; /* overall progress, tier names, veins */
+  --business: #e8a33d;
+  --school: #4a7bf7;
+  --mind: #a77bff;
+  --athletics: #e5484d;
+  --nutrition: #2fbf71;
+  --radius-card: 20px;
+  --radius-chip: 999px;
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-gold: var(--gold);
+  --color-business: var(--business);
+  --color-school: var(--school);
+  --color-mind: var(--mind);
+  --color-athletics: var(--athletics);
+  --color-nutrition: var(--nutrition);
+  --radius-card: var(--radius-card);
+  --radius-chip: var(--radius-chip);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Scores never jitter while animating. */
+@utility num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Glass card (spec 4.1 C). */
+@utility glass {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
