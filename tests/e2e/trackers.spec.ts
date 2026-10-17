@@ -37,9 +37,10 @@ test("one-tap sleep, gut rating, and meal quick-add", async ({ page }) => {
   await expect(page.getByRole("group", { name: /How do you feel today/ }).getByRole("button", { name: "4" })).toHaveAttribute("aria-pressed", "true");
 
   await page.goto("/s/food");
-  await page.getByLabel("Calories").fill("900");
-  await page.getByLabel("Protein grams").fill("60");
-  await page.getByLabel("Fiber grams").fill("12");
+  const fuel = page.getByRole("region", { name: "Today's fuel" });
+  await fuel.getByLabel("Calories").fill("900");
+  await fuel.getByLabel("Protein grams").fill("60");
+  await fuel.getByLabel("Fiber grams").fill("12");
   await page.getByRole("region", { name: "Today's fuel" }).getByRole("button", { name: "Add" }).click();
   await expect(page.getByRole("region", { name: "Today's fuel" })).toContainText("900 / 3500");
   await expect(page.getByRole("region", { name: "Today's fuel" })).toContainText("60 g / 200 g");

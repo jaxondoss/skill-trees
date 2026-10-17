@@ -54,6 +54,7 @@ export type MilestoneRow = {
   claimed_at: string | null;
   proof_url: string | null;
   proof_value: number | null;
+  note?: string | null;
 };
 
 export type NonNegotiableRow = {

@@ -11,6 +11,7 @@ import { claudeAvailable } from "@/lib/claude";
 import { autoClaim, foodTargets, metricValues, sleepSettings } from "./claims";
 import { loadUserContext, must } from "./context";
 import { SHAPE_BY_CATEGORY, type BottleShape } from "./dashboard";
+import { SEED_TEMPLATE } from "@/seed/template";
 
 export type HeatDay = { day: string; state: Tier | "missed" | "none" };
 
@@ -22,6 +23,7 @@ export type MilestoneView = {
   claimedAt: string | null;
   proofUrl: string | null;
   proofValue: number | null;
+  note: string | null;
   state: "claimed" | "next" | "future";
   /** Live progress toward a metric rule, e.g. Bench 240 / 255. */
   progress: { label: string; current: number | null; target: number; op: "gte" | "lte"; def: MetricDef | null } | null;
@@ -66,7 +68,11 @@ export type SkillPageData = {
     daysOfWeek: number[];
     countsAgainstBudget: boolean;
     heat: HeatDay[];
+    /** This goal on today's plan, when it is there. */
+    todayGoal: { id: string; result: Tier | null; tier: Tier } | null;
   }[];
+  /** Starter ideas from the template, offered in empty lists (spec v2 r2, 7). */
+  ideas: { goals: { name: string; floor: string; standard: string; stretch: string; minutes: Record<Tier, number>; days: number[] }[]; steps: { title: string; points: number }[] };
   milestones: MilestoneView[];
   metrics: { def: MetricDef; current: number | null; entries: { id: string; value: number; day: string; source: string }[] }[];
   log: { day: string; text: string; source: "note" | "goal" }[];
@@ -139,6 +145,10 @@ export async function loadSkillPage(slug: string): Promise<SkillPageData | null>
         daysOfWeek: n.days_of_week,
         countsAgainstBudget: n.counts_against_budget,
         heat,
+        todayGoal: (() => {
+          const g = goals.find((x) => x.non_negotiable_id === n.id && x.daily_plans.day === ctx.today);
+          return g ? { id: g.id, result: g.result_tier, tier: g.tier } : null;
+        })(),
       };
     });
 
@@ -159,6 +169,7 @@ export async function loadSkillPage(slug: string): Promise<SkillPageData | null>
     claimedAt: m.claimed_at,
     proofUrl: m.proof_url ? (signed.get(m.proof_url) ?? null) : null,
     proofValue: m.proof_value === null ? null : Number(m.proof_value),
+    note: m.note ?? null,
     state: m.claimed_at ? "claimed" : m.id === nextId ? "next" : "future",
     progress: m.rule
       ? {
@@ -218,6 +229,7 @@ export async function loadSkillPage(slug: string): Promise<SkillPageData | null>
     tipUnlocked: row.status === "active" && TIP_ORDER.indexOf(tier) > TIP_ORDER.indexOf(seenTier) ? tier : null,
     history: ((snapRes.data ?? []) as { day: string; score: number }[]).map((s) => ({ day: s.day, score: Number(s.score) })),
     nonNegotiables,
+    ideas: starterIdeas(row.slug),
     milestones,
     metrics,
     log,
@@ -301,4 +313,21 @@ function trackerFor(slug: string, ctx: Awaited<ReturnType<typeof loadUserContext
     default:
       return { kind: "none" };
   }
+}
+
+/** The template's goals and steps for a skill, offered as one-tap ideas in empty to-do lists. */
+function starterIdeas(slug: string): SkillPageData["ideas"] {
+  const t = SEED_TEMPLATE.categories.flatMap((c) => c.skills).find((s) => s.slug === slug);
+  if (!t) return { goals: [], steps: [] };
+  return {
+    goals: t.nonNegotiables.map((n) => ({
+      name: n.name,
+      floor: n.floor,
+      standard: n.standard,
+      stretch: n.stretch,
+      minutes: n.minutes ?? { floor: 0, standard: 0, stretch: 0 },
+      days: [...(n.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6])],
+    })),
+    steps: t.milestones.map((m) => ({ title: m.title, points: m.points })),
+  };
 }

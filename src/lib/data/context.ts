@@ -92,7 +92,7 @@ export async function loadUserContext(supabase: SupabaseClient, now: Date): Prom
       .from("skills")
       .select("id, slug, name, category_id, status, priority_weight, sort, created_at, final_score, identity, hundred_means, metrics_note, tips, config, archived_at, seen_tip_tier")
       .order("sort"),
-    supabase.from("milestones").select("id, skill_id, title, points, type, rule, suggest_claim, sort, claimed_at, proof_url, proof_value").order("sort"),
+    supabase.from("milestones").select("id, skill_id, title, points, type, rule, suggest_claim, sort, claimed_at, proof_url, proof_value, note").order("sort"),
     supabase
       .from("non_negotiables")
       .select(

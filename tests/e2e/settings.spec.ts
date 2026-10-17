@@ -32,6 +32,7 @@ test("settings change the budget, and a sick-day override rebuilds an untouched 
   await expect(overrides.getByText("Added. Use Rebuild if it starts today.")).toBeVisible();
 
   await page.getByRole("button", { name: "Rebuild today's plan with these settings" }).click();
+  await expect(page.getByText("Today's plan will rebuild on the dashboard.")).toBeVisible();
   await page.goto("/");
   await expect(page.locator("#today")).toContainText("Sick day");
 });

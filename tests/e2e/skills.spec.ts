@@ -41,7 +41,7 @@ test("skill page explains the score, shows live milestone progress, and auto-cla
   await page.goto("/s/strength");
   await expect(page.getByText("I'm strong and I train like an athlete.")).toBeVisible();
   await expect(page.getByText(/Score = 0\.7 x 16 \+ 0\.3 x \d+/)).toBeVisible();
-  const ladder = page.getByRole("region", { name: "Milestones" });
+  const ladder = page.getByRole("region", { name: "Steps" });
   await expect(ladder).toContainText("Bench (top set or 1RM): 240 lb / 255 lb");
 
   await page.getByLabel("Bench (top set or 1RM) value").fill("255");
@@ -52,7 +52,7 @@ test("skill page explains the score, shows live milestone progress, and auto-cla
 
 test("a manual milestone can be claimed with a proof number, and undone", async ({ page }) => {
   await page.goto("/s/ai-building");
-  const ladder = page.getByRole("region", { name: "Milestones" });
+  const ladder = page.getByRole("region", { name: "Steps" });
   const next = ladder.locator("li", { hasText: "Deployed a project publicly" });
   await next.getByRole("button", { name: "Claim" }).click();
   await page.getByLabel("Proof number (optional)").fill("1");
@@ -101,13 +101,15 @@ test("a locked rack skill cannot be archived", async ({ page }) => {
 
 test("editing a non-negotiable and logging a note", async ({ page }) => {
   await page.goto("/s/dropshipping");
-  await page.getByRole("region", { name: "Non-negotiables" }).getByRole("button", { name: "Edit" }).click();
-  await page.getByLabel("Standard minutes").fill("35");
-  await page.getByRole("button", { name: /^Save/ }).click();
-  await expect(page.getByRole("region", { name: "Non-negotiables" })).toContainText("(35 min)");
+  const goals = page.getByRole("region", { name: "Goals" });
+  await goals.getByRole("button", { name: "Edit Store work" }).click();
+  await goals.getByLabel("Standard minutes").fill("35");
+  await goals.getByRole("button", { name: /^Save/ }).click();
+  await expect(goals).toContainText("35 min");
 
-  await page.getByLabel("New log line").fill("Found a supplier with 5-day shipping");
-  await page.getByRole("button", { name: "Log" }).click();
+  const logRegion = page.getByRole("region", { name: "Log" });
+  await logRegion.getByLabel("New log line").fill("Found a supplier with 5-day shipping");
+  await logRegion.getByRole("button", { name: "Log", exact: true }).click();
   await expect(page.getByRole("region", { name: "Log" })).toContainText("Found a supplier with 5-day shipping");
   sql(`update public.non_negotiables n set standard_min = 40 from public.skills s where n.skill_id = s.id and s.slug = 'dropshipping'`);
 });
