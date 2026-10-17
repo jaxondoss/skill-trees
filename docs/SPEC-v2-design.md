@@ -140,6 +140,48 @@ Every module: title in sentence case at 14px, one primary figure, and its states
 
 Review prompts (Sunday, first Sunday) sit at the top of the right rail when due.
 
+## 5a. Editing and logging (crucial: it has to be effortless)
+
+The dashboard is where you act, so nothing should send you to another page to change a goal or record a
+number. Every edit and every log happens in place, and every one can be undone.
+
+### Editing a goal's wording
+- **Where:** in the Today list. On a laptop, double-click the goal's text, or focus the row and press E.
+  On the phone, long-press opens the goal sheet, which now starts with an Edit row.
+- **What you can change:** the goal's title and its Floor, Standard and Stretch wording and minutes, in
+  one compact form inside the row (laptop) or the sheet (phone). The form is filled with the current
+  wording, focused on the field you tapped, and saves on Enter or on blur.
+- **Scope, asked once in the form:** "Today only" or "From now on". Today only changes this plan's copy
+  (`plan_goals.title` and `text`). From now on also updates the daily goal (`non_negotiables`), so future
+  plans use it; today's row updates too if it has not been logged.
+- **Category plates and skill names** are renamed the same way from the plate's menu; the skill page keeps
+  its full editor for everything else (days, intention, budget).
+
+### Logging progress
+- **Done in one tap** stays the default: tap the circle, the goal logs at its planned tier, the pulse runs.
+- **Partial progress:** a goal with a measurable target (minutes, grams, miles, pages) shows a small progress
+  tube under its text. Drag it, tap a preset (Floor, Standard, Stretch), or type a number. The tier is
+  worked out from the value against the goal's targets: 25 of 40 minutes is Floor, 40 is Standard, 60 is
+  Stretch. Goals without a number keep the three tier buttons.
+- **Numbers on the dashboard:** every number card is also its input. Click the weight card, type 184.2,
+  press Enter; the sparkline extends with the new point. Same for sleep (bed and wake taps), chess rating,
+  store revenue, a run's miles, and a top set.
+- **Quick log, from anywhere:** a Log button (the centre of the phone's tab bar; the sidebar on a laptop,
+  or press L) opens one input. Type "bench 245", "ran 4.2", "weight 184", "store 40" or "fiber 38" and it
+  matches the metric or today's goal by name and alias, shows what it will record, and logs on Enter. The
+  match is plain text rules over the metric and goal names, no AI needed, and it never guesses silently:
+  an ambiguous entry asks which one.
+- **Undo:** every log and edit shows one quiet line for 6 seconds, "Logged Store work at Standard. Undo".
+  Undo restores the previous value exactly.
+- **The 30-second rule** still holds: a full day of goals is one tap each, and any number is one click,
+  the value, and Enter.
+
+### Data this needs (build phase 3)
+- `non_negotiables`: optional `unit` and numeric targets per tier (`floor_target`, `standard_target`,
+  `stretch_target`); minutes already exist and become the default target when the unit is minutes.
+- `plan_goals`: `progress_value` for partial logs, and today-only title and text edits (columns exist).
+- Metric aliases (for quick log) in `src/engine/metrics.ts`, with tests for the matcher.
+
 ## 6. Visual system
 
 ### 6.1 Colour tokens
@@ -290,7 +332,7 @@ All from one `loadHub` composer over `loadUserContext` (`src/lib/data/context.ts
 ## 14. Build phases after approval (stop after each)
 1. Tokens, fonts, base components, focus styles.
 2. App shell: sidebar, rail at 1280, top bar at 768, tab bar at 390.
-3. `loadHub`, the `run_mi` metric and the activity feed (with tests).
+3. `loadHub`, the `run_mi` metric, the activity feed, goal targets and progress, today-only edits, quick-log matcher and undo (with tests).
 4. Dashboard modules and charts; the new figure with vein layer, tubes and pulse.
 5. Secondary pages restyled; ISO dates replaced; inputs named.
 6. Motion and accessibility pass; e2e selectors updated; 30-second logging test still passes.
