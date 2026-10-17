@@ -12,7 +12,7 @@ const CATS = [
   { slug: "mind", name: "Mind", Icon: Brain },
   { slug: "nutrition", name: "Nutrition", Icon: Leaf },
 ];
-const HIDDEN = ["/login", "/onboarding", "/auth"];
+const HIDDEN = ["/setup"];
 
 const item =
   "relative flex min-h-[52px] min-w-12 flex-col items-center justify-center gap-[3px] rounded-xl px-2 py-1.5 text-[10.5px] leading-[13px] font-semibold text-muted transition-colors hover:bg-white/[0.04] hover:text-text max-sm:flex-1 lg:min-w-[62px]";

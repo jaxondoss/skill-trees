@@ -122,8 +122,7 @@ test("main screens have no serious accessibility violations", async ({ page }) =
       .map((v) => `${path} ${v.id}: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(", ")}`);
     expect(serious, serious.join("\n")).toEqual([]);
   }
-  await page.context().clearCookies();
-  await page.goto("/login");
-  const login = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
-  expect(login.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id)).toEqual([]);
+  await page.goto("/setup");
+  const setup = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(setup.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id)).toEqual([]);
 });

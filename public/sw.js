@@ -4,7 +4,7 @@
  * Writes never go through here: the page queues goal logs and replays them when back online.
  * No push notifications (spec 0.6).
  */
-const VERSION = "v1";
+const VERSION = "v2";
 const STATIC = `forge-static-${VERSION}`;
 const PAGES = `forge-pages-${VERSION}`;
 const OFFLINE_URL = "/offline.html";
@@ -28,7 +28,7 @@ self.addEventListener("activate", (event) => {
 });
 
 const isStatic = (url) => url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/") || /\.(?:woff2?|png|svg|ico)$/.test(url.pathname);
-const isPrivate = (url) => url.pathname.startsWith("/api/") || url.pathname.startsWith("/auth/") || url.pathname === "/login";
+const isPrivate = (url) => url.pathname.startsWith("/api/") || url.pathname === "/setup";
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;

@@ -5,6 +5,10 @@ visualization for every skill, empty starting lists for new accounts, and the jo
 (lint, typecheck, 162 unit tests, DB tests, 49 e2e tests on a production build).
 
 ## For Jaxon
+0. No more magic link: the app signs you in on its own. Once: in Supabase > Authentication > Users, add a
+   user with your email and a password (Auto confirm). In Vercel > Environment Variables, add
+   FORGE_OWNER_EMAIL and FORGE_OWNER_PASSWORD, then redeploy. Also set the Supabase Site URL to
+   `https://skill-trees-seven.vercel.app` (it was missing `https://`, which caused "requested path is invalid").
 1. Open the app and look at the board on the laptop and the phone. Note anything that feels off.
 2. Decide on your own lists: Settings > Starting content > "Start with empty lists" clears the starter
    goals and open steps (claimed steps stay). Then fill in each skill's to-do list; empty lists offer

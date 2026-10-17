@@ -1,6 +1,7 @@
-// Mimics the two Supabase endpoints the app uses: /auth/v1/user (token check) and /rest/v1 (PostgREST).
+// Mimics the Supabase endpoints the app uses: /auth/v1/token (owner password sign-in), /auth/v1/user (token check)
+// and /rest/v1 (PostgREST).
 import { createServer } from "node:http";
-import { GATEWAY_PORT, POSTGREST_PORT, USER_EMAIL, verifyJwt } from "./config.mjs";
+import { GATEWAY_PORT, OWNER_PASSWORD, POSTGREST_PORT, session, USER_EMAIL, verifyJwt } from "./config.mjs";
 
 const PASS_HEADERS = ["authorization", "apikey", "prefer", "accept", "content-type", "accept-profile", "content-profile", "range"];
 const RETURN_HEADERS = ["content-type", "content-range", "preference-applied", "location"];
@@ -33,6 +34,18 @@ createServer(async (req, res) => {
         created_at: new Date().toISOString(),
       }),
     );
+    return;
+  }
+
+  if (url.pathname === "/auth/v1/token" && url.searchParams.get("grant_type") === "password") {
+    const body = JSON.parse(String((await readBody(req)) ?? "{}"));
+    if (body.email !== USER_EMAIL || body.password !== OWNER_PASSWORD) {
+      res
+        .writeHead(400, { "content-type": "application/json" })
+        .end(JSON.stringify({ code: 400, error_code: "invalid_credentials", msg: "Invalid login credentials" }));
+      return;
+    }
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(session()));
     return;
   }
 

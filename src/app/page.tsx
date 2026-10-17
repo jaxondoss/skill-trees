@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { PenLine } from "lucide-react";
-import { redirect } from "next/navigation";
 import { NumberTiles } from "@/components/board/NumberTiles";
 import { StatueHero } from "@/components/board/StatueHero";
 import { ActivityTile, DueTile, NextUpTile, RingTile, SectionHeader, SkillGrid } from "@/components/board/Tiles";
@@ -14,7 +13,7 @@ import { JournalButton } from "@/components/shell/JournalDialog";
 import { TodayPanel } from "@/components/today/TodayPanel";
 import { FIGURE_TIERS } from "@/engine/scoring";
 import { loadBoard } from "@/lib/data/board";
-import { isOnboarded } from "@/lib/data/onboarding";
+import { ensureOnboarded } from "@/lib/data/onboarding";
 import { supabasePublicEnv } from "@/lib/supabase/env";
 
 const MOOD: Record<string, string> = { heavy: "Heavy", strained: "Strained", steady: "Steady", clear: "Clear", locked_in: "Locked in" };
@@ -36,8 +35,8 @@ async function Board() {
     );
   }
 
-  // First run: onboarding comes before the first plan, so that plan uses the chosen rack.
-  if (!(await isOnboarded())) redirect("/onboarding");
+  // First run: no walkthrough. Mark the profile onboarded before the first plan is built.
+  await ensureOnboarded();
   const data = await loadBoard();
   const next = FIGURE_TIERS.find((t) => t.tier === data.overall.tier + 1);
   const pct = data.todayP === null ? 0 : Math.round(data.todayP);
@@ -152,12 +151,6 @@ async function Board() {
         </section>
         <ActivityTile items={data.activity} />
       </div>
-
-      <form action="/auth/signout" method="post" className="mt-6 text-center">
-        <button type="submit" className="min-h-11 px-4 text-xs text-label underline-offset-4 hover:text-text hover:underline">
-          Sign out
-        </button>
-      </form>
     </>
   );
 }

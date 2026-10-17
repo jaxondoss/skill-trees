@@ -198,33 +198,3 @@ export async function setSkillStatus(skillId: string, status: "active" | "dorman
   refresh();
   return { ok: true };
 }
-
-const Onboarding = z.object({
-  claims: z.array(uuid).max(200),
-  metrics: z.array(z.object({ skillId: uuid, key: z.string(), value: z.number().nonnegative() })).max(20),
-  rack: z.array(uuid).min(1).max(5),
-  schedule: z
-    .array(
-      z.object({
-        weekday: z.number().int().min(0).max(6),
-        dayType: z.enum(["class_light", "class_heavy", "weekend", "break"]),
-        trainingTime: z.string().regex(/^\d{2}:\d{2}$/).nullable(),
-      }),
-    )
-    .max(7),
-  chess: z.object({ platform: z.enum(["chess.com", "lichess"]).nullable(), username: z.string().trim().max(40) }),
-  focusLine: z.string().trim().max(80),
-});
-
-export async function completeOnboarding(input: z.infer<typeof Onboarding>): Promise<ActionResult> {
-  const parsed = Onboarding.safeParse(input);
-  if (!parsed.success) return fail("Pick at least one rack skill and check your entries.");
-  if (parsed.data.metrics.some((m) => !METRIC_BY_KEY.has(m.key))) return fail("Unknown baseline.");
-  const { supabase } = await client();
-  const profile = await loadProfile(supabase);
-  const { error } = await supabase.rpc("complete_onboarding", { p_day: todayFor(profile, new Date()), p: parsed.data });
-  if (error) return fail(error.message);
-  await autoClaim(supabase, await loadUserContext(supabase, new Date()));
-  refresh();
-  return { ok: true };
-}

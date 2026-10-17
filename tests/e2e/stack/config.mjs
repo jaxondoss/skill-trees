@@ -5,6 +5,8 @@ import { createHmac } from "node:crypto";
 export const JWT_SECRET = "forge-e2e-only-secret-not-used-anywhere-else";
 export const USER_ID = "e2e00000-0000-4000-8000-000000000001";
 export const USER_EMAIL = "e2e@forge.test";
+/** The owner password the app signs in with automatically (FORGE_OWNER_PASSWORD in the stack). */
+export const OWNER_PASSWORD = "forge-e2e-owner-password";
 
 export const PG_PORT = 54339;
 export const POSTGREST_PORT = 54331;
@@ -37,11 +39,11 @@ export function verifyJwt(token) {
 /** Stands in for the publishable key: an anon-role JWT PostgREST accepts. */
 export const ANON_KEY = signJwt({ role: "anon", iss: "forge-e2e", exp: 4102444800 });
 
-/** A signed-in session cookie value in the format @supabase/ssr reads. */
-export function sessionCookieValue() {
+/** A session for the e2e user, as Supabase Auth returns it. */
+export function session() {
   const exp = Math.floor(Date.now() / 1000) + 3600;
   const access_token = signJwt({ sub: USER_ID, email: USER_EMAIL, role: "authenticated", aud: "authenticated", exp });
-  const session = {
+  return {
     access_token,
     token_type: "bearer",
     expires_in: 3600,
@@ -49,5 +51,9 @@ export function sessionCookieValue() {
     refresh_token: "e2e-refresh",
     user: { id: USER_ID, email: USER_EMAIL, aud: "authenticated", role: "authenticated", app_metadata: {}, user_metadata: {} },
   };
-  return `base64-${b64url(session)}`;
+}
+
+/** A signed-in session cookie value in the format @supabase/ssr reads. */
+export function sessionCookieValue() {
+  return `base64-${b64url(session())}`;
 }

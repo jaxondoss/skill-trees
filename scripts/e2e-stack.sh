@@ -55,6 +55,8 @@ PIDS+=($!)
 
 export NEXT_PUBLIC_SUPABASE_URL="$(cfg SUPABASE_URL)"
 export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$(cfg ANON_KEY)"
+export FORGE_OWNER_EMAIL="$(cfg USER_EMAIL)"
+export FORGE_OWNER_PASSWORD="$(cfg OWNER_PASSWORD)"
 cd "$ROOT"
 if [[ "${E2E_MODE:-dev}" == "start" ]]; then
   pnpm exec next build >/dev/null

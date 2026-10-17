@@ -7,34 +7,6 @@ test.beforeEach(async ({ page }) => {
   await signIn(page);
 });
 
-test("first run walks through onboarding, then the dashboard uses the chosen rack", async ({ page }) => {
-  sql(`update public.profiles set onboarded_at = null, focus_line = null where user_id = '${USER_ID}';
-       update public.milestones set claimed_at = null where user_id = '${USER_ID}';`);
-  await page.goto("/");
-  await expect(page).toHaveURL(/\/onboarding$/);
-  await expect(page.getByText("Identity over outcomes.")).toBeVisible();
-
-  await page.getByRole("button", { name: "Continue" }).click(); // principles
-  await expect(page.getByText("Your week")).toBeVisible();
-  await page.getByRole("button", { name: "Continue" }).click(); // schedule
-  await expect(page.getByRole("button", { name: /Bench 225/ })).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "Continue" }).click(); // milestones
-  await page.getByLabel("Chess username").fill("jaxon");
-  await page.getByRole("button", { name: "Continue" }).click(); // baselines
-  await page.getByRole("button", { name: /^Academics/ }).click(); // unpin
-  await page.getByRole("button", { name: /^Chess/ }).click(); // pin
-  await page.getByRole("button", { name: "Continue" }).click(); // rack
-  await page.getByRole("textbox", { name: "Focus line" }).fill("Win the morning");
-  await page.getByRole("button", { name: "Start" }).click();
-
-  await expect(page).toHaveURL("http://localhost:3200/");
-  await expect(page.getByText("Win the morning")).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Chess, \d+, locked 7 days$/ })).toBeVisible();
-  await expect(page.locator("#today")).toContainText("Chess training");
-  expect(Number(sql(`select count(*) from public.milestones where user_id = '${USER_ID}' and claimed_at is not null`))).toBe(5);
-  expect(sql(`select value from public.metrics where user_id = '${USER_ID}' and key = 'bench_1rm'`)).toBe("240");
-});
-
 test("skill page explains the score, shows live milestone progress, and auto-claims from a metric", async ({ page }) => {
   sql(`insert into public.metrics (user_id, skill_id, key, value, day)
        select '${USER_ID}', id, 'bench_1rm', 240, current_date from public.skills where user_id = '${USER_ID}' and slug = 'strength'`);
