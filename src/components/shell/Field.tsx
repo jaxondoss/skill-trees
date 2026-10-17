@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { LOOK_EVENT, readLook, type FieldMode } from "@/lib/look";
 import { FIELD_BURST_EVENT, type FieldBurst } from "@/lib/pulse";
 
 const COLORS: Record<string, string> = {
@@ -31,8 +32,19 @@ function rng(seed: number) {
  * breathe, sparse data pulses along the traces, and a soft light under the pointer. A power-up rings out from
  * the statue. Capped at 30fps, paused when hidden, one static frame with reduced motion.
  */
-export function Field({ mode = "live" }: { mode?: "live" | "calm" | "still" }) {
+export function Field() {
   const ref = useRef<HTMLCanvasElement>(null);
+  const [mode, setMode] = useState<FieldMode>("live");
+
+  useEffect(() => {
+    const sync = () => setMode(readLook().field);
+    const t = setTimeout(sync, 0);
+    window.addEventListener(LOOK_EVENT, sync);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener(LOOK_EVENT, sync);
+    };
+  }, []);
 
   useEffect(() => {
     const cv = ref.current;

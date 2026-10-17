@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { emitBurst, PULSE_EVENT, type PulseDetail } from "@/lib/pulse";
+import { readLook } from "@/lib/look";
 import { CATEGORY_ORDER, MARK, isCategorySlug } from "@/lib/palette";
 
 type Cat = { id: string; slug: string; name: string; score: number | null };
@@ -56,7 +57,7 @@ function fxLayer(): SVGSVGElement {
 }
 
 /** The statue tile: overall score, tier, five category rows, and the statue that takes the power-up. */
-export function StatueHero({ overall, tier, categories, comic = true }: { overall: number; tier: Tier; categories: Cat[]; comic?: boolean }) {
+export function StatueHero({ overall, tier, categories }: { overall: number; tier: Tier; categories: Cat[] }) {
   const hero = useRef<HTMLElement>(null);
   const statue = useRef<HTMLDivElement>(null);
   const px = useRef<HTMLDivElement>(null);
@@ -142,7 +143,7 @@ export function StatueHero({ overall, tier, categories, comic = true }: { overal
         hero.current
           ?.querySelector(`[data-catrow="${slug}"]`)
           ?.animate([{ background: "rgba(255,255,255,.12)" }, { background: "transparent" }], { duration: 900 });
-        if (!comic) return;
+        if (readLook().power === "calm") return;
         raysRef.current?.animate(
           [{ opacity: 0, transform: "scale(.88)" }, { opacity: 1, offset: 0.2 }, { opacity: 0, transform: "scale(1.12)" }],
           { duration: 620, easing: "ease-out" },

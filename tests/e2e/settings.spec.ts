@@ -48,3 +48,13 @@ test("export downloads every table without encrypted secrets", async ({ page }) 
   expect(Object.keys(json.tables)).toEqual(expect.arrayContaining(["weekly_reviews", "monthly_reviews", "metrics", "plan_goals"]));
   expect(body).not.toContain("secret_ciphertext");
 });
+
+test("look and feel is saved on this device", async ({ page }) => {
+  await page.goto("/settings");
+  const look = page.getByRole("region", { name: "Look and feel" });
+  await look.getByRole("group", { name: "Background" }).getByRole("button", { name: "Still" }).click();
+  await look.getByRole("group", { name: "Power-up" }).getByRole("button", { name: "Calm" }).click();
+  await page.reload();
+  await expect(look.getByRole("group", { name: "Background" }).getByRole("button", { name: "Still" })).toHaveAttribute("aria-pressed", "true");
+  await expect(look.getByRole("group", { name: "Power-up" }).getByRole("button", { name: "Calm" })).toHaveAttribute("aria-pressed", "true");
+});

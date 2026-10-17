@@ -1,6 +1,6 @@
 # FORGE spec v2: design and dashboard
 
-Status: revision 2 (2026-10-17, approved direction: "replace the mockup"). Supersedes these sections of the
+Status: revision 2 (2026-10-17, approved direction: "replace the mockup"). Built and live on main: phases 1 to 6 below. Supersedes these sections of the
 original spec: 1 (mobile first), 4.1 (dashboard), 4.3 (skill page layout), 5.3 (figure rendering), 9.2
 (calendar colour), 11 (visual design system), 12 (starting content for new users). Everything else (scoring,
 goal engine, streak, reviews, integrations, copy rules) stands.

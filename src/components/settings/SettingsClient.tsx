@@ -1,7 +1,8 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
-import { useState, useTransition, type ReactNode } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { readLook, saveLook, type FieldMode, type PowerMode } from "@/lib/look";
 import type { ActionResult } from "@/app/actions";
 import {
   addOverride,
@@ -73,6 +74,7 @@ export function SettingsClient({ data }: { data: SettingsData }) {
       <Schedule data={data} />
       <Overrides overrides={data.overrides} />
       <KeyDates dates={data.keyDates} />
+      <LookAndFeel />
       <StartingContent />
       <Section title="Data">
         <a href="/api/export" className={`${button} inline-flex items-center`} download>
@@ -366,6 +368,40 @@ function StartingContent() {
             {result}
           </p>
         )}
+      </div>
+    </Section>
+  );
+}
+
+/** The field's motion and the power-up's volume, kept on this device. */
+function LookAndFeel() {
+  const [look, setLook] = useState<{ field: FieldMode; power: PowerMode } | null>(null);
+  useEffect(() => {
+    const t = setTimeout(() => setLook(readLook()), 0);
+    return () => clearTimeout(t);
+  }, []);
+  const pick = (patch: Partial<{ field: FieldMode; power: PowerMode }>) => {
+    saveLook(patch);
+    setLook(readLook());
+  };
+  const seg = (label: string, options: [string, string][], value: string | undefined, on: (v: string) => void) => (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <span className="text-sm">{label}</span>
+      <div className="inline-flex gap-[3px] rounded-[9px] border border-[var(--border)] bg-sunk p-[3px]" role="group" aria-label={label}>
+        {options.map(([v, l]) => (
+          <button key={v} type="button" aria-pressed={value === v} onClick={() => on(v)} className="min-h-8 rounded-md px-3 text-xs font-semibold text-muted aria-pressed:bg-raised aria-pressed:text-text">
+            {l}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+  return (
+    <Section title="Look and feel">
+      <div className="glass space-y-3 p-4">
+        {seg("Background", [["live", "Live"], ["calm", "Calm"], ["still", "Still"]], look?.field, (v) => pick({ field: v as FieldMode }))}
+        {seg("Power-up", [["comic", "Comic"], ["calm", "Calm"]], look?.power, (v) => pick({ power: v as PowerMode }))}
+        <p className="text-[11px] text-muted">Saved on this device. Reduced motion in your system settings always keeps the background still.</p>
       </div>
     </Section>
   );
