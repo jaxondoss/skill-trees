@@ -8,3 +8,4 @@ trap pg_stop EXIT
 pg_start "${PG_TEST_PORT:-54329}"
 pg_psql -f "$ROOT/tests/db/rls.sql"
 pg_psql -f "$ROOT/tests/db/functions.sql"
+pg_psql -f "$ROOT/tests/db/class_times.sql"

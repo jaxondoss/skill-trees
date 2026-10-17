@@ -839,7 +839,7 @@ export const SEED_TEMPLATE: SeedTemplate = {
         classes: [
           { course: "MATH 1210 Calc I", start: "12:00", end: "12:50" },
           { course: "HISA 1500", start: "13:00", end: "13:50" },
-          { course: "CMPS 1500", start: "17:00", end: "17:50", confirm: true },
+          { course: "CMPS 1500", start: "17:00", end: "18:00" },
         ],
         trainingTime: "18:15",
       },
@@ -848,7 +848,7 @@ export const SEED_TEMPLATE: SeedTemplate = {
         dayType: "class_heavy",
         classes: [
           { course: "MATH 1211 recitation", start: "09:30", end: "10:45" },
-          { course: "ARCH 1110", start: "11:00", end: "12:15", confirm: true },
+          { course: "ARCH 1110", start: "11:00", end: "12:15" },
           { course: "ECON 1020", start: "14:00", end: "15:15" },
         ],
         trainingTime: "16:00",
@@ -860,7 +860,7 @@ export const SEED_TEMPLATE: SeedTemplate = {
         classes: [
           { course: "MATH 1210 Calc I", start: "12:00", end: "12:50" },
           { course: "HISA 1500", start: "13:00", end: "13:50" },
-          { course: "CMPS 1500", start: "17:00", end: "17:50", confirm: true },
+          { course: "CMPS 1500", start: "17:00", end: "18:00" },
         ],
         trainingTime: "18:15",
       },
@@ -868,7 +868,7 @@ export const SEED_TEMPLATE: SeedTemplate = {
         weekday: 4,
         dayType: "class_heavy",
         classes: [
-          { course: "ARCH 1110", start: "11:00", end: "12:15", confirm: true },
+          { course: "ARCH 1110", start: "11:00", end: "12:15" },
           { course: "ECON 1020", start: "14:00", end: "15:15" },
           { course: "CMPS 1501 lab", start: "17:00", end: "18:15" },
         ],
@@ -882,7 +882,7 @@ export const SEED_TEMPLATE: SeedTemplate = {
           { course: "MATH 1210 Calc I", start: "12:00", end: "12:50" },
           { course: "HISA 1500", start: "13:00", end: "13:50" },
           { course: "INFO 1010", start: "15:00", end: "15:50" },
-          { course: "CMPS 1500", start: "17:00", end: "17:50", confirm: true },
+          { course: "CMPS 1500", start: "17:00", end: "18:00" },
         ],
         trainingTime: "18:15",
       },
