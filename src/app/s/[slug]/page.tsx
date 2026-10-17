@@ -9,6 +9,7 @@ import { IdentityLine } from "@/components/skill/IdentityLine";
 import { LogPanel, MetricsPanel, SkillActions, TipUnlock } from "@/components/skill/SkillClient";
 import { GoalsTile, StepsTile } from "@/components/skill/TodoLists";
 import { SkillTracker } from "@/components/skill/Trackers";
+import { SkillViz } from "@/components/viz/SkillViz";
 import { loadSkillPage } from "@/lib/data/skill";
 import { catClass, MARK, isCategorySlug } from "@/lib/palette";
 
@@ -131,6 +132,7 @@ async function Skill({ params }: { params: PageProps<"/s/[slug]">["params"] }) {
       </div>
 
       <SectionHeader title="The numbers" />
+      <SkillViz data={d.viz} skillId={d.skill.id} skillName={d.skill.name} dormant={dormant} />
       {d.tracker.kind !== "none" && d.skill.status === "active" && (
         <Section title={TRACKER_TITLE[d.tracker.kind] ?? "Track"} className="col-span-12 lg:col-span-6">
           <SkillTracker tracker={d.tracker} color={color} />

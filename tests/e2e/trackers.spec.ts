@@ -9,12 +9,13 @@ test.beforeEach(async ({ page }) => {
 
 test("an unstarted assignment due within 48 hours becomes today's Academics goal", async ({ page }) => {
   await page.goto("/s/academics");
-  await page.getByLabel("Course").fill("CMPS");
-  await page.getByLabel("Assignment", { exact: true }).fill("Lab 6");
+  const assignments = page.getByRole("region", { name: "Assignments" });
+  await assignments.getByLabel("Course").fill("CMPS");
+  await assignments.getByLabel("Assignment", { exact: true }).fill("Lab 6");
   const due = new Date(Date.now() + 24 * 3_600_000);
   const local = new Date(due.getTime() - due.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
-  await page.getByLabel("Due").fill(local);
-  await page.getByRole("region", { name: "Assignments" }).getByRole("button", { name: "Add" }).click();
+  await assignments.getByLabel("Due").fill(local);
+  await assignments.getByRole("button", { name: "Add" }).click();
   await expect(page.getByText("CMPS: Lab 6")).toBeVisible();
   await expect(page.getByText(", within 48 hours")).toBeVisible();
 

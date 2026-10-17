@@ -19,6 +19,8 @@ export type MetricDef = {
   agg: "latest" | "max" | "min" | "sum";
   /** Entry step hint for the input. */
   step?: number;
+  /** Logged from a skill's visualization (with details in meta), not listed in the metrics panel. */
+  hidden?: boolean;
 };
 
 export const METRIC_DEFS: MetricDef[] = [
@@ -57,6 +59,11 @@ export const METRIC_DEFS: MetricDef[] = [
   { key: "swim_min", skill: "triathlon", label: "Swim", unit: "min", format: "number", agg: "sum", step: 5 },
   { key: "bike_min", skill: "triathlon", label: "Ride", unit: "min", format: "number", agg: "sum", step: 5 },
   { key: "vividness", skill: "visualization", label: "Vividness", unit: "of 5", format: "number", agg: "latest", step: 1 },
+  { key: "ship", skill: "ai-building", label: "Shipped", unit: "", format: "number", agg: "sum", hidden: true },
+  { key: "course_grade", skill: "academics", label: "Course grade", unit: "%", format: "number", agg: "latest", hidden: true },
+  { key: "book_pages", skill: "reading", label: "Pages read", unit: "pages", format: "number", agg: "sum", hidden: true },
+  { key: "conversation", skill: "college-integration", label: "Conversation", unit: "", format: "number", agg: "sum", hidden: true },
+  { key: "gut_habit", skill: "gut-health", label: "Gut habit kept", unit: "", format: "number", agg: "sum", hidden: true },
 ];
 
 export const METRIC_BY_KEY = new Map(METRIC_DEFS.map((d) => [d.key, d]));

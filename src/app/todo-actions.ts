@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { z } from "zod";
+import { METRIC_BY_KEY } from "@/engine/metrics";
 import { loadProfile, todayFor } from "@/lib/data/context";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "./actions";
@@ -195,6 +196,38 @@ export async function deleteJournal(id: string): Promise<ActionResult> {
   if (!uuid.safeParse(id).success) return fail("Unknown entry.");
   const { supabase } = await client();
   const { error } = await supabase.from("journal_entries").delete().eq("id", id);
+  if (error) return fail(error.message);
+  refresh();
+  return { ok: true };
+}
+
+const Meta = z.record(z.string().max(40), z.union([z.string().trim().max(140), z.number()])).refine((m) => Object.keys(m).length <= 6);
+
+/**
+ * Log a number from a skill's visualization, with details in meta (a ship's title, a course, a book, a person).
+ * `replaceToday` replaces today's entries for the key first (for one-a-day values like habits).
+ */
+export async function logEntry(
+  skillId: string,
+  key: string,
+  value: number,
+  meta: Record<string, string | number> = {},
+  opts: { replaceToday?: boolean; match?: Record<string, string> } = {},
+): Promise<ActionResult> {
+  const def = METRIC_BY_KEY.get(key);
+  const m = Meta.safeParse(meta);
+  if (!def || !uuid.safeParse(skillId).success || !m.success) return fail("Unknown entry.");
+  if (!Number.isFinite(value) || value < 0 || value > 1_000_000) return fail("Enter a valid number.");
+  const { supabase, uid } = await client();
+  if (!uid) return fail("Sign in again.");
+  const profile = await loadProfile(supabase);
+  const day = todayFor(profile, new Date());
+  if (opts.replaceToday) {
+    let q = supabase.from("metrics").delete().eq("key", key).eq("day", day).eq("skill_id", skillId);
+    for (const [k, v] of Object.entries(opts.match ?? {})) q = q.eq(`meta->>${k}`, v);
+    await q;
+  }
+  const { error } = await supabase.from("metrics").insert({ user_id: uid, skill_id: skillId, key, value, unit: def.unit || null, day, source: "manual", meta: m.data });
   if (error) return fail(error.message);
   refresh();
   return { ok: true };

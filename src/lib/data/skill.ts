@@ -80,7 +80,42 @@ export type SkillPageData = {
   claimed: string[];
   soundOn: boolean;
   tracker: Tracker;
+  viz: VizData;
 };
+
+/** Everything one skill's visualization draws from (spec v2 r2, 6). */
+export type VizData = {
+  slug: string;
+  today: string;
+  /** Metric entries by key, oldest first. */
+  series: Record<string, { day: string; value: number; meta: Record<string, unknown> | null }[]>;
+  /** This skill's goal results by day, last 26 weeks: best tier and its minutes. */
+  goalDays: { day: string; result: Tier | null; minutes: number }[];
+  nights: { day: string; bedtime: number; hours: number; anchor: number; inWindow: boolean }[];
+  food: { days: { day: string; calories: number; protein: number }[]; calories: number; proteinG: number; tolerancePct: number } | null;
+  due: { name: string; course: string | null; inDays: number }[];
+  race: { label: string; date: string } | null;
+  /** Milestone rule targets for this skill's numbers, e.g. bench_1rm 255. */
+  targets: { key: string; value: number; claimed: boolean }[];
+  habits: string[];
+  costShare: number;
+};
+
+const VIZ_KEYS: Record<string, string[]> = {
+  "ai-building": ["ship"],
+  dropshipping: ["revenue_week_usd", "ad_spend_week_usd", "orders_week"],
+  academics: ["course_grade"],
+  reading: ["book_pages", "reading_effective_rate", "books_finished"],
+  "college-integration": ["conversation"],
+  "time-blocking": ["block_adherence_pct"],
+  chess: ["chess_rating"],
+  visualization: ["vividness", "vision_rewrites"],
+  strength: ["bench_1rm", "squat_1rm", "deadlift_1rm"],
+  running: ["run_mi", "long_run_mi"],
+  triathlon: ["swim_min", "bike_min", "run_mi"],
+  "gut-health": ["gut_habit", "gut_rating"],
+};
+const TIER_RANK: Record<Tier, number> = { floor: 1, standard: 2, stretch: 3 };
 
 export type Tracker =
   | { kind: "sleep"; anchorTonight: string; open: boolean; nights: { day: string; hours: number | null; bedtime: string; inWindow: boolean }[] }
@@ -183,7 +218,7 @@ export async function loadSkillPage(slug: string): Promise<SkillPageData | null>
   }));
 
   // ── Metrics this skill tracks.
-  const metrics = METRIC_DEFS.filter((d) => d.skill === row.slug).map((def) => ({
+  const metrics = METRIC_DEFS.filter((d) => d.skill === row.slug && !d.hidden).map((def) => ({
     def,
     current: values[def.key] ?? null,
     entries: ctx.metrics
@@ -197,6 +232,71 @@ export async function loadSkillPage(slug: string): Promise<SkillPageData | null>
   const notes = ((must(logRes, "log") as { day: string; body: string }[]) ?? []).map((l) => ({ day: l.day, text: l.body, source: "note" as const }));
   const goalNotes = goals.filter((g) => g.user_note).map((g) => ({ day: g.daily_plans.day, text: g.user_note!, source: "goal" as const }));
   const log = [...notes, ...goalNotes].sort((a, c) => (a.day < c.day ? 1 : -1)).slice(0, 20);
+
+  // ── The skill's visualization.
+  const keys = VIZ_KEYS[row.slug] ?? [];
+  const series: VizData["series"] = {};
+  for (const k of keys) series[k] = ctx.metrics.filter((m) => m.key === k).map((m) => ({ day: m.day, value: m.value, meta: m.meta }));
+  const since = addDays(ctx.today, -182);
+  const nnMin = new Map(ctx.nonNegotiables.filter((n) => n.skill_id === row.id).map((n) => [n.id, { floor: n.floor_min, standard: n.standard_min, stretch: n.stretch_min }]));
+  const byDay = new Map<string, { result: Tier | null; minutes: number }>();
+  for (const g of goals) {
+    const day = g.daily_plans.day;
+    if (day < since) continue;
+    const prev = byDay.get(day) ?? { result: null, minutes: 0 };
+    if (g.result_tier && (!prev.result || TIER_RANK[g.result_tier] > TIER_RANK[prev.result])) {
+      const mins = g.non_negotiable_id ? nnMin.get(g.non_negotiable_id)?.[g.result_tier] : undefined;
+      byDay.set(day, { result: g.result_tier, minutes: mins ?? g.est_min ?? 0 });
+    } else if (!byDay.has(day)) byDay.set(day, prev);
+  }
+  const goalDays = [...byDay.entries()].map(([day, v]) => ({ day, ...v })).sort((a, c) => (a.day < c.day ? -1 : 1));
+  let nightRows: VizData["nights"] = [];
+  if (row.slug === "sleep") {
+    const { cfg, startDay } = sleepSettings(ctx);
+    nightRows = nights(ctx.sleepSessions.map((x) => ({ day: x.day, sleptAt: x.slept_at, wokeAt: x.woke_at })), ctx.profile.timezone, startDay, cfg)
+      .filter((n) => n.hours !== null)
+      .slice(-14)
+      .map((n) => ({ day: n.day, bedtime: n.bedtime, hours: n.hours!, anchor: n.anchor, inWindow: n.inWindow }));
+  }
+  let food: VizData["food"] = null;
+  if (row.slug === "food") {
+    const t = foodTargets(ctx);
+    const sums = new Map<string, { calories: number; protein: number }>();
+    for (const m of ctx.metrics) {
+      if (m.key !== "meal_calories" && m.key !== "meal_protein_g") continue;
+      if (m.day < addDays(ctx.today, -13)) continue;
+      const d = sums.get(m.day) ?? { calories: 0, protein: 0 };
+      if (m.key === "meal_calories") d.calories += m.value;
+      else d.protein += m.value;
+      sums.set(m.day, d);
+    }
+    food = { days: [...sums.entries()].map(([day, v]) => ({ day, ...v })).sort((a, c) => (a.day < c.day ? -1 : 1)), calories: t.calories, proteinG: t.proteinG, tolerancePct: t.calorieTolerancePct };
+  }
+  let race: VizData["race"] = null;
+  if (row.slug === "running" || row.slug === "triathlon") {
+    const { data: kd } = await supabase.from("key_dates").select("label, date").eq("kind", "race").gte("date", ctx.today).order("date").limit(1);
+    const k = (kd ?? [])[0] as { label: string; date: string } | undefined;
+    race = k ? { label: k.label, date: k.date } : null;
+  }
+  const cfg = (row.config ?? {}) as { habits?: string[]; productCostPct?: number };
+  const viz: VizData = {
+    slug: row.slug,
+    today: ctx.today,
+    series,
+    goalDays,
+    nights: nightRows,
+    food,
+    due:
+      row.slug === "academics"
+        ? ctx.assignments
+            .map((a) => ({ name: a.name, course: a.course, inDays: (new Date(a.due_at).getTime() - ctx.now.getTime()) / 86_400_000 }))
+            .filter((a) => a.inDays >= 0 && a.inDays <= 14)
+        : [],
+    race,
+    targets: ms.filter((m) => m.rule && keys.includes(m.rule.key)).map((m) => ({ key: m.rule!.key, value: Number(m.rule!.value), claimed: !!m.claimed_at })),
+    habits: Array.isArray(cfg.habits) && cfg.habits.length ? cfg.habits.slice(0, 6) : ["Fiber 38 g", "Fermented food", "Water 3 L", "No late snack"],
+    costShare: typeof cfg.productCostPct === "number" ? cfg.productCostPct / 100 : 0.35,
+  };
 
   const pin = ctx.rackPins.find((p) => p.skill_id === row.id);
   const daysLocked = pin ? Math.max(0, Math.ceil((new Date(pin.locked_until).getTime() - ctx.now.getTime()) / 86_400_000)) : 0;
@@ -237,6 +337,7 @@ export async function loadSkillPage(slug: string): Promise<SkillPageData | null>
     claimed,
     soundOn: ctx.profile.sound_on,
     tracker: trackerFor(row.slug, ctx),
+    viz,
   };
 }
 
