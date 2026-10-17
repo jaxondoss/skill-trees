@@ -1,8 +1,11 @@
 import "server-only";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 /** Daily snapshot series for charts: overall (no ref) or one category or skill. */
 export async function loadHistory(scope: "overall" | "category" | "skill", refId?: string): Promise<{ day: string; score: number }[]> {
+  // Request-time only: the auth client reads the clock.
+  await connection();
   const supabase = await createClient();
   let q = supabase.from("score_snapshots").select("day, score").eq("scope", scope);
   q = refId ? q.eq("ref_id", refId) : q.is("ref_id", null);

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { requestDebrief, saveWeeklyReview } from "@/app/review-actions";
 import { useAction } from "@/components/skill/useAction";
-import { dayColor, NEUTRAL_CELL } from "@/engine/completion";
+import { rampColor } from "@/lib/palette";
 import { shortDate } from "@/engine/time";
 import type { DropshipKey, WeeklyReviewData } from "@/lib/data/reviews";
 
@@ -52,7 +52,7 @@ export function WeeklyReview({ data }: { data: Data }) {
             <li key={d.day} className="flex flex-col items-center gap-1">
               <span
                 className={`grid aspect-square w-full place-items-center rounded-md text-[10px] ${d.p !== null && d.p >= 85 ? "ring-1 ring-gold" : ""}`}
-                style={{ background: d.p === null || d.future ? NEUTRAL_CELL : dayColor(d.p) }}
+                style={{ background: d.p === null || d.future ? "var(--sunk)" : (rampColor(d.p) ?? "var(--sunk)"), color: d.p !== null && !d.future && d.p >= 50 ? "var(--bg)" : undefined }}
                 role="img"
                 aria-label={`${shortDate(d.day)}: ${d.p === null ? (d.future ? "ahead" : "no plan") : `${Math.round(d.p)}%`}`}
               >
@@ -107,7 +107,7 @@ export function WeeklyReview({ data }: { data: Data }) {
           Next week&apos;s focus line
         </h2>
         <input value={focusLine} onChange={(e) => setFocusLine(e.target.value)} maxLength={80} placeholder="Win the morning" className={`${input} font-display italic`} aria-labelledby="wk-focus" />
-        <p className="text-[11px] text-muted">Shows under the banner all week.</p>
+        <p className="text-[11px] text-muted">Shows at the top of the board all week.</p>
       </section>
 
       {data.suggestions.length > 0 && (

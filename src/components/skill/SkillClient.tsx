@@ -64,7 +64,7 @@ export function HeatStrip({ days, color }: { days: HeatDay[]; color: string }) {
             className="h-4 flex-1 rounded-[3px]"
             style={{
               background:
-                d.state === "none" ? "rgba(255,255,255,0.04)" : d.state === "missed" ? "#7A1018" : color,
+                d.state === "none" ? "rgba(255,255,255,0.04)" : d.state === "missed" ? "rgba(255,255,255,0.1)" : color,
               opacity: d.state === "floor" ? 0.55 : 1,
               boxShadow: d.state === "stretch" ? "inset 0 0 0 1px #D4AF37" : undefined,
             }}

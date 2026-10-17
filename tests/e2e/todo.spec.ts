@@ -58,9 +58,12 @@ test("adding a goal from Today puts it on today's plan", async ({ page }) => {
 
 test("the journal saves to Mind from the L key", async ({ page }) => {
   await page.goto("/");
-  await page.keyboard.press("l");
   const dialog = page.getByRole("dialog", { name: "Journal" });
-  await expect(dialog).toBeVisible();
+  // The key listener attaches on hydration; press until it answers.
+  await expect(async () => {
+    await page.keyboard.press("l");
+    await expect(dialog).toBeVisible({ timeout: 500 });
+  }).toPass();
   await dialog.getByLabel("Entry").fill("Quiz went fine. Rushed the setup again.");
   await dialog.getByRole("button", { name: "Steady" }).click();
   await dialog.getByRole("button", { name: "Save to Mind" }).click();
