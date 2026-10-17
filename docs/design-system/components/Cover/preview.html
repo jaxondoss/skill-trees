@@ -1,0 +1,58 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FORGE cover</title>
+<link rel="stylesheet" href="../../widgets.css">
+<style>
+  html, body { margin: 0; background: #0b0b13; }
+  svg { display: block; width: 100%; height: auto; }
+</style>
+</head>
+<body>
+<!-- Derived from tokens.json: ground, surface, border, the five category marks in chart order,
+     gold, and the corner-glow radial. The tiles echo the board: a 3px bottom bar per category. -->
+<svg viewBox="0 0 720 288" role="img" aria-label="FORGE, sharp widget board">
+  <defs>
+    <radialGradient id="g-biz" cx="1" cy="0" r="0.9"><stop offset="0" stop-color="#c8850e" stop-opacity="0.32"/><stop offset="1" stop-color="#c8850e" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g-sch" cx="1" cy="0" r="0.9"><stop offset="0" stop-color="#4676f2" stop-opacity="0.32"/><stop offset="1" stop-color="#4676f2" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g-ath" cx="1" cy="0" r="0.9"><stop offset="0" stop-color="#e3464b" stop-opacity="0.32"/><stop offset="1" stop-color="#e3464b" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g-mnd" cx="1" cy="0" r="0.9"><stop offset="0" stop-color="#a966e5" stop-opacity="0.32"/><stop offset="1" stop-color="#a966e5" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g-nut" cx="1" cy="0" r="0.9"><stop offset="0" stop-color="#00a75d" stop-opacity="0.32"/><stop offset="1" stop-color="#00a75d" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g-gold" cx="0" cy="1" r="1"><stop offset="0" stop-color="#d4af37" stop-opacity="0.28"/><stop offset="1" stop-color="#d4af37" stop-opacity="0"/></radialGradient>
+    <pattern id="hair" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#ffffff" stroke-opacity="0.04"/></pattern>
+  </defs>
+  <rect width="720" height="288" fill="#0b0b13"/>
+  <rect x="480" width="240" height="288" fill="url(#hair)"/>
+  <!-- tile grid right of x=480 -->
+  <g stroke="#ffffff" stroke-opacity="0.06">
+    <rect x="492" y="16" width="104" height="80" rx="12" fill="#15151e"/>
+    <rect x="604" y="16" width="104" height="80" rx="12" fill="#15151e"/>
+    <rect x="492" y="104" width="104" height="80" rx="12" fill="#15151e"/>
+    <rect x="604" y="104" width="104" height="80" rx="12" fill="#15151e"/>
+    <rect x="492" y="192" width="216" height="80" rx="12" fill="#15151e"/>
+  </g>
+  <rect x="492" y="16" width="104" height="80" rx="12" fill="url(#g-biz)"/>
+  <rect x="604" y="16" width="104" height="80" rx="12" fill="url(#g-sch)"/>
+  <rect x="492" y="104" width="104" height="80" rx="12" fill="url(#g-ath)"/>
+  <rect x="604" y="104" width="104" height="80" rx="12" fill="url(#g-mnd)"/>
+  <rect x="492" y="192" width="216" height="80" rx="12" fill="url(#g-nut)"/>
+  <g>
+    <rect x="504" y="90" width="64" height="3" rx="1.5" fill="#c8850e"/>
+    <rect x="616" y="90" width="40" height="3" rx="1.5" fill="#4676f2"/>
+    <rect x="504" y="178" width="80" height="3" rx="1.5" fill="#e3464b"/>
+    <rect x="616" y="178" width="52" height="3" rx="1.5" fill="#a966e5"/>
+    <rect x="504" y="266" width="150" height="3" rx="1.5" fill="#00a75d"/>
+  </g>
+  <!-- hero light on the left -->
+  <rect width="480" height="288" fill="url(#g-gold)"/>
+  <line x1="32" y1="64" x2="448" y2="64" stroke="#ffffff" stroke-opacity="0.06"/>
+  <text x="32" y="52" fill="#7f8294" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="700" letter-spacing="1.5">DESIGN SYSTEM</text>
+  <text x="32" y="216" fill="#f3f3f7" font-family="Plus Jakarta Sans, sans-serif" font-size="72" font-weight="800" letter-spacing="-2">FORGE</text>
+  <rect x="34" y="230" width="56" height="3" rx="1.5" fill="#d4af37"/>
+  <text x="32" y="260" fill="#9497a8" font-family="Plus Jakarta Sans, sans-serif" font-size="13" font-weight="500">Sharp widgets. The only light is earned.</text>
+</svg>
+</body>
+</html>

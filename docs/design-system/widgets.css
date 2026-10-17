@@ -1,0 +1,124 @@
+/* FORGE widgets: the shared stylesheet every preview and the app load after tokens.css. */
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap");
+
+:root {
+  color-scheme: dark;
+  --fg-display: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+  --fg-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+html, body { margin: 0; background: var(--ground, #0b0b13); color: var(--ink, #f3f3f7); font: 500 13px/18px var(--fg-display); -webkit-font-smoothing: antialiased; }
+body { padding: 16px; }
+* { box-sizing: border-box; }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+:focus-visible { outline: 2px solid var(--focus-ring, #f3f3f7); outline-offset: 2px; }
+
+/* Each widget sets --c (its category mark colour), --ct (the text tint) and --tint (the chip/glow tint). */
+.fg-cat-business  { --c: var(--business, #c8850e);  --ct: var(--business-text, #e8a33d);  --tint: var(--business-tint, rgba(232, 163, 61, 0.16)); }
+.fg-cat-school    { --c: var(--school, #4676f2);    --ct: var(--school-text, #6b97ff);    --tint: var(--school-tint, rgba(107, 151, 255, 0.16)); }
+.fg-cat-athletics { --c: var(--athletics, #e3464b); --ct: var(--athletics-text, #f25f66); --tint: var(--athletics-tint, rgba(242, 95, 102, 0.16)); }
+.fg-cat-mind      { --c: var(--mind, #a966e5);      --ct: var(--mind-text, #b88aff);      --tint: var(--mind-tint, rgba(184, 138, 255, 0.16)); }
+.fg-cat-nutrition { --c: var(--nutrition, #00a75d); --ct: var(--nutrition-text, #2fc779); --tint: var(--nutrition-tint, rgba(47, 199, 121, 0.16)); }
+.fg-cat-gold      { --c: var(--gold, #d4af37);      --ct: var(--gold, #d4af37);           --tint: var(--gold-tint, rgba(212, 175, 55, 0.16)); }
+
+/* ---------- section header: label, then a hairline to the edge ---------- */
+.fg-section { display: flex; align-items: center; gap: 12px; margin: 0 0 10px; }
+.fg-section h2 { margin: 0; font: 700 10.5px/14px var(--fg-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-label, #7f8294); white-space: nowrap; }
+.fg-section::after { content: ""; flex: 1; height: 1px; background: var(--border, rgba(255, 255, 255, 0.06)); }
+.fg-section .fg-meta { order: 3; font: 500 11px/14px var(--fg-mono); color: var(--ink-label, #7f8294); }
+
+/* ---------- tile: the base of every widget ---------- */
+.fg-tile {
+  position: relative; overflow: hidden; isolation: isolate;
+  background: var(--surface, #15151e);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-4, 14px);
+  transition: border-color 160ms ease, transform 140ms ease;
+}
+/* corner glow: the category's light in the top right corner */
+.fg-tile.fg-glow::before {
+  content: ""; position: absolute; z-index: -1; right: -40px; top: -40px; width: 150px; height: 150px; border-radius: 50%;
+  background: radial-gradient(closest-side, var(--c), transparent);
+  opacity: var(--glow-corner, 0.22); transition: opacity 160ms ease;
+}
+/* bottom bar: progress or state, in the category colour */
+.fg-tile .fg-bar { position: absolute; left: 0; right: 0; bottom: 0; height: var(--bar, 3px); background: var(--raised, #1d1e29); }
+.fg-tile .fg-bar b { display: block; height: 100%; width: var(--p, 0%); background: var(--c); border-radius: 0 3px 3px 0; }
+a.fg-tile, button.fg-tile { text-align: left; color: inherit; text-decoration: none; display: block; }
+a.fg-tile:hover, button.fg-tile:hover { border-color: var(--border-strong, rgba(255, 255, 255, 0.12)); }
+a.fg-tile:hover::before, button.fg-tile:hover::before { opacity: var(--glow-hover, 0.32); }
+a.fg-tile:active, button.fg-tile:active { transform: scale(0.985); }
+
+.fg-icon { width: var(--icon-tile, 32px); height: var(--icon-tile, 32px); border-radius: var(--radius-md, 8px); display: grid; place-items: center; background: var(--tint); color: var(--ct); }
+.fg-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.fg-title { margin: 12px 0 2px; font: 700 15px/20px var(--fg-display); color: var(--ink, #f3f3f7); letter-spacing: -0.005em; }
+.fg-sub { font: 500 12px/16px var(--fg-display); color: var(--ink-muted, #9497a8); }
+.fg-status { display: flex; align-items: center; gap: 6px; margin-top: 8px; font: 600 12px/16px var(--fg-display); color: var(--ct); }
+.fg-status::before { content: ""; width: var(--dot, 6px); height: var(--dot, 6px); border-radius: 50%; background: currentColor; }
+.fg-status.fg-quiet { color: var(--ink-muted, #9497a8); }
+.fg-corner { position: absolute; top: var(--space-4, 14px); right: var(--space-4, 14px); font: 600 18px/22px var(--fg-mono); color: var(--ink, #f3f3f7); }
+
+/* ---------- readout: a number set in mono, coloured by its category ---------- */
+.fg-readout { font: 600 26px/30px var(--fg-mono); letter-spacing: -0.01em; color: var(--ct); margin-top: 12px; }
+.fg-readout small { font-size: 13px; color: var(--ink-muted, #9497a8); margin-left: 3px; }
+.fg-label { margin-top: 4px; font: 700 10.5px/14px var(--fg-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-label, #7f8294); }
+
+/* ---------- chips ---------- */
+.fg-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 22px; padding: 0 9px; border-radius: var(--radius-full, 999px); background: var(--tint); color: var(--ct); font: 600 11px/14px var(--fg-display); white-space: nowrap; }
+.fg-chip.fg-neutral { background: var(--raised, #1d1e29); color: var(--ink-muted, #9497a8); }
+.fg-chip .fg-d { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* ---------- buttons ---------- */
+.fg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 32px; padding: 0 12px; border-radius: var(--radius-md, 8px); font: 700 12px/16px var(--fg-display); }
+.fg-btn svg { width: 14px; height: 14px; fill: currentColor; }
+.fg-btn.fg-primary { background: var(--c); color: var(--on-category, #0b0b13); }
+.fg-btn.fg-primary:hover { filter: brightness(1.1); }
+.fg-btn.fg-ghost { background: var(--raised, #1d1e29); color: var(--ink, #f3f3f7); border: 1px solid var(--border, rgba(255, 255, 255, 0.06)); }
+.fg-btn.fg-ghost:hover { border-color: var(--border-strong, rgba(255, 255, 255, 0.12)); }
+.fg-btn:active { transform: scale(0.97); }
+.fg-btn.fg-touch { min-height: var(--touch, 44px); }
+.fg-seg { display: inline-flex; padding: 3px; gap: 3px; border-radius: var(--radius-md, 8px); background: var(--sunk, #101018); border: 1px solid var(--border, rgba(255, 255, 255, 0.06)); }
+.fg-seg button { min-height: 28px; padding: 0 12px; border-radius: 6px; font: 600 12px/16px var(--fg-display); color: var(--ink-muted, #9497a8); }
+.fg-seg button[aria-pressed="true"] { background: var(--raised, #1d1e29); color: var(--ink, #f3f3f7); }
+
+/* ---------- list rows (inside a list tile) ---------- */
+.fg-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.fg-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 36px; padding: 6px 8px 6px 10px; border-radius: var(--radius-md, 8px); background: var(--sunk, #101018); }
+.fg-row .fg-check { width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--c); }
+.fg-row.fg-done .fg-check { background: var(--c); }
+.fg-row .fg-t { font: 600 13px/17px var(--fg-display); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fg-row.fg-done .fg-t { color: var(--ink-muted, #9497a8); }
+
+/* ---------- ring ---------- */
+.fg-ring { --size: var(--ring, 72px); width: var(--size); height: var(--size); border-radius: 50%; display: grid; place-items: center; position: relative;
+  background: conic-gradient(var(--c) calc(var(--p, 0) * 1%), var(--raised, #1d1e29) 0); }
+.fg-ring::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: var(--surface, #15151e); }
+.fg-ring span { position: relative; z-index: 1; font: 700 17px/1 var(--fg-mono); color: var(--ct); }
+.fg-ring.fg-icon-ring { --size: var(--ring-sm, 44px); }
+.fg-ring.fg-icon-ring::after { inset: 3px; }
+.fg-ring.fg-icon-ring svg { position: relative; z-index: 1; width: 18px; height: 18px; fill: none; stroke: var(--ct); stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- status pill (header) ---------- */
+.fg-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 14px; border-radius: var(--radius-full, 999px); background: var(--surface, #15151e); border: 1px solid var(--border, rgba(255, 255, 255, 0.06)); font: 600 12px/16px var(--fg-display); color: var(--ink-muted, #9497a8); }
+.fg-pill .fg-d { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+.fg-pill b { font: 600 12px/16px var(--fg-mono); color: var(--ink, #f3f3f7); }
+.fg-pill.fg-big { min-height: 48px; padding: 0 18px 0 12px; }
+.fg-pill.fg-big b { font: 800 20px/22px var(--fg-display); color: var(--ct); }
+
+/* ---------- dock ---------- */
+.fg-dock { display: inline-flex; gap: 4px; padding: 6px; border-radius: 16px; background: var(--surface, #15151e); border: 1px solid var(--border, rgba(255, 255, 255, 0.06)); box-shadow: var(--dock-lift, 0 12px 32px rgba(0, 0, 0, 0.45)); }
+.fg-dock a { min-width: 64px; min-height: 52px; padding: 6px 8px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--ink-muted, #9497a8); text-decoration: none; font: 600 10.5px/13px var(--fg-display); }
+.fg-dock a svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.fg-dock a:hover { color: var(--ink, #f3f3f7); }
+.fg-dock a[aria-current="page"] { background: var(--raised, #1d1e29); color: var(--ink, #f3f3f7); }
+.fg-dock a[aria-current="page"]::after { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--gold, #d4af37); }
+
+/* ---------- hero ---------- */
+.fg-hero { min-height: 340px; background:
+  radial-gradient(120% 90% at 0% 100%, rgba(212, 175, 55, 0.28), transparent 60%),
+  linear-gradient(160deg, var(--raised, #1d1e29), var(--surface, #15151e) 55%); }
+.fg-statue { position: absolute; right: 8px; bottom: 0; width: 46%; aspect-ratio: 805 / 1200; }
+.fg-statue img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fg-statue .fg-b { mix-blend-mode: screen; opacity: 0.55; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
