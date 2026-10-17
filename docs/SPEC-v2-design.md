@@ -1,9 +1,9 @@
 # FORGE spec v2: design and dashboard
 
-Status: draft for review (2026-10-17). Supersedes these sections of the original spec: 1 (mobile first),
+Status: for review with the mockup (2026-10-17). Supersedes these sections of the original spec: 1 (mobile first),
 4.1 (dashboard), 5.3 (figure rendering), 9.2 (calendar colour), 11 (visual design system). Everything else
 (scoring, goal engine, streak, reviews, integrations, copy rules) stands. Audit of the current app:
-`docs/redesign/AUDIT.md`. Mockup: `docs/redesign/mockup/`.
+`docs/redesign/AUDIT.md`. Mockup: `docs/redesign/mockup/` (published privately at https://claude.ai/artifact/Jo9xm45881VhMeZqzbDvjf). This spec as a page: https://claude.ai/artifact/KcinSKueRWKZbe1PoWsqQ8. Statue layers are rebuilt with `node scripts/figure-layers.mjs <tier-v.png> <out-dir>`.
 
 ## 1. The idea
 
@@ -166,11 +166,12 @@ number. Every edit and every log happens in place, and every one can be undone.
 - **Numbers on the dashboard:** every number card is also its input. Click the weight card, type 184.2,
   press Enter; the sparkline extends with the new point. Same for sleep (bed and wake taps), chess rating,
   store revenue, a run's miles, and a top set.
-- **Quick log, from anywhere:** a Log button (the centre of the phone's tab bar; the sidebar on a laptop,
-  or press L) opens one input. Type "bench 245", "ran 4.2", "weight 184", "store 40" or "fiber 38" and it
-  matches the metric or today's goal by name and alias, shows what it will record, and logs on Enter. The
-  match is plain text rules over the metric and goal names, no AI needed, and it never guesses silently:
-  an ambiguous entry asks which one.
+- **Quick log is a journal, saved to Mind** (decided 2026-10-17). A Journal button (the centre of the
+  phone's tab bar; the sidebar on a laptop; or press L) opens a small sheet: a rotating stoic prompt ("What
+  is in your control right now?", "What did you do well today?"), one free-text entry, and an optional
+  "Head right now" choice: Heavy, Strained, Steady, Clear, Locked in. Save files it under Mind, adds a row
+  to Activity, and sends a small pulse up the Mind tube. Numbers are not typed here; they go in their cards.
+  The Journal card on the dashboard shows the latest entries; the Mind category page keeps the full log.
 - **Undo:** every log and edit shows one quiet line for 6 seconds, "Logged Store work at Standard. Undo".
   Undo restores the previous value exactly.
 - **The 30-second rule** still holds: a full day of goals is one tap each, and any number is one click,
@@ -180,7 +181,9 @@ number. Every edit and every log happens in place, and every one can be undone.
 - `non_negotiables`: optional `unit` and numeric targets per tier (`floor_target`, `standard_target`,
   `stretch_target`); minutes already exist and become the default target when the unit is minutes.
 - `plan_goals`: `progress_value` for partial logs, and today-only title and text edits (columns exist).
-- Metric aliases (for quick log) in `src/engine/metrics.ts`, with tests for the matcher.
+- New `journal_entries` table (user, day by the 4 AM rule, created_at, body up to 1,000 characters, optional
+  `head` 1 to 5), owner-only RLS like every other table; shown on the dashboard and the Mind page, included
+  in the export.
 
 ## 6. Visual system
 
@@ -218,7 +221,7 @@ number. Every edit and every log happens in place, and every one can be undone.
 - Numbers at 28 and 56 in weight 300 to 400; tracking -0.02em at 28, -0.035em at 56. Light weights read
   strong on dark.
 - Titles in sentence case at 14px weight 500. No uppercase tracked labels, no eyebrows.
-- **Variant A:** Fraunces for tier names ("Tempered") and identity lines only. **Variant B:** Inter only.
+- **Variant A:** Fraunces for tier names ("Forged") and identity lines only. **Variant B:** Inter only.
   Recommendation after the mockup: see section 12.
 
 ### 6.3 Surfaces and shape
@@ -236,20 +239,28 @@ number. Every edit and every log happens in place, and every one can be undone.
 ## 7. The figure
 
 ### 7.1 Assets
-Generated with Higgsfield (Nano Banana Pro, 2k, 4 credits):
-- **Tier I base:** obsidian statue, front view, cool blue rim light, flat navy-black background.
-- **Tier V:** the same image edited to add the gold kintsugi seams, pose aligned.
+Generated with Higgsfield (Nano Banana Pro, 2k, 4 credits): a tier I statue (obsidian, front view, cool
+blue rim light, flat navy-black background) and a tier V edit of it with gold kintsugi seams. The two
+renders differ in reflections by about 12% of lit pixels, so all three layers are cut from tier V alone,
+which makes them line up exactly:
+
+| Layer | How it is made | Size |
+| --- | --- | --- |
+| `statue-base.webp` | Tier V with the gold painted out (floating-point normalized convolution over a slightly widened gold mask); faint dark seams remain, the cracks before they are filled | 38 KB |
+| `statue-veins.webp` | Tier V's gold pixels with alpha from the gold mask | 37 KB |
+| `statue-bloom.png` | The gold mask blurred wide in floating point, gold, with a clean floor so it never tints the background | 150 KB |
+
+The stage background is the image's own background colour (`#0d1018`), so the picture has no edge.
 
 ### 7.2 How tiers and categories light it
-The gold is extracted from the tier V image into a transparent **vein layer** (pixels whose hue is gold
-and that differ from the base). The figure is the base image with the vein layer on top:
 
-- **Tier:** veins grow outward from the heart. A radial mask on the vein layer opens with the tier
-  (I: none, II: chest, III: torso and upper arms, IV: to the knees and hands, V: everything). Gold
+- **Tier:** veins grow outward from the heart. An elliptical mask centred at the heart (47%, 30% of the
+  image) opens with the tier: I 0%, II 30%, III 58%, IV 92%, V everything. Gold
   spreading from the centre is the repair happening.
-- **Category:** the vein layer is split into the five regions (head: Mind; left arm: Business; right arm:
-  School; torso and left leg: Athletics; right leg and chest: Nutrition, matching `categories.region`).
-  Each region's veins brighten with that category's score, as today's drawn figure does.
+- **Category:** the vein layer is clipped into seven polygons (head; left arm; right arm; chest; core;
+  left leg; right leg) assigned to the five regions (head: Mind; left arm: Business; right arm: School;
+  core and left leg: Athletics; chest and right leg: Nutrition, matching `categories.region`). Each piece's
+  opacity is 0.55 plus 0.45 times its category score.
 - **Aura:** a soft gold radial behind the statue, opacity by tier, drawn in CSS (static).
 - **Tubes:** from each category node to its region on the statue, a 2px bright core over an 8px soft stroke
   in the category colour, opacity by category score. No SVG blur filters.
@@ -257,8 +268,8 @@ and that differ from the base). The figure is the base image with the vein layer
 
 ### 7.3 Fallback
 Until the images load, or if they fail, the current drawn SVG figure renders with the new palette.
-Images are served as AVIF and WebP at 1x and 2x (about 900px tall on desktop), lazy below the fold on
-phone.
+The three layers total about 225 KB at 805 by 1200; a 2x set can follow if they look soft on a retina
+laptop.
 
 ## 8. Charts
 
@@ -273,11 +284,14 @@ Rules from the dataviz skill, applied:
 
 ### 8.1 Completion colour (replaces spec 9.2)
 Red-to-green read as guilt and passed through muddy olive. Completion is now one cool hue that brightens
-with effort, and gold marks a kept day:
+with effort (decided 2026-10-17), and a gold line wraps each run of streak days: the line encloses
+consecutive days at 85% or more, opening where the run continues into the next cell, so a streak reads as
+one gold-bordered shape across the week:
 
 | Completion | 1 to 24% | 25 to 49% | 50 to 69% | 70 to 84% | 85% and up |
 | --- | --- | --- | --- | --- | --- |
-| Fill | `#385573` | `#49729c` | `#5b90c7` | `#79b0e8` | `#afd5fe` with a gold edge |
+| Fill | `#385573` | `#44698f` | `#5b90c7` | `#79b0e8` | `#afd5fe` |
+| Day number | ink | ink | ground | ground | ground |
 
 No plan and future days stay `--surface`; 0% on a planned day is `--raised` (stone, unlit). The ramp
 passes the ordinal checks (single hue, even lightness steps, light end clears the surface).
@@ -286,14 +300,18 @@ passes the ordinal checks (single hue, even lightness steps, light end clears th
 
 | Moment | Motion | Sound |
 | --- | --- | --- |
-| Goal checked | One bright segment travels the category tube to the statue (600ms, transform and opacity via `offset-path`); the region's veins brighten for 400ms | tink (existing, rising pitch) |
+| Goal checked: **the power-up** | A bead of light in the category colour accelerates down its tube (520ms). On impact: gold surges through the veins from the entry point (an expanding clip over a full-brightness vein and bloom layer, 1.1s); comic speed lines burst behind the statue and fade (620ms); the halftone field flashes; the statue takes the hit, a 1.8% pump upward (520ms); a comic caption pops at the region, black on bone with a hard offset shadow in the category colour ("Strength +0.6"). Then the region settles brighter, because its score went up | tink, pitch rising with each goal that day |
 | Bottle fills | Existing pour | pour |
 | Streak breaks | Existing crack, then the seam fills gold over 1.2s | crack |
-| Tier up | Radial vein mask opens, aura grows | bell |
+| Tier up | Full splash: the vein reach opens to the new tier over 1.6s, a long speed-line burst, the statue pumps 3%, a large comic caption "Tier III: Forged" | three rising tinks, then the bell |
 | Hover, press | Surface step 180ms; press 0.98 for 140ms | none |
 
-At rest nothing moves except a very slow aura breath on the figure (8s, opacity 0.9 to 1). With reduced
-motion: no travel, a brief brightness change instead; no aura breath.
+At rest nothing moves. The power-up is loud on purpose (Jaxon: "like something out of a comic book, this
+guy is getting pumped with the gold veins of truth"), and it is earned: it only happens when you act. All of
+it is transform, opacity and clip on pre-baked layers; there are no live blur filters. With reduced motion:
+no travel, no speed lines, no pump; the veins brighten once instead.
+Hover a goal or a plate (laptop): every other tube dims and that category's tube and veins light up, so you
+see what the goal feeds before you log it.
 
 ## 10. Copy
 All rules stand: no em dashes, direct, no hype, no guilt, sentence case, `Intl` dates ("Oct 15", never

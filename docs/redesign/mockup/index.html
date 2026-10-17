@@ -1,0 +1,1030 @@
+<title>FORGE Command</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap">
+<style>
+/* Layout: laptop command board. Sidebar | 12-column board; the statue holds the centre, today's controls hold the right rail, the record sits below.
+   Direction: a dark room with one light source behind the statue. Only the statue, its veins and its tubes glow. */
+@property --reach { syntax: "<percentage>"; inherits: true; initial-value: 0%; }
+:root {
+  color-scheme: dark;
+  --ground: #070a12;
+  --surface: #0e1422;
+  --raised: #141b2d;
+  --room: #0d1018;           /* the statue's own background, so the image has no edge */
+  --edge: rgba(170, 190, 255, 0.14);
+  --rim: #9fc2ff;
+  --ink: #e6e9f0;
+  --muted: #8c95a8;
+  --gold: #d4af37;
+  --gold-hi: #f6d77e;
+  --business: #c8850e; --school: #4676f2; --athletics: #e3464b; --mind: #a966e5; --nutrition: #00a75d;
+  --r0: #263247; --r1: #385573; --r2: #44698f; --r3: #5b90c7; --r4: #79b0e8; --r5: #afd5fe;
+  --font-ui: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-tier: var(--font-ui);
+  --radius: 14px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+:root.orig { --business: #e8a33d; --school: #4a7bf7; --athletics: #e5484d; --mind: #a77bff; --nutrition: #2fbf71; }
+:root.serif { --font-tier: "Fraunces", Georgia, serif; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { background: var(--ground); color: var(--ink); }
+body { font: 400 14px/1.45 var(--font-ui); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; touch-action: manipulation; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 6px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- shell ---------- */
+.app {
+  display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 24px; align-items: start;
+  padding-block: 20px 40px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px));
+  max-width: 1680px; margin: 0 auto;
+}
+.side { position: sticky; top: 20px; height: calc(100dvh - 40px); display: flex; flex-direction: column; gap: 6px; }
+.mark { display: flex; align-items: center; gap: 10px; padding: 6px 10px 18px; font-weight: 600; letter-spacing: 0.18em; font-size: 15px; }
+.mark svg { width: 22px; height: 22px; }
+.nav a, .nav button { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 10px; color: var(--muted); text-decoration: none; position: relative; width: 100%; text-align: left; }
+.nav a:hover, .nav button:hover { background: var(--surface); color: var(--ink); }
+.nav a[aria-current="page"] { color: var(--ink); background: var(--surface); box-shadow: inset 0 1px 0 var(--edge); }
+.nav a[aria-current="page"]::before { content: ""; position: absolute; left: -12px; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--rim); }
+.nav .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.nav .n { margin-left: auto; font-size: 12px; }
+.nav-group { margin-top: 14px; padding: 0 12px 4px; font-size: 12px; color: var(--muted); }
+.nav svg { width: 18px; height: 18px; flex: none; }
+.side .grow { flex: 1; }
+.logbtn { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; border-radius: 999px; background: var(--raised); box-shadow: inset 0 1px 0 var(--edge); font-weight: 500; }
+.logbtn:hover { background: #1a2338; }
+.logbtn kbd { font: inherit; font-size: 12px; color: var(--muted); }
+.who { display: flex; align-items: center; gap: 10px; padding: 12px 10px 0; color: var(--muted); font-size: 12px; }
+.who b { color: var(--ink); font-weight: 500; font-size: 14px; display: block; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--raised); display: grid; place-items: center; font-weight: 600; color: var(--ink); font-size: 13px; }
+
+.board { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; min-width: 0; }
+.top { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; padding: 4px 2px 2px; }
+.top h1 { font-size: 16px; font-weight: 500; margin: 0; }
+.chip { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: 999px; background: var(--raised); color: var(--muted); font-size: 12px; }
+.focus { font-family: var(--font-tier); font-style: italic; color: var(--muted); font-size: 16px; }
+.top .sample { margin-left: auto; font-size: 12px; color: var(--muted); }
+
+.card { background: var(--surface); border-radius: var(--radius); box-shadow: inset 0 1px 0 var(--edge); padding: 18px 20px; min-width: 0; }
+.card h2 { font-size: 14px; font-weight: 500; margin: 0; }
+.card .head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.card .meta { font-size: 12px; color: var(--muted); }
+
+/* ---------- score strip ---------- */
+.strip { grid-column: 1 / -1; display: grid; grid-template-columns: 1.25fr repeat(5, 1fr); gap: 16px; }
+.kpi { position: relative; min-height: 112px; display: flex; flex-direction: column; justify-content: space-between; text-align: left; }
+.kpi .label { font-size: 12px; color: var(--muted); }
+.kpi .big { font-size: 28px; font-weight: 300; letter-spacing: -0.02em; line-height: 1.1; }
+.kpi .big small { font-size: 14px; color: var(--muted); letter-spacing: 0; margin-left: 2px; }
+.kpi .sub { font-size: 12px; color: var(--muted); }
+.kpi.editable .sub { max-width: 52%; }
+.kpi.overall .big { font-size: 56px; color: var(--gold); letter-spacing: -0.035em; line-height: 0.95; }
+.kpi.overall .tier { font-family: var(--font-tier); color: var(--gold); font-size: 15px; font-weight: 500; }
+.kpi .spark { position: absolute; right: 16px; bottom: 18px; width: 42%; height: 34px; }
+.kpi.editable { cursor: text; }
+.kpi.editable:hover { background: var(--raised); }
+.kpi .entry { display: flex; gap: 8px; align-items: center; }
+.kpi input { width: 100%; height: 36px; border-radius: 10px; border: 0; background: var(--ground); padding: 0 10px; font-size: 20px; font-weight: 300; }
+.ring { width: 46px; height: 46px; position: absolute; right: 16px; top: 16px; }
+
+/* ---------- stage ---------- */
+.stage-card { grid-column: 1 / -1; padding: 0; overflow: hidden; position: relative; background: var(--room); }
+.stage { position: relative; width: 100%; aspect-ratio: 1000 / 780; }
+.stage-inner { position: absolute; left: 0; top: 0; width: 1000px; height: 780px; transform-origin: 0 0; }
+.aura { position: absolute; left: 230px; top: 40px; width: 540px; height: 720px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(212, 175, 55, calc(var(--aura) * 0.34)), rgba(212, 175, 55, calc(var(--aura) * 0.08)) 55%, transparent 100%); }
+.halftone { position: absolute; left: 150px; top: 20px; width: 700px; height: 760px; opacity: calc(0.05 + var(--aura) * 0.14);
+  background-image: radial-gradient(circle, var(--gold) 1.1px, transparent 1.6px); background-size: 9px 9px;
+  -webkit-mask-image: radial-gradient(closest-side, #000 18%, transparent 78%); mask-image: radial-gradient(closest-side, #000 18%, transparent 78%); }
+.rays { position: absolute; left: 0; top: 0; width: 1000px; height: 780px; opacity: 0; pointer-events: none; }
+svg.tubes { position: absolute; inset: 0; width: 1000px; height: 780px; overflow: visible; pointer-events: none; }
+.tube .halo { fill: none; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; transition: opacity 240ms; }
+.tube .core { fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: opacity 240ms; }
+.tube .port { transition: opacity 240ms; }
+.stage.hl .tube { opacity: 0.35; }
+.stage.hl .tube.on { opacity: 1; }
+.stage.hl .tube.on .halo { opacity: 0.55 !important; }
+.stage.hl .tube.on .core { opacity: 1 !important; }
+
+.statue { position: absolute; left: 272px; top: 90px; width: 456px; height: 680px; }
+.statue img { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
+.statue .base { opacity: 0.98; }
+.veinwrap { position: absolute; inset: 0; transition: --reach 1600ms var(--ease-out); filter: brightness(1.35) saturate(1.15);
+  -webkit-mask-image: radial-gradient(ellipse 52% 64% at 47% 30%, #000 calc(var(--reach) - 9%), transparent var(--reach));
+  mask-image: radial-gradient(ellipse 52% 64% at 47% 30%, #000 calc(var(--reach) - 9%), transparent var(--reach)); }
+.vein { transition: opacity 400ms var(--ease-out); }
+.bloom { opacity: calc(0.2 + var(--aura) * 0.45); mix-blend-mode: screen; }
+.stage.hl .vein { opacity: 0.25 !important; }
+.stage.hl .vein.on { opacity: 1 !important; }
+.surge { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+.surge img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.surge .b { mix-blend-mode: screen; }
+.bead { position: absolute; left: 0; top: 0; width: 34px; height: 8px; border-radius: 8px; offset-rotate: auto; offset-anchor: 100% 50%;
+  background: linear-gradient(90deg, transparent, var(--c) 60%, #fff); filter: drop-shadow(0 0 6px var(--c)); pointer-events: none; }
+.caption { position: absolute; font-size: calc(18px * var(--inv, 1)); padding: 6px 12px 7px; background: var(--ink); color: var(--ground); font-weight: 800; font-style: italic;
+  transform: skewX(-8deg); border-radius: 3px; box-shadow: 4px 4px 0 var(--c); pointer-events: none; white-space: nowrap; }
+
+.plate { position: absolute; width: 230px; padding: 14px 16px; border-radius: 12px; color: inherit; text-decoration: none; font-size: calc(13px * var(--inv, 1)); background: rgba(14, 20, 34, 0.92); box-shadow: inset 0 1px 0 var(--edge); text-align: left; transition: background 180ms; }
+.plate:hover { background: var(--raised); }
+.plate .pn { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 1em; }
+.plate .pn i { width: 0.6em; height: 0.6em; border-radius: 50%; }
+.plate .ps { font-size: 2.1em; font-weight: 300; letter-spacing: -0.02em; margin-top: 0.3em; line-height: 1; }
+.plate .bar { height: 4px; border-radius: 4px; background: var(--raised); margin: 10px 0 8px; overflow: hidden; }
+.plate .bar b { display: block; height: 100%; border-radius: 4px; }
+.plate .pl { font-size: 0.85em; color: var(--muted); }
+.plate.mind { width: 220px; }
+.stage-foot { position: absolute; left: 20px; bottom: 16px; right: 20px; display: flex; justify-content: space-between; align-items: end; pointer-events: none; }
+.tiername { font-family: var(--font-tier); color: var(--gold); font-size: calc(18px * var(--inv, 1)); font-weight: 500; }
+.tiername small { display: block; font-family: var(--font-ui); color: var(--muted); font-size: 0.66em; font-weight: 400; margin-top: 2px; }
+
+/* ---------- rail ---------- */
+.rail { grid-column: 9 / -1; display: grid; gap: 16px; align-content: start; }
+.progress { height: 4px; border-radius: 4px; background: var(--raised); overflow: hidden; margin: -4px 0 14px; }
+.progress b { display: block; height: 100%; width: 0; background: var(--ink); border-radius: 4px; transition: width 400ms var(--ease-out); }
+.group { font-size: 12px; color: var(--muted); margin: 14px 0 6px; }
+.group:first-of-type { margin-top: 0; }
+.goals { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.goal { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 6px; padding: 4px 4px 4px 0; border-radius: 10px; position: relative; }
+.goal:hover, .goal:focus-within { background: var(--raised); }
+.check { width: 44px; height: 44px; display: grid; place-items: center; }
+.check span { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--c); transition: background 180ms, transform 140ms; display: grid; place-items: center; }
+.check:active span { transform: scale(0.88); }
+.goal.done .check span { background: var(--c); }
+.goal.done .check span::after { content: ""; width: 9px; height: 5px; border: solid var(--ground); border-width: 0 0 2px 2px; transform: rotate(-45deg) translate(1px, -1px); }
+.gt { min-width: 0; }
+.gt .t1 { font-size: 12px; color: var(--muted); display: flex; align-items: center; min-width: 0; }
+.gt .t1 span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gt .t2 { overflow-wrap: anywhere; }
+.goal.done .gt .t2 { color: var(--muted); }
+.gside { display: flex; flex-direction: column; align-items: end; gap: 2px; font-size: 12px; color: var(--muted); padding-right: 6px; }
+.tierchip { padding: 1px 8px; border-radius: 999px; background: var(--raised); color: var(--muted); font-size: 11px; }
+.goal:hover .tierchip { background: var(--surface); }
+.tierchip.stretch { color: var(--gold); }
+.edit { width: 28px; height: 24px; border-radius: 6px; display: inline-grid; place-items: center; vertical-align: middle; margin-left: 4px; color: var(--muted); opacity: 0; transition: opacity 140ms; }
+.goal:hover .edit, .goal:focus-within .edit { opacity: 1; }
+.edit:hover { color: var(--ink); }
+.edit svg { width: 14px; height: 14px; }
+.prog { grid-column: 2 / 4; display: flex; align-items: center; gap: 10px; padding: 0 6px 4px 0; }
+.prog input[type=range] { flex: 1; height: 24px; background: transparent; -webkit-appearance: none; appearance: none; --p: 0%; }
+.prog input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--c) var(--p), var(--raised) var(--p)); }
+.prog input[type=range]::-moz-range-track { height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--c) var(--p), var(--raised) var(--p)); }
+.prog input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6px; border-radius: 50%; background: var(--ink); }
+.prog input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border: 0; border-radius: 50%; background: var(--ink); }
+.prog output { font-size: 12px; color: var(--muted); min-width: 92px; text-align: right; }
+.editor { grid-column: 1 / -1; display: grid; gap: 8px; padding: 10px 10px 12px 12px; background: var(--surface); border-radius: 10px; margin: 4px 0; }
+.editor label { font-size: 12px; color: var(--muted); display: grid; gap: 4px; }
+.editor input[type=text], .editor input[type=number], textarea { width: 100%; min-height: 36px; border-radius: 8px; border: 0; background: var(--ground); padding: 8px 10px; }
+.editor .tiers { display: grid; grid-template-columns: 1fr 64px; gap: 6px 8px; align-items: end; }
+.scope { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg { min-height: 34px; padding: 0 12px; border-radius: 999px; background: var(--ground); color: var(--muted); font-size: 12px; }
+.seg[aria-pressed=true] { background: var(--ink); color: var(--ground); }
+.row-actions { display: flex; gap: 8px; justify-content: end; }
+.btn { min-height: 36px; padding: 0 14px; border-radius: 999px; background: var(--raised); font-weight: 500; }
+.btn.primary { background: var(--ink); color: var(--ground); }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.due { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 8px 0; }
+.due b { font-weight: 400; display: block; }
+.due span { font-size: 12px; color: var(--muted); }
+.due .when { text-align: right; font-size: 12px; color: var(--muted); }
+.due.soon .when { color: var(--ink); font-weight: 600; }
+.sched { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 12px; align-items: center; padding: 6px 0; position: relative; }
+.sched time { font-size: 12px; color: var(--muted); }
+.sched .blk { padding: 8px 12px; border-radius: 10px; background: var(--raised); position: relative; overflow: hidden; }
+.sched .blk::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: var(--c); }
+.sched .blk b { font-weight: 500; display: block; }
+.sched .blk span { font-size: 12px; color: var(--muted); }
+.sched.now .blk { background: #1b2540; }
+.nowline { grid-column: 1 / -1; height: 0; border-top: 1px solid var(--ink); position: relative; margin: 2px 0; opacity: 0.8; }
+.nowline::before { content: "Now"; position: absolute; left: 0; top: -9px; background: var(--surface); padding-right: 6px; font-size: 11px; color: var(--ink); }
+
+/* ---------- analytics ---------- */
+/* Left column: the statue, then the trends under it, flowing independently of the rail. */
+.leftcol { grid-column: 1 / 9; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 16px; align-content: start; min-width: 0; }
+.a-trend { grid-column: 1 / 5; } .a-bars { grid-column: 5 / -1; }
+.a-donut { grid-column: 1 / 4; } .a-train { grid-column: 4 / -1; }
+.a-nums { grid-column: 1 / -1; } .a-journal { grid-column: 1 / -1; }
+.a-journal .journal-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; }
+.a-nums .nums { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.chart { width: 100%; height: 150px; display: block; overflow: visible; }
+.chart text { fill: var(--muted); font-size: 11px; font-family: var(--font-ui); }
+.legend { display: grid; gap: 6px; font-size: 12px; }
+.legend div { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+.legend i { width: 8px; height: 8px; border-radius: 2px; }
+.legend b { margin-left: auto; color: var(--ink); font-weight: 500; white-space: nowrap; padding-left: 6px; }
+.donutwrap { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 14px; align-items: center; }
+.donutwrap svg { width: 104px; height: 104px; }
+.nums { display: grid; gap: 14px; }
+.num { display: grid; grid-template-columns: minmax(0, 1fr) 96px; align-items: end; gap: 8px; }
+.num .v { font-size: 22px; font-weight: 300; letter-spacing: -0.02em; }
+.num .l { font-size: 12px; color: var(--muted); }
+.train { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; }
+.journal-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.journal-list li { display: grid; gap: 2px; }
+.journal-list .jm { font-size: 12px; color: var(--muted); display: flex; gap: 8px; }
+.journal-list .mood { color: var(--mind); }
+
+/* ---------- record ---------- */
+.r-cal { grid-column: 1 / 6; } .r-arch { grid-column: 6 / -1; } .r-act { grid-column: 1 / -1; }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.cal .dow { font-size: 11px; color: var(--muted); text-align: center; padding-bottom: 2px; }
+.cal button { aspect-ratio: 1; border-radius: 8px; background: var(--surface); position: relative; font-size: 11px; color: var(--ink); text-align: left; padding: 4px 6px; display: flex; align-items: start; }
+.cal button.planned { background: var(--r0); }
+.cal button.today { outline: 2px solid var(--ink); outline-offset: 1px; }
+.cal button.dark-ink { color: var(--ground); }
+.cal .streak { position: absolute; inset: -3px; border: 2px solid var(--gold); pointer-events: none; }
+.calkey { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 11px; color: var(--muted); }
+.calkey i { width: 14px; height: 14px; border-radius: 3px; }
+.calkey .gl { width: 22px; height: 14px; border: 2px solid var(--gold); border-radius: 3px; margin-left: 10px; }
+.shelves { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.shelf { background: var(--raised); border-radius: 10px; padding: 10px 6px 8px; }
+.shelf h3 { margin: 0 0 8px; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.shelf h3 i { width: 7px; height: 7px; border-radius: 50%; }
+.bottles { display: flex; flex-wrap: wrap; gap: 8px 2px; }
+.bottle { width: 44px; text-align: center; font-size: 10px; color: var(--muted); line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bottle svg { width: 30px; height: 48px; display: block; margin: 0 auto 3px; }
+.bottle b { display: block; color: var(--ink); font-weight: 500; font-size: 11px; }
+table.act { width: 100%; border-collapse: collapse; }
+.act th { text-align: left; font-weight: 400; font-size: 12px; color: var(--muted); padding: 0 12px 8px 0; }
+.act td { padding: 10px 12px 10px 0; border-top: 1px solid rgba(170, 190, 255, 0.07); vertical-align: middle; }
+.act td:last-child { text-align: right; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.act .what { display: flex; align-items: center; gap: 10px; }
+.act .what i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.act .kind { font-size: 12px; color: var(--muted); }
+.tablewrap { overflow-x: auto; }
+
+/* ---------- overlays ---------- */
+.tip { position: fixed; z-index: 50; pointer-events: none; background: var(--ink); color: var(--ground); font-size: 12px; padding: 6px 9px; border-radius: 8px; transform: translate(-50%, calc(-100% - 10px)); white-space: nowrap; opacity: 0; transition: opacity 120ms; }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 14px; background: var(--ink); color: var(--ground); padding: 10px 10px 10px 16px; border-radius: 999px; font-size: 13px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+.toast button { min-height: 32px; padding: 0 12px; border-radius: 999px; background: var(--ground); color: var(--ink); font-weight: 500; }
+dialog { border: 0; padding: 0; background: var(--surface); color: var(--ink); border-radius: 18px; box-shadow: inset 0 1px 0 var(--edge), 0 30px 80px rgba(0, 0, 0, 0.6); width: min(520px, calc(100vw - 32px)); overscroll-behavior: contain; }
+dialog::backdrop { background: rgba(4, 6, 12, 0.72); }
+.dlg { padding: 22px; display: grid; gap: 14px; }
+.dlg h2 { margin: 0; font-size: 16px; font-weight: 500; }
+.dlg .prompt { font-family: var(--font-tier); font-style: italic; color: var(--muted); font-size: 18px; }
+.moods { display: flex; gap: 6px; flex-wrap: wrap; }
+.moods .seg { background: var(--raised); }
+.moods .seg[aria-pressed=true] { background: var(--mind); color: #fff; }
+.mock { position: fixed; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 40; }
+.mock > button { min-height: 40px; padding: 0 14px; border-radius: 999px; background: var(--raised); box-shadow: inset 0 1px 0 var(--edge); font-size: 12px; color: var(--muted); }
+.mockpanel { position: absolute; right: 0; bottom: 48px; width: 290px; background: var(--surface); border-radius: 14px; box-shadow: inset 0 1px 0 var(--edge), 0 20px 50px rgba(0, 0, 0, 0.55); padding: 16px; display: grid; gap: 12px; font-size: 12px; color: var(--muted); }
+.mockpanel .row { display: grid; gap: 6px; }
+.mockpanel .opts { display: flex; gap: 6px; flex-wrap: wrap; }
+.mockpanel .seg { background: var(--raised); }
+.tabbar { display: none; }
+.phonehead { display: none; }
+
+/* ---------- 1360: sidebar becomes a rail ---------- */
+@media (max-width: 1360px) {
+  .app { grid-template-columns: 72px minmax(0, 1fr); gap: 20px; }
+  .mark span, .nav-group, .nav .lbl, .nav .n, .who div, .logbtn .lbl, .logbtn kbd { display: none; }
+  .nav a, .nav button { flex-direction: column; justify-content: center; gap: 2px; min-height: 52px; padding: 4px; font-size: 10px; }
+  .nav .short { display: block; }
+  .mark { justify-content: center; padding-inline: 0; }
+  .logbtn { padding: 0; }
+}
+@media (min-width: 1361px) { .nav .short { display: none; } }
+
+/* ---------- 1120: rail drops below the statue ---------- */
+@media (max-width: 1120px) {
+  .strip { grid-template-columns: repeat(3, 1fr); }
+  .leftcol { display: contents; }
+  .stage-card { grid-column: 1 / -1; }
+  .rail { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rail > .today { grid-row: span 2; }
+  .a-trend, .a-train { grid-column: 1 / 7; } .a-bars, .a-donut { grid-column: 7 / -1; } .a-nums, .a-journal, .r-act { grid-column: 1 / -1; }
+  .r-cal, .r-arch { grid-column: 1 / -1; }
+}
+
+/* ---------- phone: calm, logging first ---------- */
+@media (max-width: 760px) {
+  .app { display: block; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .side { display: none; }
+  .board { display: flex; flex-direction: column; gap: 12px; }
+  .top { order: 0; padding: 0; gap: 8px; }
+  .top .sample { margin-left: 0; width: 100%; }
+  .phonehead { order: 1; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+  .phonehead .big { font-size: 48px; font-weight: 300; color: var(--gold); letter-spacing: -0.035em; line-height: 1; }
+  .phonehead .tier { font-family: var(--font-tier); color: var(--gold); }
+  .phonehead .right { display: flex; gap: 16px; align-items: center; text-align: right; font-size: 12px; color: var(--muted); }
+  .phonehead .right b { display: block; color: var(--ink); font-size: 20px; font-weight: 300; }
+  .rail { order: 2; display: contents; }
+  .rail > .today { order: 2; }
+  .stage-card { order: 3; }
+  .rail > .due-card { order: 4; } .rail > .sched-card { order: 5; }
+  .strip { order: 6; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .strip .overall { display: none; }
+  .a-trend { order: 7; } .a-bars { order: 8; } .a-donut { order: 9; } .a-train { order: 10; } .a-nums { order: 11; } .a-journal { order: 12; }
+  .r-cal { order: 13; } .r-arch { order: 14; } .r-act { order: 15; }
+  .kpi { min-height: 96px; }
+  .plate .pl, .plate .bar, .stage-foot { display: none; }
+  .plate { width: 200px; padding: 12px 14px; }
+  .kpi .spark { width: 48%; }
+  .train { grid-template-columns: 1fr; }
+  .a-nums .nums, .a-journal .journal-list { grid-template-columns: 1fr; gap: 14px; }
+  .shelves { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .edit { opacity: 1; background: transparent; }
+  .tabbar { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: rgba(10, 14, 24, 0.97); box-shadow: inset 0 1px 0 var(--edge);
+    padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+  .tabbar a, .tabbar button { min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--muted); font-size: 10px; text-decoration: none; }
+  .tabbar a[aria-current="page"] { color: var(--ink); }
+  .tabbar svg { width: 20px; height: 20px; }
+  .tabbar .logtab span { width: 46px; height: 46px; border-radius: 50%; background: var(--ink); color: var(--ground); display: grid; place-items: center; margin-top: -18px; box-shadow: 0 0 0 4px var(--ground); }
+  .mock { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+}
+</style>
+
+<div class="app" id="app">
+  <aside class="side" aria-label="Main">
+    <div class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#141b2d"/><path d="M9 4 L12 10 L10 13 L14 17 L12.5 21" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>FORGE</span></div>
+    <nav class="nav" aria-label="Sections">
+      <a href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg><span class="lbl">Dashboard</span><span class="short">Home</span></a>
+      <div class="nav-group">Categories</div>
+      <div id="navcats"></div>
+      <div class="nav-group">Look back</div>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 19 L10 12 L14 15 L20 6"/></svg><span class="lbl">Overall</span><span class="short">Overall</span></a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10 H20 M9 3 V7 M15 3 V7"/></svg><span class="lbl">Weekly review</span><span class="short">Review</span></a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2 V5 M12 19 V22 M2 12 H5 M19 12 H22 M5 5 L7 7 M17 17 L19 19 M5 19 L7 17 M17 7 L19 5"/></svg><span class="lbl">Settings</span><span class="short">Settings</span></a>
+    </nav>
+    <div class="grow"></div>
+    <button class="logbtn" type="button" data-open-log><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5 V19 M5 12 H19"/></svg><span class="lbl">Journal entry</span><kbd>L</kbd></button>
+    <div class="who"><span class="avatar">J</span><div><b>Jaxon</b>Tulane, class of 2030</div></div>
+  </aside>
+
+  <main class="board" id="board">
+    <div class="top">
+      <h1 id="today-date">Saturday, Oct 17</h1>
+      <span class="chip">Weekend</span>
+      <span class="focus">Win the morning</span>
+      <span class="sample">Mockup with sample data</span>
+    </div>
+
+    <div class="phonehead">
+      <div><div class="big" id="ph-score">44</div><div class="tier" id="ph-tier">III Forged</div></div>
+      <div class="right"><div><b id="ph-today">57%</b>Today</div><div><b id="ph-streak">6</b>Streak</div></div>
+    </div>
+
+    <section class="strip" aria-label="Scores" id="strip"></section>
+
+    <div class="leftcol">
+    <section class="card stage-card" aria-label="The statue">
+      <div class="stage" id="stage">
+        <div class="stage-inner" id="stage-inner">
+          <div class="aura"></div>
+          <div class="halftone"></div>
+          <svg class="rays" id="rays" viewBox="0 0 1000 780" aria-hidden="true"></svg>
+          <div class="statue" id="statue">
+            <img class="base" src="assets/statue-base.webp" alt="">
+            <div class="veinwrap" id="veinwrap"></div>
+            <div class="surge" id="surge"><img class="b" src="assets/statue-bloom.png" alt=""><img src="assets/statue-veins.webp" alt=""></div>
+          </div>
+          <svg class="tubes" id="tubes" viewBox="0 0 1000 780" aria-hidden="true"></svg>
+          <div id="plates"></div>
+          <div class="stage-foot"><div class="tiername" id="tiername"></div></div>
+        </div>
+      </div>
+    </section>
+    <section class="card a-trend" aria-labelledby="h-trend">
+      <div class="head"><h2 id="h-trend">Score trend</h2><span class="meta">30 days</span></div>
+      <div id="trend"></div>
+    </section>
+    <section class="card a-bars" aria-labelledby="h-bars">
+      <div class="head"><h2 id="h-bars">Completion</h2><span class="meta">30 days, line at 85%</span></div>
+      <div id="bars"></div>
+    </section>
+    <section class="card a-donut" aria-labelledby="h-donut">
+      <div class="head"><h2 id="h-donut">Today by category</h2></div>
+      <div id="donut"></div>
+    </section>
+    <section class="card a-train" aria-labelledby="h-train">
+      <div class="head"><h2 id="h-train">Training</h2><span class="meta">Half marathon, Jan 9</span></div>
+      <div class="train" id="train"></div>
+    </section>
+    <section class="card a-nums" aria-labelledby="h-nums">
+      <div class="head"><h2 id="h-nums">Numbers</h2></div>
+      <div class="nums" id="nums"></div>
+    </section>
+    <section class="card a-journal" aria-labelledby="h-journal">
+      <div class="head"><h2 id="h-journal">Journal</h2><button class="btn" type="button" data-open-log>New entry</button></div>
+      <ul class="journal-list" id="journal"></ul>
+    </section>
+
+    </div>
+
+    <div class="rail">
+      <section class="card today" aria-labelledby="h-today">
+        <div class="head"><h2 id="h-today">Today</h2><span class="meta" id="today-count"></span></div>
+        <div class="progress" aria-hidden="true"><b id="today-bar"></b></div>
+        <div id="goals"></div>
+      </section>
+      <section class="card due-card" aria-labelledby="h-due">
+        <div class="head"><h2 id="h-due">Due soon</h2><span class="meta">Canvas</span></div>
+        <ul class="list" id="due"></ul>
+      </section>
+      <section class="card sched-card" aria-labelledby="h-sched">
+        <div class="head"><h2 id="h-sched">Schedule</h2><span class="meta">Today</span></div>
+        <div id="sched"></div>
+      </section>
+    </div>
+
+    <section class="card r-cal" aria-labelledby="h-cal">
+      <div class="head"><h2 id="h-cal">October</h2><span class="meta" id="cal-meta"></span></div>
+      <div class="cal" id="cal"></div>
+      <div class="calkey" aria-hidden="true"><span>Less</span><i style="background:var(--r1)"></i><i style="background:var(--r2)"></i><i style="background:var(--r3)"></i><i style="background:var(--r4)"></i><i style="background:var(--r5)"></i><span>More</span><span class="gl"></span><span>Streak</span></div>
+    </section>
+    <section class="card r-arch" aria-labelledby="h-arch">
+      <div class="head"><h2 id="h-arch">Archive</h2><span class="meta">15 skills</span></div>
+      <div class="shelves" id="shelves"></div>
+    </section>
+    <section class="card r-act" aria-labelledby="h-act">
+      <div class="head"><h2 id="h-act">Activity</h2></div>
+      <div class="tablewrap"><table class="act" id="act"></table></div>
+    </section>
+  </main>
+</div>
+
+<nav class="tabbar" aria-label="Tabs">
+  <a href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>Home</a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 3 H16 M9 3 V8 L6 13 V20 H18 V13 L15 8 V3"/></svg>Skills</a>
+  <button class="logtab" type="button" data-open-log aria-label="New journal entry"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5 V19 M5 12 H19"/></svg></span></button>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10 H20"/></svg>Review</a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3 V5 M12 19 V21 M3 12 H5 M19 12 H21"/></svg>Settings</a>
+</nav>
+
+<dialog id="logdlg" aria-labelledby="log-h">
+  <form class="dlg" method="dialog" id="logform">
+    <h2 id="log-h">Journal entry</h2>
+    <div class="prompt" id="log-prompt"></div>
+    <label class="sr" for="log-text">Entry</label>
+    <textarea id="log-text" name="entry" rows="4" placeholder="What happened, what you noticed, what you will do…" autocomplete="off"></textarea>
+    <div>
+      <div class="meta" style="margin-bottom:6px">Head right now</div>
+      <div class="moods" id="moods" role="group" aria-label="Head right now"></div>
+    </div>
+    <div class="row-actions"><button class="btn" type="button" id="log-cancel">Cancel</button><button class="btn primary" type="submit" id="log-save">Save to Mind</button></div>
+  </form>
+</dialog>
+
+<div class="mock">
+  <button type="button" id="mockbtn" aria-expanded="false" aria-controls="mockpanel">Mockup controls</button>
+  <div class="mockpanel" id="mockpanel" hidden>
+    <div class="row">Tier preview<div class="opts" id="tieropts"></div></div>
+    <div class="row">Tier names and focus line<div class="opts"><button class="seg" type="button" data-font="sans" aria-pressed="true">Inter only</button><button class="seg" type="button" data-font="serif" aria-pressed="false">Fraunces</button></div></div>
+    <div class="row">Category colours<div class="opts"><button class="seg" type="button" data-cols="tuned" aria-pressed="true">Tuned</button><button class="seg" type="button" data-cols="orig" aria-pressed="false">Original</button></div></div>
+    <div class="row"><div class="opts"><button class="seg" type="button" id="play-tier">Play tier up</button><button class="seg" type="button" id="sound-btn" aria-pressed="true">Sound on</button></div></div>
+    <div>All numbers are sample data. Tap a goal circle to see the power-up. <a href="https://claude.ai/artifact/KcinSKueRWKZbe1PoWsqQ8" style="color:var(--rim)">Read the spec</a></div>
+  </div>
+</div>
+
+<div class="tip" id="tip" role="status"></div>
+
+<script>
+(() => {
+  // ---------------- sample data ----------------
+  const CATS = [
+    { id: "business", name: "Business", score: 47, lowest: "AI Building 41", region: ["larm"], plate: { x: 16, y: 198 }, port: [424.8, 314], via: 330 },
+    { id: "school", name: "School", score: 38, lowest: "Reading 30", region: ["rarm"], plate: { x: 754, y: 198 }, port: [575.2, 314], via: 670 },
+    { id: "athletics", name: "Athletics", score: 55, lowest: "Running 49", region: ["core", "lleg"], plate: { x: 16, y: 498 }, port: [474.9, 525], via: 360 },
+    { id: "mind", name: "Mind", score: 44, lowest: "Visualization 33", region: ["head"], plate: { x: 390, y: 6 }, port: [500, 156], via: null },
+    { id: "nutrition", name: "Nutrition", score: 36, lowest: "Gut Health 29", region: ["chest", "rleg"], plate: { x: 754, y: 498 }, port: [525.1, 525], via: 640 },
+  ];
+  const CAT = Object.fromEntries(CATS.map((c) => [c.id, c]));
+  const REGIONS = {
+    head: [[0.38, 0], [0.62, 0], [0.62, 0.215], [0.38, 0.215]],
+    larm: [[0.18, 0.2], [0.405, 0.2], [0.405, 0.3], [0.39, 0.45], [0.37, 0.64], [0.18, 0.64]],
+    rarm: [[0.595, 0.2], [0.82, 0.2], [0.82, 0.64], [0.63, 0.64], [0.61, 0.45], [0.595, 0.3]],
+    chest: [[0.405, 0.2], [0.595, 0.2], [0.595, 0.3], [0.6, 0.37], [0.4, 0.37], [0.405, 0.3]],
+    core: [[0.4, 0.37], [0.6, 0.37], [0.63, 0.53], [0.37, 0.53]],
+    lleg: [[0.28, 0.53], [0.5, 0.53], [0.5, 1], [0.28, 1]],
+    rleg: [[0.5, 0.53], [0.72, 0.53], [0.72, 1], [0.5, 1]],
+  };
+  const REGION_CAT = { head: "mind", larm: "business", rarm: "school", chest: "nutrition", core: "athletics", lleg: "athletics", rleg: "nutrition" };
+  const TIERS = [
+    { n: 1, num: "I", name: "Raw", reach: 0, aura: 0.1 },
+    { n: 2, num: "II", name: "Awakened", reach: 30, aura: 0.3 },
+    { n: 3, num: "III", name: "Forged", reach: 58, aura: 0.5 },
+    { n: 4, num: "IV", name: "Ascendant", reach: 92, aura: 0.75 },
+    { n: 5, num: "V", name: "Sovereign", reach: 160, aura: 1 },
+  ];
+  const state = {
+    tier: 3, overall: 44.2, weekDelta: 3.1, streak: 6, best: 12, sound: true,
+    goals: [
+      { id: "g1", kind: "Rack", cat: "business", skill: "Dropshipping", title: "Store work", text: "40 min on the store (research, listings, ad review, supplier work)", tiers: { floor: "10 min on the store", standard: "40 min on the store", stretch: "60 min, one test launched" }, mins: { floor: 10, standard: 40, stretch: 60 }, planned: "standard", result: null, progress: 25 },
+      { id: "g2", kind: "Rack", cat: "athletics", skill: "Strength", title: "Training session", text: "Full planned session logged in Lifta", tiers: { floor: "Main lift plus one accessory", standard: "Full planned session logged in Lifta", stretch: "Full session plus a PR attempt" }, mins: { floor: 25, standard: 75, stretch: 90 }, planned: "standard", result: "standard" },
+      { id: "g3", kind: "Rack", cat: "athletics", skill: "Running", title: "Planned run", text: "Long run, 7 mi easy", tiers: { floor: "20 min easy", standard: "Long run, 7 mi easy", stretch: "8 mi, last mile at goal pace" }, mins: { floor: 20, standard: 70, stretch: 80 }, planned: "standard", result: "standard" },
+      { id: "g4", kind: "Rack", cat: "mind", skill: "Time Blocking", title: "Plan tomorrow", text: "Tomorrow fully blocked before bed", tiers: { floor: "Top three tasks written", standard: "Tomorrow fully blocked before bed", stretch: "Blocked, plus one adjustment from today" }, mins: { floor: 5, standard: 10, stretch: 15 }, planned: "standard", result: null },
+      { id: "g5", kind: "Rack", cat: "school", skill: "Academics", title: "Deep study block", text: "Start MATH 1210: Problem set 6", tiers: { floor: "20 min on Problem set 6", standard: "75 min on Problem set 6", stretch: "Problem set 6 finished" }, mins: { floor: 20, standard: 75, stretch: 120 }, planned: "standard", result: "floor" },
+      { id: "g6", kind: "Balance", cat: "nutrition", skill: "Gut Health", title: "Gut habits", text: "38 g fiber, one fermented food, water 3 L", tiers: { floor: "Water 3 L", standard: "38 g fiber, one fermented food, water 3 L", stretch: "All of it, plus no late snacking" }, mins: null, planned: "standard", result: "standard" },
+      { id: "g7", kind: "Balance", cat: "athletics", skill: "Sleep and Recovery", title: "Sleep window", text: "Screens off and in bed at the anchor", tiers: { floor: "In bed within 30 min of the anchor", standard: "Screens off and in bed at the anchor", stretch: "Anchor kept, 8 h in bed" }, mins: null, planned: "standard", result: null },
+      { id: "g8", kind: "Stretch", cat: "athletics", skill: "Strength", title: "Training session", text: "Full session plus a PR attempt", tiers: null, mins: null, planned: "stretch", result: null },
+    ],
+    due: [
+      { course: "MATH 1210", name: "Problem set 6", hours: 30 },
+      { course: "CMPS 1500", name: "Lab 4", hours: 74 },
+      { course: "ARCH 1010", name: "Studio pinup", hours: 122 },
+    ],
+    sched: [
+      { t: "8:00", name: "Long run", sub: "Audubon Park loop", cat: "athletics" },
+      { t: "10:30", name: "Store work", sub: "Listings and ad review", cat: "business", now: true },
+      { t: "13:00", name: "Problem set 6", sub: "Howard-Tilton, 3rd floor", cat: "school" },
+      { t: "16:30", name: "Training session", sub: "Reily Center", cat: "athletics" },
+      { t: "21:30", name: "Plan tomorrow", sub: "Then screens off", cat: "mind" },
+    ],
+    sleep: [7.1, 6.8, 7.4, 7.9, 7.2, 6.9, 7.6, 7.8, 7.3, 7.5, 7.0, 7.7, 7.9, 7.4],
+    weight: [181.2, 181.6, 181.9, 182.1, 182.4, 182.3, 182.9, 183.2, 183.4, 183.6, 183.9, 184.0, 184.2],
+    trend: [38.0, 38.3, 38.4, 38.9, 39.1, 39.0, 39.6, 39.8, 40.1, 40.0, 40.4, 40.9, 41.2, 41.0, 41.3, 41.6, 41.5, 41.9, 42.2, 42.1, 42.5, 42.8, 42.7, 43.0, 43.4, 43.2, 43.6, 43.9, 44.0, 44.2],
+    completion: [72, 88, 91, 64, 85, 93, 100, 58, 76, 86, 89, 92, 70, 44, 81, 88, 95, 90, 86, 62, 79, 87, 92, 96, 88, 91, 83, 89, 94, 57],
+    miles: [8, 10, 9, 12, 13, 11, 15, 16],
+    bench: [225, 230, 230, 235, 240, 240, 245], squat: [275, 285, 290, 290, 300, 300, 305],
+    chess: [1012, 1020, 1031, 1028, 1044, 1052, 1049, 1061, 1074, 1086],
+    revenue: [310, 380, 420, 560, 690],
+    journal: [
+      { text: "Skipped the late snack. Noticed I was bored, not hungry.", mood: "Clear", when: "Yesterday, 10:12 PM" },
+      { text: "Calc quiz went fine. Still rushing the setup on series problems.", mood: "Steady", when: "Thu, 3:40 PM" },
+    ],
+    activity: [
+      { cat: "athletics", what: "Logged Planned run at Standard", kind: "Goal", when: "9:05 AM" },
+      { cat: "athletics", what: "Logged Training session at Standard", kind: "Goal", when: "Yesterday" },
+      { cat: "athletics", what: "Bench top set 245 lb", kind: "Number", when: "Yesterday" },
+      { cat: "athletics", what: "Claimed Squat 305, +8 points", kind: "Milestone", when: "Yesterday" },
+      { cat: "mind", what: "Journal: Skipped the late snack. Noticed I was bored, not hungry.", kind: "Journal", when: "Yesterday" },
+      { cat: "business", what: "Store revenue this week $690", kind: "Number", when: "Thu" },
+      { cat: "school", what: "Logged Deep study block at Floor", kind: "Goal", when: "Thu" },
+      { cat: "nutrition", what: "Logged Gut habits at Standard", kind: "Goal", when: "Thu" },
+    ],
+    skills: {
+      business: [["Dropshipping", 52], ["AI Building", 41]],
+      school: [["Academics", 40], ["Reading", 30], ["College Internship", 35]],
+      athletics: [["Strength", 58], ["Running", 49], ["Sleep and Recovery", 57], ["Triathlon", null]],
+      mind: [["Meditation", 51], ["Time Blocking", 49], ["Chess", 41], ["Visualization", 33]],
+      nutrition: [["Food", 42], ["Gut Health", 29]],
+    },
+  };
+  // Calendar: October 2026 (the 1st is a Thursday); completion by day, today is the 17th.
+  const CAL = { 1: 88, 2: 91, 3: 64, 4: 85, 5: 93, 6: 100, 7: 58, 8: 76, 9: 86, 10: 89, 11: 92, 12: 70, 13: 44, 14: 87, 15: 92, 16: 95, 17: 57 };
+  const MOODS = ["Heavy", "Strained", "Steady", "Clear", "Locked in"];
+  const PROMPTS = ["What is in your control right now?", "What did you do well today?", "What got in your way, and was it yours to fix?", "What would the person you are becoming do next?"];
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const col = (id) => getComputedStyle(document.documentElement).getPropertyValue("--" + id).trim();
+  const fmt1 = (n) => (Math.round(n * 10) / 10).toFixed(1);
+
+  // ---------------- small charts (one scale per chart) ----------------
+  function spark(values, color, w = 120, h = 36, label = "") {
+    const min = Math.min(...values), max = Math.max(...values), span = max - min || 1;
+    const pts = values.map((v, i) => [(i / (values.length - 1)) * (w - 6) + 3, h - 4 - ((v - min) / span) * (h - 8)]);
+    const d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+    const last = pts[pts.length - 1];
+    return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="${esc(label)}"><path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/><circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${color}"/></svg>`;
+  }
+  function trendChart() {
+    const v = state.trend, w = 520, h = 150, pad = { l: 28, r: 8, t: 10, b: 20 };
+    const min = 36, max = 46, x = (i) => pad.l + (i / (v.length - 1)) * (w - pad.l - pad.r), y = (s) => pad.t + (1 - (s - min) / (max - min)) * (h - pad.t - pad.b);
+    const line = v.map((s, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(s).toFixed(1)).join(" ");
+    const area = line + ` L${x(v.length - 1)} ${h - pad.b} L${x(0)} ${h - pad.b} Z`;
+    const grid = [38, 42, 46].map((g) => `<line x1="${pad.l}" x2="${w - pad.r}" y1="${y(g)}" y2="${y(g)}" stroke="rgba(170,190,255,.08)"/><text x="0" y="${y(g) + 4}">${g}</text>`).join("");
+    const hits = v.map((s, i) => `<rect x="${x(i) - 8}" y="${pad.t}" width="16" height="${h - pad.t - pad.b}" fill="transparent" data-tip="${i === v.length - 1 ? "Today" : 29 - i + " days ago"}: ${fmt1(s)}"/>`).join("");
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Overall score rose from 38.0 to 44.2 over 30 days">${grid}<path d="${area}" fill="var(--gold)" fill-opacity=".1"/><path d="${line}" fill="none" stroke="var(--gold)" stroke-width="2"/><circle cx="${x(v.length - 1)}" cy="${y(v[v.length - 1])}" r="4" fill="var(--gold)"/><text x="${pad.l}" y="${h - 4}">Sep 18</text><text x="${w - pad.r}" y="${h - 4}" text-anchor="end">Today</text>${hits}</svg>`;
+  }
+  const ramp = (p) => (p === null ? "var(--surface)" : p >= 85 ? "var(--r5)" : p >= 70 ? "var(--r4)" : p >= 50 ? "var(--r3)" : p >= 25 ? "var(--r2)" : p > 0 ? "var(--r1)" : "var(--r0)");
+  function barsChart() {
+    const v = state.completion, w = 420, h = 150, pad = { l: 26, r: 4, t: 8, b: 20 }, bw = (w - pad.l - pad.r) / v.length;
+    const y = (p) => pad.t + (1 - p / 100) * (h - pad.t - pad.b);
+    const bars = v.map((p, i) => {
+      const x = pad.l + i * bw + 1, top = y(p), hgt = h - pad.b - top;
+      const cap = p >= 85 ? `<rect x="${x}" y="${top}" width="${bw - 2}" height="2" fill="var(--gold)"/>` : "";
+      return `<path d="M${x} ${h - pad.b} V${top + 3} Q${x} ${top} ${x + 3} ${top} H${x + bw - 5} Q${x + bw - 2} ${top} ${x + bw - 2} ${top + 3} V${h - pad.b} Z" fill="${ramp(p)}"/>${cap}<rect x="${x - 1}" y="${pad.t}" width="${bw}" height="${h - pad.t - pad.b}" fill="transparent" data-tip="${i === v.length - 1 ? "Today" : 29 - i + " days ago"}: ${p}%"/>`;
+    }).join("");
+    const ref = `<line x1="${pad.l}" x2="${w - pad.r}" y1="${y(85)}" y2="${y(85)}" stroke="var(--gold)" stroke-dasharray="3 4" stroke-opacity=".7"/><text x="0" y="${y(85) + 4}">85</text><text x="0" y="${y(0)}">0</text>`;
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Daily completion for 30 days; 19 of 30 days at 85% or more">${ref}${bars}</svg>`;
+  }
+  function donutChart() {
+    const order = ["business", "school", "athletics", "mind", "nutrition"];
+    const counts = order.map((id) => state.goals.filter((g) => g.cat === id && g.kind !== "Stretch").length);
+    const done = order.map((id) => state.goals.filter((g) => g.cat === id && g.kind !== "Stretch" && g.result).length);
+    const total = counts.reduce((a, b) => a + b, 0), R = 50, r = 34, cx = 60, cy = 60;
+    let a0 = -Math.PI / 2;
+    const arcs = counts.map((n, i) => {
+      if (!n) return "";
+      const a1 = a0 + (n / total) * Math.PI * 2, gap = 0.035;
+      const s = a0 + gap, e = a1 - gap, large = e - s > Math.PI ? 1 : 0;
+      const p = (rad, ang) => [cx + rad * Math.cos(ang), cy + rad * Math.sin(ang)];
+      const [x1, y1] = p(R, s), [x2, y2] = p(R, e), [x3, y3] = p(r, e), [x4, y4] = p(r, s);
+      a0 = a1;
+      return `<path d="M${x1} ${y1} A${R} ${R} 0 ${large} 1 ${x2} ${y2} L${x3} ${y3} A${r} ${r} 0 ${large} 0 ${x4} ${y4} Z" fill="var(--${order[i]})" data-tip="${CAT[order[i]].name}: ${done[i]} of ${n} done"/>`;
+    }).join("");
+    const doneAll = done.reduce((a, b) => a + b, 0);
+    const legend = order.map((id, i) => (counts[i] ? `<div><i style="background:var(--${id})"></i>${CAT[id].name}<b>${done[i]} of ${counts[i]}</b></div>` : "")).join("");
+    return `<div class="donutwrap"><svg viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Today's goals by category">${arcs}<text x="60" y="58" text-anchor="middle" fill="var(--ink)" font-size="22" font-weight="300">${doneAll}/${total}</text><text x="60" y="76" text-anchor="middle" fill="var(--muted)" font-size="11">done</text></svg><div class="legend">${legend}</div></div>`;
+  }
+  function milesChart() {
+    const v = state.miles, w = 300, h = 130, pad = { l: 22, b: 18, t: 8 }, bw = (w - pad.l) / v.length;
+    const y = (m) => pad.t + (1 - m / 20) * (h - pad.t - pad.b);
+    const bars = v.map((m, i) => { const x = pad.l + i * bw + 3, top = y(m); return `<path d="M${x} ${h - pad.b} V${top + 4} Q${x} ${top} ${x + 4} ${top} H${x + bw - 10} Q${x + bw - 6} ${top} ${x + bw - 6} ${top + 4} V${h - pad.b} Z" fill="var(--athletics)" data-tip="Week ${i + 1}: ${m} mi"/>`; }).join("");
+    return `<div><div class="meta" style="margin-bottom:6px">Miles per week</div><svg class="chart" style="height:130px" viewBox="0 0 ${w} ${h}" role="img" aria-label="Weekly miles, 8 weeks, now 16">${[10, 20].map((g) => `<line x1="${pad.l}" x2="${w}" y1="${y(g)}" y2="${y(g)}" stroke="rgba(170,190,255,.08)"/><text x="0" y="${y(g) + 4}">${g}</text>`).join("")}${bars}<text x="${pad.l}" y="${h - 3}">8 weeks ago</text><text x="${w}" y="${h - 3}" text-anchor="end">This week</text></svg></div>`;
+  }
+
+  // ---------------- strip ----------------
+  function renderStrip() {
+    const t = TIERS[state.tier - 1];
+    const core = state.goals.filter((g) => g.kind !== "Stretch");
+    const pct = Math.round((100 * core.reduce((s, g) => s + (g.result ? (g.result === "floor" ? 0.5 : 1) : 0), 0)) / core.length);
+    const ringC = 2 * Math.PI * 19;
+    $("#strip").innerHTML = `
+      <div class="card kpi overall"><span class="label">Overall</span><span class="big">${fmt1(state.overall)}</span><span class="tier">${t.num} ${t.name}</span></div>
+      <div class="card kpi"><span class="label">Today</span><span class="big">${pct}<small>%</small></span><span class="sub">${core.filter((g) => g.result).length} of ${core.length} done</span>
+        <svg class="ring" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="19" fill="none" stroke="var(--raised)" stroke-width="4"/><circle cx="23" cy="23" r="19" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${(ringC * pct) / 100} ${ringC}" transform="rotate(-90 23 23)"/></svg></div>
+      <div class="card kpi"><span class="label">Streak</span><span class="big">${state.streak}<small>days</small></span><span class="sub">Best ${state.best}</span></div>
+      <div class="card kpi"><span class="label">7 days</span><span class="big">+${fmt1(state.weekDelta)}</span><span class="sub">Overall, vs last Saturday</span></div>
+      <button class="card kpi editable" type="button" data-num="sleep"><span class="label">Sleep, 14 nights</span><span class="big">${fmt1(avg(state.sleep))}<small>h</small></span><span class="sub">Tap to log last night</span>${spark(state.sleep, "var(--rim)", 120, 36, "Sleep, last 14 nights")}</button>
+      <button class="card kpi editable" type="button" data-num="weight"><span class="label">Bodyweight</span><span class="big">${fmt1(state.weight[state.weight.length - 1])}<small>lb</small></span><span class="sub">Tap to log</span>${spark(state.weight, "var(--rim)", 120, 36, "Bodyweight trend")}</button>`;
+    $("#ph-score").textContent = fmt1(state.overall);
+    $("#ph-tier").textContent = `${t.num} ${t.name}`;
+    $("#ph-today").textContent = pct + "%";
+    $("#ph-streak").textContent = state.streak;
+    $("#today-count").textContent = `${core.filter((g) => g.result).length} of ${core.length} done`;
+    $("#today-bar").style.width = pct + "%";
+  }
+  const avg = (a) => a.reduce((s, v) => s + v, 0) / a.length;
+
+  // ---------------- stage ----------------
+  function ortho(pts, r = 22) {
+    let d = `M${pts[0][0]} ${pts[0][1]}`;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const [px, py] = pts[i - 1], [cx, cy] = pts[i], [nx, ny] = pts[i + 1];
+      const d1 = Math.hypot(cx - px, cy - py), d2 = Math.hypot(nx - cx, ny - cy), rr = Math.min(r, d1 / 2, d2 / 2);
+      const ax = cx - ((cx - px) / d1) * rr, ay = cy - ((cy - py) / d1) * rr, bx = cx + ((nx - cx) / d2) * rr, by = cy + ((ny - cy) / d2) * rr;
+      d += ` L${ax.toFixed(1)} ${ay.toFixed(1)} Q${cx} ${cy} ${bx.toFixed(1)} ${by.toFixed(1)}`;
+    }
+    const last = pts[pts.length - 1];
+    return d + ` L${last[0]} ${last[1]}`;
+  }
+  function tubePath(c) {
+    const w = c.id === "mind" ? 220 : 230, h = 108;
+    if (c.id === "mind") return ortho([[500, c.plate.y + h], c.port]);
+    const left = c.plate.x < 500, ax = left ? c.plate.x + w : c.plate.x, ay = c.plate.y + h / 2;
+    return ortho([[ax, ay], [c.via, ay], [c.via, c.port[1]], c.port]);
+  }
+  function renderStage() {
+    const t = TIERS[state.tier - 1];
+    const inner = $("#stage-inner");
+    inner.style.setProperty("--aura", t.aura);
+    $("#veinwrap").style.setProperty("--reach", t.reach + "%");
+    $("#tiername").innerHTML = `${t.num} ${t.name}<small>Statue tier, overall ${fmt1(state.overall)}</small>`;
+    // veins per region, brightness by category score
+    $("#veinwrap").innerHTML = Object.entries(REGIONS).map(([k, poly]) => {
+      const c = CAT[REGION_CAT[k]], op = (0.55 + 0.45 * (c.score / 100)).toFixed(2);
+      return `<img class="vein" data-cat="${c.id}" src="assets/statue-veins.webp" alt="" style="opacity:${op};clip-path:polygon(${poly.map(([x, y]) => `${x * 100}% ${y * 100}%`).join(",")})">`;
+    }).join("") + `<img class="bloom" src="assets/statue-bloom.png" alt="">`;
+    $("#tubes").innerHTML = CATS.map((c) => {
+      const a = 0.25 + 0.75 * (c.score / 100);
+      return `<g class="tube" data-cat="${c.id}"><path class="halo" d="${tubePath(c)}" stroke="var(--${c.id})" style="opacity:${(a * 0.22).toFixed(2)}"/><path class="core" id="tube-${c.id}" d="${tubePath(c)}" stroke="var(--${c.id})" style="opacity:${a.toFixed(2)}"/><circle class="port" cx="${c.port[0]}" cy="${c.port[1]}" r="4" fill="var(--${c.id})" style="opacity:${a.toFixed(2)}"/></g>`;
+    }).join("");
+    $("#plates").innerHTML = CATS.map((c) => `<a href="#" class="plate ${c.id === "mind" ? "mind" : ""}" data-cat="${c.id}" style="left:${c.plate.x}px;top:${c.plate.y}px" aria-label="${c.name}, ${c.score}. Lowest skill ${c.lowest}">
+      <span class="pn"><i style="background:var(--${c.id})"></i>${c.name}</span><div class="ps">${c.score}</div><div class="bar"><b style="width:${c.score}%;background:var(--${c.id})"></b></div><div class="pl">Lowest: ${c.lowest}</div></a>`).join("");
+    drawRays();
+  }
+  function drawRays() {
+    // Comic speed lines from the statue's heart, drawn once; they only show during a power-up.
+    const cx = 487, cy = 300; let d = "";
+    for (let i = 0; i < 72; i++) {
+      const a = (i / 72) * Math.PI * 2 + (i % 3) * 0.02, r1 = 250 + ((i * 37) % 60), r2 = 430 + ((i * 53) % 140);
+      d += `M${(cx + r1 * Math.cos(a)).toFixed(1)} ${(cy + r1 * Math.sin(a)).toFixed(1)} L${(cx + r2 * Math.cos(a)).toFixed(1)} ${(cy + r2 * Math.sin(a)).toFixed(1)} `;
+    }
+    $("#rays").innerHTML = `<path d="${d}" stroke="var(--gold-hi)" stroke-width="2" stroke-linecap="round" opacity=".55"/><path d="${d}" stroke="var(--ink)" stroke-width=".8" stroke-linecap="round" opacity=".5" transform="rotate(2.5 ${cx} ${cy})"/>`;
+  }
+  function fitStage() {
+    const s = $("#stage"), scale = s.clientWidth / 1000;
+    $("#stage-inner").style.transform = `scale(${scale})`;
+    $("#stage-inner").style.setProperty("--inv", Math.min(2.6, Math.max(1, 1 / scale)).toFixed(3));
+  }
+
+  // ---------------- the power-up ----------------
+  let audio;
+  function tink(step) {
+    if (!state.sound) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audio.createOscillator(), g = audio.createGain(), t0 = audio.currentTime;
+      o.type = "sine"; o.frequency.value = 660 * Math.pow(2, step / 12);
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.18, t0 + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.6);
+      o.connect(g).connect(audio.destination); o.start(t0); o.stop(t0 + 0.62);
+    } catch (e) { /* audio is optional */ }
+  }
+  let doneCount = 0;
+  function powerUp(catId, gain) {
+    const c = CAT[catId], color = col(catId);
+    tink(doneCount++);
+    const finish = () => impact(c, color, gain);
+    if (reduce) { finish(); return; }
+    const bead = document.createElement("div");
+    bead.className = "bead"; bead.style.setProperty("--c", color);
+    bead.style.offsetPath = `path("${tubePath(c)}")`;
+    $("#stage-inner").appendChild(bead);
+    const anim = bead.animate([{ offsetDistance: "0%", opacity: 0.4 }, { offsetDistance: "100%", opacity: 1 }], { duration: 520, easing: "cubic-bezier(.55,0,.8,.2)" });
+    anim.onfinish = () => { bead.remove(); finish(); };
+  }
+  function impact(c, color, gain) {
+    const statue = $("#statue"), surge = $("#surge");
+    const [px, py] = c.port, fx = ((px - 272) / 456) * 100, fy = ((py - 90) / 680) * 100;
+    // tube flares
+    const tube = $(`.tube[data-cat="${c.id}"] .halo`);
+    if (reduce) {
+      surge.animate([{ opacity: 0 }, { opacity: 0.7 }, { opacity: 0 }], { duration: 500 });
+    } else {
+      tube.animate([{ opacity: 0.8 }, { opacity: tube.style.opacity }], { duration: 700, easing: "ease-out" });
+      // gold surges through the veins from the point where the tube enters
+      surge.style.clipPath = `circle(0% at ${fx}% ${fy}%)`;
+      surge.animate([{ opacity: 1, clipPath: `circle(0% at ${fx}% ${fy}%)` }, { opacity: 1, offset: 0.55, clipPath: `circle(80% at ${fx}% ${fy}%)` }, { opacity: 0, clipPath: `circle(140% at ${fx}% ${fy}%)` }], { duration: 1100, easing: "cubic-bezier(.2,.7,.3,1)" });
+      // the statue takes the hit: a short pump
+      statue.animate([{ transform: "scale(1)" }, { transform: "scale(1.018) translateY(-3px)", offset: 0.25 }, { transform: "scale(1)" }], { duration: 520, easing: "cubic-bezier(.2,.8,.3,1)" });
+      // speed lines and halftone burst
+      $("#rays").animate([{ opacity: 0, transform: "scale(.88)" }, { opacity: 1, offset: 0.2 }, { opacity: 0, transform: "scale(1.12)" }], { duration: 620, easing: "ease-out" });
+      $(".halftone").animate([{ opacity: 0.6 }, { opacity: "" }], { duration: 800, easing: "ease-out" });
+      // comic caption at the region
+      const cap = document.createElement("div");
+      cap.className = "caption"; cap.style.setProperty("--c", color);
+      cap.textContent = `${c.name} +${gain.toFixed(1)}`;
+      const left = px < 500; cap.style.left = (left ? px - 190 : px + 30) + "px"; cap.style.top = py - 70 + "px";
+      $("#stage-inner").appendChild(cap);
+      cap.animate([{ opacity: 0, transform: "skewX(-8deg) scale(.6) translateY(10px)" }, { opacity: 1, transform: "skewX(-8deg) scale(1.08)", offset: 0.18 }, { opacity: 1, transform: "skewX(-8deg) scale(1)", offset: 0.75 }, { opacity: 0, transform: "skewX(-8deg) scale(1) translateY(-12px)" }], { duration: 1500, easing: "ease-out" }).onfinish = () => cap.remove();
+    }
+    // the score really moves
+    c.score = Math.min(100, Math.round((c.score + gain) * 10) / 10);
+    state.overall = Math.round((avg(CATS.map((k) => k.score))) * 10) / 10;
+    setTimeout(() => { renderStage(); renderStrip(); fitStage(); }, reduce ? 0 : 650);
+  }
+  function tierUp() {
+    const next = state.tier >= 5 ? 1 : state.tier + 1;
+    state.tier = next;
+    const t = TIERS[next - 1];
+    $("#stage-inner").style.setProperty("--aura", t.aura);
+    $("#veinwrap").style.setProperty("--reach", t.reach + "%");
+    $("#tiername").innerHTML = `${t.num} ${t.name}<small>Statue tier</small>`;
+    renderTierOpts();
+    if (reduce || next === 1) { renderStage(); return; }
+    $("#rays").animate([{ opacity: 0, transform: "scale(.8)" }, { opacity: 1, offset: 0.3 }, { opacity: 0.0, transform: "scale(1.2)" }], { duration: 1600, easing: "ease-out" });
+    $("#surge").style.clipPath = "none";
+    $("#surge").animate([{ opacity: 0 }, { opacity: 1, offset: 0.4 }, { opacity: 0 }], { duration: 1800 });
+    $("#statue").animate([{ transform: "scale(1)" }, { transform: "scale(1.03) translateY(-6px)", offset: 0.35 }, { transform: "scale(1)" }], { duration: 1400, easing: "cubic-bezier(.2,.8,.3,1)" });
+    const cap = document.createElement("div");
+    cap.className = "caption"; cap.style.setProperty("--c", col("gold"));
+    cap.style.cssText += "left:50%;top:40%;font-size:calc(40px * var(--inv, 1));padding:10px 22px 12px;font-family:var(--font-tier)";
+    cap.textContent = `Tier ${t.num}: ${t.name}`;
+    $("#stage-inner").appendChild(cap);
+    cap.animate([{ opacity: 0, transform: "translate(-50%,-50%) skewX(-8deg) scale(.5)" }, { opacity: 1, transform: "translate(-50%,-50%) skewX(-8deg) scale(1.1)", offset: 0.15 }, { opacity: 1, transform: "translate(-50%,-50%) skewX(-8deg) scale(1)", offset: 0.8 }, { opacity: 0, transform: "translate(-50%,-60%) skewX(-8deg) scale(1)" }], { duration: 2400, easing: "ease-out" }).onfinish = () => cap.remove();
+    for (let i = 0; i < 3; i++) setTimeout(() => tink(7 + i * 5), i * 140);
+  }
+
+  // ---------------- today ----------------
+  const TIER_LABEL = { floor: "Floor", standard: "Standard", stretch: "Stretch" };
+  const ICON_EDIT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 20 H8 L19 9 L15 5 L4 16 Z M13 7 L17 11"/></svg>`;
+  let editing = null, editScope = "today";
+  function tierFor(g, v) { if (!g.mins) return null; return v >= g.mins.stretch ? "stretch" : v >= g.mins.standard ? "standard" : v >= g.mins.floor ? "floor" : null; }
+  function goalRow(g) {
+    const timed = g.id === "g1";
+    const chip = g.result ? TIER_LABEL[g.result] : TIER_LABEL[g.planned];
+    let html = `<li class="goal ${g.result ? "done" : ""}" data-id="${g.id}" data-cat="${g.cat}" style="--c:var(--${g.cat})" tabindex="-1">
+      <button class="check" type="button" aria-pressed="${!!g.result}" aria-label="${g.result ? "Undo" : "Log"} ${esc(g.title)}"><span></span></button>
+      <div class="gt" data-edit><div class="t1"><span>${esc(g.skill)}, ${esc(g.title)}</span>${g.tiers ? `<button class="edit" type="button" aria-label="Edit ${esc(g.title)}">${ICON_EDIT}</button>` : ""}</div><div class="t2">${esc(g.text)}</div></div>
+      <div class="gside"><span class="tierchip ${g.result === "stretch" || g.kind === "Stretch" ? "stretch" : ""}">${chip}</span>${g.mins ? `<span>${g.mins[g.result || g.planned]} min</span>` : ""}</div>
+`;
+    if (timed) {
+      const t = tierFor(g, g.progress), pct = Math.min(100, (g.progress / g.mins.stretch) * 100);
+      html += `<div class="prog"><label class="sr" for="prog-${g.id}">Minutes on ${esc(g.title)}</label><input type="range" id="prog-${g.id}" min="0" max="${g.mins.stretch}" step="5" value="${g.progress}" style="--p:${pct}%"><output for="prog-${g.id}">${g.progress} of ${g.mins.standard} min${t ? ", " + TIER_LABEL[t] : ""}</output></div>`;
+    }
+    if (editing === g.id) {
+      html += `<form class="editor" data-editor="${g.id}">
+        <label>Title<input type="text" name="title" id="ed-title-${g.id}" value="${esc(g.title)}" autocomplete="off"></label>
+        <div class="tiers">${["floor", "standard", "stretch"].map((t) => `<label>${TIER_LABEL[t]}<input type="text" name="${t}" id="ed-${t}-${g.id}" value="${esc(g.tiers[t])}" autocomplete="off"></label><label>Min<input type="number" name="${t}-min" id="ed-${t}min-${g.id}" value="${g.mins ? g.mins[t] : 0}" min="0" inputmode="numeric"></label>`).join("")}</div>
+        <div class="scope" role="group" aria-label="Apply to"><button type="button" class="seg" data-scope="today" aria-pressed="${editScope === "today"}">Today only</button><button type="button" class="seg" data-scope="always" aria-pressed="${editScope === "always"}">From now on</button></div>
+        <div class="row-actions"><button class="btn" type="button" data-cancel>Cancel</button><button class="btn primary" type="submit">Save</button></div></form>`;
+    }
+    return html + "</li>";
+  }
+  function renderGoals() {
+    const groups = ["Rack", "Balance", "Stretch"];
+    $("#goals").innerHTML = groups.map((k) => `<div class="group">${k === "Stretch" ? "Stretch, optional" : k}</div><ul class="goals">${state.goals.filter((g) => g.kind === k).map(goalRow).join("")}</ul>`).join("");
+  }
+  function logGoal(g, tier, gain = 0.6) {
+    const prev = g.result;
+    g.result = tier;
+    renderGoals(); renderStrip(); renderDonut();
+    if (tier && !prev) {
+      powerUp(g.cat, tier === "stretch" ? 1.0 : tier === "floor" ? 0.3 : gain);
+      state.activity.unshift({ cat: g.cat, what: `Logged ${g.title} at ${TIER_LABEL[tier]}`, kind: "Goal", when: "Just now" });
+      renderActivity();
+    }
+    toast(tier ? `Logged ${g.title} at ${TIER_LABEL[tier]}.` : `${g.title} is open again.`, () => { g.result = prev; renderGoals(); renderStrip(); renderDonut(); });
+  }
+
+  // ---------------- other modules ----------------
+  function renderDue() {
+    $("#due").innerHTML = state.due.map((d) => `<li class="due ${d.hours <= 48 ? "soon" : ""}"><div><b>${esc(d.name)}</b><span>${esc(d.course)}</span></div><div class="when">${d.hours <= 48 ? `Due in ${d.hours} h` : `In ${Math.round(d.hours / 24)} days`}</div></li>`).join("");
+  }
+  function renderSched() {
+    $("#sched").innerHTML = state.sched.map((s) => `${s.now ? `<div class="nowline" role="presentation"></div>` : ""}<div class="sched ${s.now ? "now" : ""}" style="--c:var(--${s.cat})"><time>${s.t}</time><div class="blk"><b>${esc(s.name)}</b><span>${esc(s.sub)}</span></div></div>`).join("");
+  }
+  function renderDonut() { $("#donut").innerHTML = donutChart(); }
+  function renderTrain() {
+    const lift = (name, v) => `<div class="num"><div><div class="l">${name}</div><div class="v">${v[v.length - 1]}<small style="font-size:12px;color:var(--muted)"> lb</small></div></div>${spark(v, "var(--athletics)", 96, 32, name + " trend")}</div>`;
+    $("#train").innerHTML = milesChart() + `<div class="nums">${lift("Bench, top set", state.bench)}${lift("Squat, top set", state.squat)}<div class="num"><div><div class="l">Long run</div><div class="v">7.0<small style="font-size:12px;color:var(--muted)"> mi</small></div></div></div></div>`;
+  }
+  function renderNums() {
+    $("#nums").innerHTML = `<div class="num"><div><div class="l">Chess, rapid</div><div class="v">${state.chess[state.chess.length - 1]}</div></div>${spark(state.chess, "var(--mind)", 96, 32, "Chess rating trend")}</div>
+      <div class="num"><div><div class="l">Store revenue, this week</div><div class="v">$${state.revenue[state.revenue.length - 1]}</div></div>${spark(state.revenue, "var(--business)", 96, 32, "Weekly revenue trend")}</div>
+      <div class="num"><div><div class="l">Reading, effective rate</div><div class="v">312<small style="font-size:12px;color:var(--muted)"> wpm</small></div></div></div>`;
+  }
+  function renderJournal() {
+    $("#journal").innerHTML = state.journal.slice(0, 3).map((j) => `<li><span>${esc(j.text)}</span><span class="jm"><span class="mood">${esc(j.mood || "")}</span><span>${esc(j.when)}</span></span></li>`).join("");
+  }
+  function renderCal() {
+    const first = 3; // Oct 1, 2026 is a Thursday; Monday-first grid
+    const kept = (d) => (CAL[d] ?? -1) >= 85;
+    let html = ["M", "T", "W", "T", "F", "S", "S"].map((d) => `<div class="dow" aria-hidden="true">${d}</div>`).join("");
+    for (let i = 0; i < first; i++) html += "<span></span>";
+    for (let d = 1; d <= 31; d++) {
+      const p = CAL[d] ?? null, col7 = (first + d - 1) % 7;
+      let streak = "";
+      if (kept(d)) {
+        // A gold line wraps each run of kept days; the line opens where the run continues into the next cell.
+        const l = col7 > 0 && kept(d - 1), r = col7 < 6 && kept(d + 1);
+        streak = `<span class="streak" style="border-left-width:${l ? 0 : 2}px;border-right-width:${r ? 0 : 2}px;border-radius:${l ? 0 : 9}px ${r ? 0 : 9}px ${r ? 0 : 9}px ${l ? 0 : 9}px;${l ? "left:-3px;" : ""}${r ? "right:-6px;" : ""}"></span>`;
+      }
+      const light = p !== null && p >= 50;
+      html += `<button type="button" class="${p !== null ? "planned" : ""} ${d === 17 ? "today" : ""} ${light ? "dark-ink" : ""}" style="background:${p === null ? "var(--surface)" : ramp(p)}" aria-label="Oct ${d}: ${p === null ? "no plan" : p + "%"}${kept(d) ? ", kept" : ""}" data-tip="Oct ${d}: ${p === null ? (d > 17 ? "ahead" : "no plan") : p + "%"}">${d}${streak}</button>`;
+    }
+    $("#cal").innerHTML = html;
+    $("#cal-meta").textContent = "Streak 6, best 12";
+  }
+  function bottle(level, color, dormant) {
+    const h = 36, top = 46 - (h * level) / 100;
+    return `<svg viewBox="0 0 30 48" aria-hidden="true"><defs><clipPath id="b${Math.random().toString(36).slice(2, 7)}"></clipPath></defs><path d="M11 2 H19 V10 L25 18 V44 Q25 46 23 46 H7 Q5 46 5 44 V18 L11 10 Z" fill="rgba(159,194,255,.05)" stroke="rgba(159,194,255,.35)" stroke-width="1"/>${dormant ? "" : `<path d="M6 ${top} H24 V44 Q24 45 23 45 H7 Q6 45 6 44 Z" fill="${color}"/>`}</svg>`;
+  }
+  function renderShelves() {
+    $("#shelves").innerHTML = CATS.map((c) => `<div class="shelf"><h3><i style="background:var(--${c.id})"></i>${c.name}</h3><div class="bottles">${state.skills[c.id].map(([n, s]) => `<div class="bottle">${bottle(s ?? 0, `var(--${c.id})`, s === null)}${esc(n.split(" ")[0])}<b>${s ?? "Dormant"}</b></div>`).join("")}</div></div>`).join("");
+  }
+  function renderActivity() {
+    $("#act").innerHTML = `<thead><tr><th scope="col">What</th><th scope="col">Type</th><th scope="col">When</th></tr></thead><tbody>${state.activity.slice(0, 8).map((a) => `<tr><td><span class="what"><i style="background:var(--${a.cat})"></i>${esc(a.what)}</span></td><td class="kind">${a.kind}</td><td>${a.when}</td></tr>`).join("")}</tbody>`;
+  }
+  function renderNav() {
+    $("#navcats").innerHTML = CATS.map((c) => `<a href="#"><span class="dot" style="background:var(--${c.id})"></span><span class="lbl">${c.name}</span><span class="short">${c.name.slice(0, 4)}</span><span class="n">${Math.round(c.score)}</span></a>`).join("");
+  }
+  function renderTierOpts() {
+    $("#tieropts").innerHTML = TIERS.map((t) => `<button type="button" class="seg" data-tier="${t.n}" aria-pressed="${state.tier === t.n}">${t.num}</button>`).join("");
+  }
+
+  // ---------------- toast with undo ----------------
+  let toastTimer;
+  function toast(msg, undo) {
+    document.querySelector(".toast")?.remove();
+    const el = document.createElement("div");
+    el.className = "toast"; el.setAttribute("role", "status");
+    el.innerHTML = `<span>${esc(msg)}</span>${undo ? `<button type="button">Undo</button>` : ""}`;
+    document.body.appendChild(el);
+    if (undo) el.querySelector("button").onclick = () => { undo(); el.remove(); };
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => el.remove(), 6000);
+  }
+
+  // ---------------- events ----------------
+  document.addEventListener("click", (e) => {
+    const t = e.target;
+    const check = t.closest(".check");
+    if (check) { const g = state.goals.find((x) => x.id === check.closest(".goal").dataset.id); logGoal(g, g.result ? null : g.planned); return; }
+    const edit = t.closest(".edit");
+    if (edit) { editing = edit.closest(".goal").dataset.id; editScope = "today"; renderGoals(); $(`#ed-title-${editing}`)?.focus(); return; }
+    const scope = t.closest("[data-scope]");
+    if (scope) { editScope = scope.dataset.scope; scope.parentElement.querySelectorAll(".seg").forEach((b) => b.setAttribute("aria-pressed", b === scope)); return; }
+    if (t.closest("[data-cancel]")) { editing = null; renderGoals(); return; }
+    const num = t.closest("[data-num]");
+    if (num && !num.querySelector("input")) { openNumEntry(num); return; }
+    if (t.closest("[data-open-log]")) { openLog(); return; }
+    if (t.closest("#mockbtn")) { const p = $("#mockpanel"); p.hidden = !p.hidden; $("#mockbtn").setAttribute("aria-expanded", !p.hidden); return; }
+    const tb = t.closest("[data-tier]");
+    if (tb) { state.tier = Number(tb.dataset.tier); renderTierOpts(); renderStage(); renderStrip(); return; }
+    const fb = t.closest("[data-font]");
+    if (fb) { document.documentElement.classList.toggle("serif", fb.dataset.font === "serif"); fb.parentElement.querySelectorAll(".seg").forEach((b) => b.setAttribute("aria-pressed", b === fb)); return; }
+    const cb = t.closest("[data-cols]");
+    if (cb) { document.documentElement.classList.toggle("orig", cb.dataset.cols === "orig"); cb.parentElement.querySelectorAll(".seg").forEach((b) => b.setAttribute("aria-pressed", b === cb)); return; }
+    if (t.closest("#play-tier")) { tierUp(); return; }
+    if (t.closest("#sound-btn")) { state.sound = !state.sound; $("#sound-btn").setAttribute("aria-pressed", state.sound); $("#sound-btn").textContent = state.sound ? "Sound on" : "Sound off"; return; }
+    if (t.closest("a[href='#']")) e.preventDefault();
+  });
+  document.addEventListener("dblclick", (e) => {
+    const gt = e.target.closest("[data-edit]");
+    if (gt) { const id = gt.closest(".goal").dataset.id; if (state.goals.find((g) => g.id === id).tiers) { editing = id; renderGoals(); $(`#ed-title-${id}`)?.focus(); } }
+  });
+  document.addEventListener("submit", (e) => {
+    const f = e.target.closest("[data-editor]");
+    if (!f) return;
+    e.preventDefault();
+    const g = state.goals.find((x) => x.id === f.dataset.editor), before = JSON.stringify(g), fd = new FormData(f);
+    g.title = fd.get("title").trim() || g.title;
+    ["floor", "standard", "stretch"].forEach((t) => { g.tiers[t] = fd.get(t).trim() || g.tiers[t]; if (g.mins) g.mins[t] = Number(fd.get(t + "-min")) || g.mins[t]; });
+    g.text = g.tiers[g.planned];
+    editing = null; renderGoals();
+    toast(editScope === "today" ? `Saved for today.` : `Saved. Future plans use the new wording.`, () => { Object.assign(g, JSON.parse(before)); renderGoals(); });
+  });
+  document.addEventListener("input", (e) => {
+    const r = e.target.closest(".prog input[type=range]");
+    if (!r) return;
+    const g = state.goals.find((x) => x.id === r.closest(".goal").dataset.id);
+    g.progress = Number(r.value);
+    const t = tierFor(g, g.progress);
+    r.style.setProperty("--p", Math.min(100, (g.progress / g.mins.stretch) * 100) + "%");
+    r.nextElementSibling.textContent = `${g.progress} of ${g.mins.standard} min${t ? ", " + TIER_LABEL[t] : ""}`;
+  });
+  document.addEventListener("change", (e) => {
+    const r = e.target.closest(".prog input[type=range]");
+    if (!r) return;
+    const g = state.goals.find((x) => x.id === r.closest(".goal").dataset.id), t = tierFor(g, g.progress);
+    if (t !== g.result) logGoal(g, t, 0.5);
+    $(`#prog-${g.id}`)?.focus();
+  });
+  // Hover a goal: its tube and region light up, so you see what it feeds.
+  document.addEventListener("pointerover", (e) => {
+    const g = e.target.closest(".goal, .plate");
+    const stage = $("#stage");
+    if (!g) { stage.classList.remove("hl"); return; }
+    const cat = g.dataset.cat;
+    stage.classList.add("hl");
+    document.querySelectorAll(".tube").forEach((t) => t.classList.toggle("on", t.dataset.cat === cat));
+    document.querySelectorAll(".vein").forEach((v) => v.classList.toggle("on", v.dataset.cat === cat));
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.target.matches("input, textarea")) return;
+    if (e.key === "l" || e.key === "L") { e.preventDefault(); openLog(); }
+    if ((e.key === "e" || e.key === "E") && document.activeElement?.closest(".goal")) { editing = document.activeElement.closest(".goal").dataset.id; renderGoals(); $(`#ed-title-${editing}`)?.focus(); }
+  });
+  // tooltips for chart marks and calendar days
+  const tip = $("#tip");
+  document.addEventListener("pointermove", (e) => {
+    const el = e.target.closest("[data-tip]");
+    if (!el) { tip.style.opacity = 0; return; }
+    tip.textContent = el.dataset.tip; tip.style.left = e.clientX + "px"; tip.style.top = e.clientY + "px"; tip.style.opacity = 1;
+  });
+
+  // number cards are their own inputs
+  function openNumEntry(card) {
+    const key = card.dataset.num, label = key === "sleep" ? "Hours slept last night" : "Bodyweight in lb";
+    const big = card.querySelector(".big"), sub = card.querySelector(".sub");
+    const id = "num-" + key;
+    big.outerHTML = `<form class="entry" data-numform="${key}"><label class="sr" for="${id}">${label}</label><input id="${id}" name="${key}" type="number" step="0.1" inputmode="decimal" placeholder="${key === "sleep" ? "7.5" : "184.4"}" autocomplete="off"></form>`;
+    sub.textContent = "Enter to save, Esc to cancel";
+    const input = card.querySelector("input");
+    input.focus();
+    input.addEventListener("keydown", (ev) => { if (ev.key === "Escape") renderStrip(); });
+    input.addEventListener("blur", () => setTimeout(() => { if (!card.contains(document.activeElement)) renderStrip(); }, 120));
+    card.querySelector("form").addEventListener("submit", (ev) => {
+      ev.preventDefault();
+      const v = Number(input.value);
+      if (!v) return renderStrip();
+      const arr = state[key]; arr.push(v); if (arr.length > 14) arr.shift();
+      renderStrip();
+      state.activity.unshift({ cat: "athletics", what: key === "sleep" ? `Slept ${v} h` : `Bodyweight ${v} lb`, kind: "Number", when: "Just now" });
+      renderActivity();
+      toast(key === "sleep" ? `Logged ${v} h of sleep.` : `Logged ${v} lb.`, () => { arr.pop(); renderStrip(); state.activity.shift(); renderActivity(); });
+    });
+  }
+
+  // journal quick log, saved to Mind
+  const dlg = $("#logdlg");
+  let mood = null;
+  function openLog() {
+    $("#log-prompt").textContent = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
+    $("#moods").innerHTML = MOODS.map((m) => `<button type="button" class="seg" data-mood="${m}" aria-pressed="false">${m}</button>`).join("");
+    $("#log-text").value = ""; mood = null;
+    if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+    $("#log-text").focus();
+  }
+  $("#moods").addEventListener("click", (e) => { const b = e.target.closest("[data-mood]"); if (!b) return; mood = b.dataset.mood; $("#moods").querySelectorAll(".seg").forEach((x) => x.setAttribute("aria-pressed", x === b)); });
+  $("#log-cancel").addEventListener("click", () => dlg.close());
+  $("#logform").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = $("#log-text").value.trim();
+    if (!text && !mood) { $("#log-text").focus(); return; }
+    const entry = { text: text || `Head: ${mood}`, mood, when: "Just now" };
+    state.journal.unshift(entry);
+    state.activity.unshift({ cat: "mind", what: "Journal: " + entry.text, kind: "Journal", when: "Just now" });
+    dlg.close(); renderJournal(); renderActivity();
+    powerUp("mind", 0.2);
+    toast("Saved to Mind.", () => { state.journal.shift(); state.activity.shift(); renderJournal(); renderActivity(); });
+  });
+
+  // ---------------- boot ----------------
+  renderNav(); renderStrip(); renderStage(); renderGoals(); renderDue(); renderSched();
+  $("#trend").innerHTML = trendChart(); $("#bars").innerHTML = barsChart(); renderDonut(); renderTrain(); renderNums(); renderJournal(); renderCal(); renderShelves(); renderActivity(); renderTierOpts();
+  fitStage();
+  new ResizeObserver(fitStage).observe($("#stage"));
+})();
+</script>
