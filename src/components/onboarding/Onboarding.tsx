@@ -140,6 +140,11 @@ export function Onboarding({ data }: { data: OnboardingData }) {
             <>
               <h1 className="font-display text-2xl">Milestones you already hold</h1>
               <p className="text-sm text-muted">Uncheck anything that is not true yet. Honest numbers or no numbers.</p>
+              {data.suggested.length === 0 && (
+                <p className="sunk-row px-3 py-3 text-sm text-muted">
+                  Every skill starts with an empty to-do list. You will add your own goals and steps on each skill page, with starter ideas if you want them.
+                </p>
+              )}
               <ul className="space-y-2">
                 {data.suggested.map((m) => {
                   const on = claims.includes(m.id);

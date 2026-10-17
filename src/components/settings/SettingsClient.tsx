@@ -13,6 +13,7 @@ import {
   updateProfile,
   updateScheduleDay,
 } from "@/app/settings-actions";
+import { clearStarterLists } from "@/app/todo-actions";
 import type { DayType } from "@/engine/types";
 
 export type SettingsData = {
@@ -72,6 +73,7 @@ export function SettingsClient({ data }: { data: SettingsData }) {
       <Schedule data={data} />
       <Overrides overrides={data.overrides} />
       <KeyDates dates={data.keyDates} />
+      <StartingContent />
       <Section title="Data">
         <a href="/api/export" className={`${button} inline-flex items-center`} download>
           Export everything (JSON)
@@ -312,5 +314,59 @@ function KeyDateRow({ d }: { d: SettingsData["keyDates"][number] }) {
       </button>
       {line}
     </li>
+  );
+}
+
+/** Opt in to empty to-do lists (spec v2 r2, 7). Typed confirmation; claimed steps stay. */
+function StartingContent() {
+  const [open, setOpen] = useState(false);
+  const [word, setWord] = useState("");
+  const [result, setResult] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  return (
+    <Section title="Starting content">
+      <div className="glass space-y-3 p-4 text-sm">
+        <p className="text-muted">
+          New accounts start with an empty to-do list on every skill. This account was set up with the starter goals and steps. Clear them to fill each list in yourself; claimed steps stay, so no level is lost.
+        </p>
+        {!open ? (
+          <button type="button" onClick={() => setOpen(true)} className={button}>
+            Start with empty lists
+          </button>
+        ) : (
+          <form
+            className="space-y-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              start(async () => {
+                const r = await clearStarterLists(word);
+                if (!r.ok) return setResult(r.error);
+                setResult(`Cleared ${r.data.goals} goals and ${r.data.steps} open steps. Starter ideas are on each skill page.`);
+                setOpen(false);
+                setWord("");
+              });
+            }}
+          >
+            <label className="block space-y-1">
+              <span className="text-xs text-muted">Type clear to remove every goal and every open step</span>
+              <input value={word} onChange={(e) => setWord(e.target.value)} autoComplete="off" aria-label="Type clear to confirm" className={`${input} w-full`} />
+            </label>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setOpen(false)} className={button}>
+                Cancel
+              </button>
+              <button type="submit" disabled={pending || word.trim().toLowerCase() !== "clear"} className={`${button} disabled:opacity-40`}>
+                {pending ? "Clearing…" : "Clear the lists"}
+              </button>
+            </div>
+          </form>
+        )}
+        {result && (
+          <p role="status" className="text-xs text-muted">
+            {result}
+          </p>
+        )}
+      </div>
+    </Section>
   );
 }

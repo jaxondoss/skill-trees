@@ -232,3 +232,23 @@ export async function logEntry(
   refresh();
   return { ok: true };
 }
+
+/**
+ * "Start with empty lists" (spec v2 r2, 7): removes every goal and every unclaimed step, and today's unlogged
+ * goals, so each skill starts as an empty to-do list. Claimed steps stay, so no level is lost.
+ */
+export async function clearStarterLists(confirmation: string): Promise<ActionData<{ goals: number; steps: number }>> {
+  if (confirmation.trim().toLowerCase() !== "clear") return fail('Type "clear" to confirm.');
+  const { supabase, uid } = await client();
+  if (!uid) return fail("Sign in again.");
+  const profile = await loadProfile(supabase);
+  const today = todayFor(profile, new Date());
+  const { data: plan } = await supabase.from("daily_plans").select("id").eq("day", today).maybeSingle();
+  if (plan) await supabase.from("plan_goals").delete().eq("plan_id", plan.id).is("result_tier", null);
+  const goals = await supabase.from("non_negotiables").delete().eq("user_id", uid).select("id");
+  if (goals.error) return fail(goals.error.message);
+  const steps = await supabase.from("milestones").delete().eq("user_id", uid).is("claimed_at", null).select("id");
+  if (steps.error) return fail(steps.error.message);
+  refresh();
+  return { ok: true, data: { goals: goals.data?.length ?? 0, steps: steps.data?.length ?? 0 } };
+}
