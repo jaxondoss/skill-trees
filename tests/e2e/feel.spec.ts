@@ -14,10 +14,11 @@ test("rising into a new tier plays the tier-up moment once", async ({ page }) =>
   const moment = page.getByRole("alertdialog", { name: /^Tier II: Awakened$/ });
   await expect(moment).toBeVisible();
   await expect(moment).toBeHidden({ timeout: 5000 }); // under 3 seconds, then gone
-  await expect(page.locator("header").first()).toContainText("II. Awakened");
+  const hero = page.locator('section[aria-label="The statue"]');
+  await expect(hero).toContainText("II Awakened");
 
   await page.reload();
-  await expect(page.locator("header").first()).toContainText("II. Awakened");
+  await expect(hero).toContainText("II Awakened");
   await expect(page.getByRole("alertdialog")).toHaveCount(0);
   expect(sql(`select seen_figure_tier from public.profiles where user_id = '${USER_ID}'`)).toBe("2");
 });
@@ -29,11 +30,11 @@ test("a tier drop is recorded quietly, so rising again celebrates again", async 
   expect(sql(`select seen_figure_tier from public.profiles where user_id = '${USER_ID}'`)).toBe("1");
 });
 
-test("the figure renders every region with veins, and reduced motion stops idle animation", async ({ page }) => {
+test("the statue lights seven vein regions, and reduced motion stops the breathing halo", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  const stage = page.locator('section[aria-label="Categories"] svg').first();
-  await expect(stage.locator("clipPath")).toHaveCount(5);
-  const duration = await stage.locator(".figure-idle").evaluate((el) => getComputedStyle(el).animationDuration);
+  const hero = page.locator('section[aria-label="The statue"]');
+  await expect(hero.locator("img.vein")).toHaveCount(7);
+  const duration = await hero.locator(".hero-halo").evaluate((el) => getComputedStyle(el).animationDuration);
   expect(parseFloat(duration)).toBeLessThan(0.01);
 });

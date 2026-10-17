@@ -5,11 +5,12 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
 import { getDayDetail, type DayDetail } from "@/app/actions";
 import { Sheet } from "@/components/ui/Sheet";
-import { cellStyle } from "@/engine/completion";
+import { cellStyle, STREAK_THRESHOLD } from "@/engine/completion";
 import { addDays } from "@/engine/time";
+import { rampColor } from "@/lib/palette";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
+const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
 const TIER_LABEL = { floor: "Floor", standard: "Standard", stretch: "Stretch" } as const;
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -33,7 +34,8 @@ export function CompletionCalendar({ days, today }: { days: { day: string; p: nu
     });
 
   const start = `${cursor.y}-${pad(cursor.m)}-01`;
-  const lead = new Date(`${start}T12:00:00Z`).getUTCDay();
+  // Weeks start on Monday, like reviews and winning weeks.
+  const lead = (new Date(`${start}T12:00:00Z`).getUTCDay() + 6) % 7;
   const count = new Date(Date.UTC(cursor.y, cursor.m, 0)).getUTCDate();
   const cells = Array.from({ length: count }, (_, i) => addDays(start, i));
 
@@ -43,16 +45,16 @@ export function CompletionCalendar({ days, today }: { days: { day: string; p: nu
     });
 
   return (
-    <section aria-label="Completion calendar" className="space-y-3">
+    <section aria-label="Completion calendar" className="tile space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-xl">
-          {MONTHS[cursor.m - 1]} <span className="num text-muted">{cursor.y}</span>
+        <h2 className="lbl">
+          {MONTHS[cursor.m - 1]} <span className="num font-mono">{cursor.y}</span>
         </h2>
         <div className="flex gap-1">
-          <button type="button" disabled={!canPrev} onClick={() => shift(-1)} className="flex size-11 items-center justify-center rounded-full text-muted disabled:opacity-30" aria-label="Previous month">
+          <button type="button" disabled={!canPrev} onClick={() => shift(-1)} className="flex size-11 items-center justify-center rounded-full text-muted hover:text-text disabled:opacity-30" aria-label="Previous month">
             <ChevronLeft size={20} />
           </button>
-          <button type="button" disabled={!canNext} onClick={() => shift(1)} className="flex size-11 items-center justify-center rounded-full text-muted disabled:opacity-30" aria-label="Next month">
+          <button type="button" disabled={!canNext} onClick={() => shift(1)} className="flex size-11 items-center justify-center rounded-full text-muted hover:text-text disabled:opacity-30" aria-label="Next month">
             <ChevronRight size={20} />
           </button>
         </div>
@@ -66,22 +68,30 @@ export function CompletionCalendar({ days, today }: { days: { day: string; p: nu
           if (info.offset.x > 60 && canPrev) shift(-1);
           if (info.offset.x < -60 && canNext) shift(1);
         }}
-        className="grid touch-pan-y grid-cols-7 gap-1.5"
+        className="grid touch-pan-y grid-cols-7 gap-[5px]"
         role="group"
         aria-label="Days"
       >
         {WEEKDAYS.map((w, i) => (
-          <span key={i} className="pb-1 text-center text-[10px] text-muted" aria-hidden>
+          <span key={i} className="pb-1 text-center text-[10px] font-bold tracking-widest text-label" aria-hidden>
             {w}
           </span>
         ))}
         {Array.from({ length: lead }, (_, i) => (
           <span key={`lead-${i}`} />
         ))}
-        {cells.map((day) => {
+        {cells.map((day, i) => {
           const p = byDay.get(day) ?? null;
           const style = cellStyle({ day, p }, today);
           const label = `${day}: ${p === null ? (day > today ? "upcoming" : "no plan") : `${Math.round(p)}%`}`;
+          const shown = day > today || p === null ? null : p;
+          const fill = rampColor(shown);
+          // A gold line wraps each run of kept days; it opens where the run continues into the next cell.
+          const col = (lead + i) % 7;
+          const kept = (d: string) => d <= today && (byDay.get(d) ?? -1) >= STREAK_THRESHOLD;
+          const isKept = style.goldOutline;
+          const l = isKept && col > 0 && kept(addDays(day, -1));
+          const r = isKept && col < 6 && kept(addDays(day, 1));
           return (
             <button
               key={day}
@@ -89,19 +99,40 @@ export function CompletionCalendar({ days, today }: { days: { day: string; p: nu
               disabled={p === null && day !== today}
               onClick={() => open(day)}
               aria-label={label}
-              className={`relative aspect-square rounded-lg text-[11px] ${style.isToday ? "today-pulse" : ""}`}
-              style={{ background: style.fill, boxShadow: style.goldOutline ? "inset 0 0 0 1.5px #D4AF37" : undefined }}
+              className={`relative aspect-[1.25] rounded-[7px] text-left font-mono text-[10.5px] font-semibold ${style.isToday ? "today-pulse" : ""}`}
+              style={{
+                background: fill ?? "var(--sunk)",
+                boxShadow: fill ? "inset 0 1px 0 rgba(255,255,255,.2)" : "inset 0 1px 2px rgba(0,0,0,.4)",
+                color: shown !== null && shown >= 50 ? "var(--bg)" : "var(--text)",
+              }}
             >
-              <span className="num absolute top-1 left-1.5 text-white/60">{Number(day.slice(8))}</span>
+              <span className="num absolute top-1 left-1.5">{Number(day.slice(8))}</span>
+              {isKept && (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -inset-[3px] border-2 border-gold shadow-[0_0_8px_rgba(212,175,55,0.35)]"
+                  style={{
+                    borderLeftWidth: l ? 0 : 2,
+                    borderRightWidth: r ? 0 : 2,
+                    borderRadius: `${l ? 0 : 9}px ${r ? 0 : 9}px ${r ? 0 : 9}px ${l ? 0 : 9}px`,
+                    left: l ? -3 : undefined,
+                    right: r ? -6 : undefined,
+                  }}
+                />
+              )}
             </button>
           );
         })}
       </motion.div>
 
-      <div className="flex items-center justify-between text-[10px] text-muted" aria-hidden>
-        <span>0%</span>
-        <span className="mx-2 h-1.5 flex-1 rounded-full" style={{ background: "linear-gradient(90deg,#7A1018,#8A6A12,#0E6B35)" }} />
-        <span>100%</span>
+      <div className="flex flex-wrap items-center gap-[5px] text-[11px] text-label" aria-hidden>
+        <span>Less</span>
+        {[1, 2, 3, 4, 5].map((k) => (
+          <i key={k} className="size-3 rounded-[3px]" style={{ background: `var(--r${k})` }} />
+        ))}
+        <span>More</span>
+        <span className="ml-2 h-3 w-5 rounded-[3px] border-2 border-gold" />
+        <span>Kept run</span>
       </div>
 
       <Sheet open={detail !== null} onClose={() => setDetail(null)} title={detail ? detail.day : ""}>

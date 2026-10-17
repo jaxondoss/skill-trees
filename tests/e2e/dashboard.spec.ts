@@ -7,21 +7,18 @@ test.describe("dashboard with real data", () => {
     await signIn(page);
   });
 
-  test("renders banner, five categories, today's plan, and the archive at 390px", async ({ page }) => {
+  test("renders the statue, five categories, today's plan, skills and numbers at 390px", async ({ page }) => {
     const errors: string[] = [];
     page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
     page.on("pageerror", (e) => errors.push(e.message));
 
     await page.goto("/");
 
-    const banner = page.locator("header").first();
-    await expect(banner.getByLabel(/^Overall score \d+, /)).toBeVisible();
-    await expect(banner).toContainText(/Raw|Awakened|Forged|Ascendant|Sovereign/);
-
+    const hero = page.locator('section[aria-label="The statue"]');
+    await expect(hero).toContainText(/Raw|Awakened|Forged|Ascendant|Sovereign/);
     for (const name of ["Business", "School", "Mind", "Athletics", "Nutrition"]) {
-      await expect(page.locator(`section[aria-label="Categories"] a[href="/c/${name.toLowerCase()}"]`).last()).toContainText(name);
+      await expect(hero.locator(`a[href="/c/${name.toLowerCase()}"]`)).toContainText(name);
     }
-    await expect(page.locator('section[aria-label="Categories"]')).toContainText("Lowest:");
 
     const today = page.locator("#today");
     await expect(today.getByRole("heading", { name: "Rack" })).toBeVisible();
@@ -29,9 +26,10 @@ test.describe("dashboard with real data", () => {
     expect(await rows.count()).toBeGreaterThanOrEqual(5);
     await expect(today).toContainText("Store work");
 
-    const archive = page.locator('section[aria-label="Skill archive"]');
-    await expect(archive.getByRole("img", { name: /^Triathlon, dormant$/ })).toBeVisible();
-    await expect(archive.getByRole("img", { name: /, score \d+$/ })).toHaveCount(14);
+    const skills = page.locator("a[data-skill-tile]");
+    await expect(skills).toHaveCount(15);
+    await expect(page.getByRole("link", { name: /^Triathlon, dormant\./ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Bodyweight: / })).toBeVisible();
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     expect(overflow).toBe(false);
@@ -53,18 +51,24 @@ test.describe("dashboard with real data", () => {
     await expect(page.locator("#today")).toBeInViewport();
   });
 
-  test("archive filters narrow the shelves", async ({ page }) => {
+  test("a number tile is its own input", async ({ page }) => {
     await page.goto("/");
-    const archive = page.locator('section[aria-label="Skill archive"]');
-    await archive.getByRole("button", { name: "Dormant" }).click();
-    await expect(archive.getByRole("img")).toHaveCount(1);
-    await archive.getByRole("button", { name: "Mind" }).click();
-    await expect(archive.getByRole("img")).toHaveCount(4);
+    await page.getByRole("button", { name: /^Bodyweight: / }).click();
+    const input = page.getByLabel("Bodyweight");
+    await input.fill("184.2");
+    await input.press("Enter");
+    await expect(page.getByRole("button", { name: /^Bodyweight: 184\.2\./ })).toBeVisible();
+  });
+
+  test("a skill tile opens its page", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("a[data-skill-tile]", { hasText: "Strength" }).click();
+    await expect(page).toHaveURL(/\/s\/strength$/);
   });
 
   test("a category box opens its page with explainable scores", async ({ page }) => {
     await page.goto("/");
-    await page.locator('section[aria-label="Categories"] > a[href="/c/athletics"]').click();
+    await page.locator('section[aria-label="The statue"] a[href="/c/athletics"]').click();
     await expect(page).toHaveURL(/\/c\/athletics$/);
     await expect(page.getByRole("heading", { name: "Athletics" })).toBeVisible();
     await expect(page.getByText("Dormant. Not counted in scores or goals.")).toBeVisible();

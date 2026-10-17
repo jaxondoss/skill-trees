@@ -465,3 +465,310 @@ button.tile:active {
     scroll-behavior: auto !important;
   }
 }
+
+/* ───────────── The board (spec v2 r2, 3 and 4) ───────────── */
+.hero {
+  padding: 18px;
+  min-height: 560px;
+  background:
+    radial-gradient(420px circle at var(--mx, -999px) var(--my, -999px), rgba(255, 255, 255, 0.04), transparent 45%),
+    radial-gradient(120% 80% at 0% 100%, rgba(212, 175, 55, calc(0.1 + var(--aura, 0.5) * 0.22)), transparent 60%),
+    linear-gradient(160deg, rgba(29, 30, 41, 0.92), rgba(21, 21, 30, 0.82) 55%);
+}
+.hero-left {
+  position: relative;
+  z-index: 2;
+  width: 46%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.hero-score {
+  margin-top: 14px;
+  font-size: 64px;
+  line-height: 0.95;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--gold);
+  text-shadow: 0 0 40px rgba(212, 175, 55, 0.25);
+}
+.hero-tier {
+  margin-top: 6px;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 700;
+}
+.hero-next {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.hero-next b {
+  font-family: var(--font-mono);
+  color: var(--text);
+  font-weight: 600;
+}
+.hero-cats {
+  display: grid;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 24px;
+}
+.catrow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 8px;
+  padding: 8px 10px 9px;
+  border-radius: 9px;
+  transition: background 160ms;
+}
+.catrow:hover,
+.catrow.on {
+  background: rgba(255, 255, 255, 0.04);
+}
+.catrow span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.catrow b {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ct);
+}
+.catrow i {
+  grid-column: 1 / -1;
+  display: block;
+  height: 3px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+.catrow em {
+  display: block;
+  height: 100%;
+  background: var(--c);
+  border-radius: 3px;
+  transition: width 600ms var(--ease-out);
+}
+.hero-stage {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 60%;
+  z-index: 1;
+}
+.hero-halo {
+  position: absolute;
+  left: 4%;
+  right: -10%;
+  top: 2%;
+  bottom: 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(212, 175, 55, calc(var(--aura) * 0.32)), rgba(212, 175, 55, calc(var(--aura) * 0.06)) 55%, transparent 100%);
+  animation: hero-breathe 7s ease-in-out infinite;
+}
+@keyframes hero-breathe {
+  50% {
+    opacity: 0.7;
+    transform: scale(0.97);
+  }
+}
+.hero-halftone {
+  position: absolute;
+  inset: -4% -10% 0 -6%;
+  opacity: calc(0.05 + var(--aura) * 0.12);
+  background-image: radial-gradient(circle, var(--gold) 1.1px, transparent 1.6px);
+  background-size: 9px 9px;
+  -webkit-mask-image: radial-gradient(closest-side, #000 15%, transparent 78%);
+  mask-image: radial-gradient(closest-side, #000 15%, transparent 78%);
+}
+.hero-rays {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+@property --reach {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 0%;
+}
+.statue {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  height: 96%;
+  aspect-ratio: 805 / 1200;
+  transform: translateX(-50%);
+  /* The render has its own dark room; feather its edges into the tile. */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent), linear-gradient(180deg, transparent, #000 10%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent), linear-gradient(180deg, transparent, #000 10%);
+  mask-composite: intersect;
+}
+.statue-px {
+  position: absolute;
+  inset: 0;
+  transition: transform 600ms var(--ease-out);
+}
+.statue img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.veinwrap {
+  position: absolute;
+  inset: 0;
+  transition: --reach 1600ms var(--ease-out);
+  filter: brightness(1.35) saturate(1.15);
+  -webkit-mask-image: radial-gradient(ellipse 52% 64% at 47% 30%, #000 calc(var(--reach) - 9%), transparent var(--reach));
+  mask-image: radial-gradient(ellipse 52% 64% at 47% 30%, #000 calc(var(--reach) - 9%), transparent var(--reach));
+}
+.vein {
+  transition: opacity 400ms var(--ease-out);
+}
+.bloom {
+  opacity: calc(0.2 + var(--aura) * 0.45);
+  mix-blend-mode: screen;
+}
+.hero.hl .vein {
+  opacity: 0.22 !important;
+}
+.hero.hl .vein.on {
+  opacity: 1 !important;
+}
+.surge {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.surge .b {
+  mix-blend-mode: screen;
+}
+.statue-caption {
+  position: absolute;
+  z-index: 5;
+  font: italic 800 18px/1 var(--font-sans);
+  padding: 7px 12px 8px;
+  background: var(--text);
+  color: var(--bg);
+  transform: skewX(-8deg);
+  border-radius: 3px;
+  box-shadow: 4px 4px 0 var(--c);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.comet {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 41;
+  width: 44px;
+  height: 6px;
+  border-radius: 6px;
+  pointer-events: none;
+  offset-rotate: auto;
+  offset-anchor: 100% 50%;
+  background: linear-gradient(90deg, transparent, var(--c) 55%, #fff);
+  filter: drop-shadow(0 0 8px var(--c)) drop-shadow(0 0 2px #fff);
+}
+@media (max-width: 639px) {
+  .hero {
+    min-height: 420px;
+  }
+  .hero-left {
+    width: 52%;
+  }
+  .hero-score {
+    font-size: 48px;
+  }
+  .hero-stage {
+    width: 58%;
+  }
+}
+
+/* Rows in Today and the to-do lists. */
+.check-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--c);
+  display: grid;
+  place-items: center;
+  transition:
+    background 180ms,
+    transform 140ms,
+    box-shadow 180ms;
+}
+button:hover > .check-dot {
+  box-shadow:
+    inset 0 0 0 2px var(--c),
+    0 0 12px var(--c);
+}
+button:active > .check-dot {
+  transform: scale(0.86);
+}
+.check-dot.on {
+  background: var(--c);
+  box-shadow: 0 0 12px var(--c);
+}
+.tier-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--raised);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  line-height: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tier-chip.gold {
+  color: var(--gold);
+  background: var(--gold-tint);
+}
+.ring {
+  --size: 84px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  position: relative;
+  background: conic-gradient(from -90deg, var(--r3), var(--r5) calc(var(--p, 0) * 1%), rgba(255, 255, 255, 0.06) 0);
+  flex: none;
+}
+.ring::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 30%, #1b1c27, #15151e);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+.ring > * {
+  position: relative;
+  z-index: 1;
+}
+.ring.cat {
+  background: conic-gradient(from -90deg, var(--c) calc(var(--p, 0) * 1%), rgba(255, 255, 255, 0.06) 0);
+}
+.chart text {
+  fill: var(--text-label);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+.chart text.lab {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 11px;
+}

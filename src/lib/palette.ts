@@ -22,10 +22,10 @@ export function catClass(slug: string | null | undefined): string {
   return isCategorySlug(slug) ? `c-${slug}` : "c-gold";
 }
 
-/** Completion ramp: one cool hue that brightens with effort (spec v2 8.1). */
+/** Completion ramp, p in percent: one cool hue that brightens with effort (spec v2 8.1). */
 export function rampColor(p: number | null): string | null {
   if (p === null) return null;
-  const pct = p <= 1 ? p * 100 : p;
+  const pct = p;
   if (pct >= 85) return "var(--r5)";
   if (pct >= 70) return "var(--r4)";
   if (pct >= 50) return "var(--r3)";

@@ -42,7 +42,7 @@ export async function loadGoals(supabase: SupabaseClient, since: string, until?:
   let q = supabase
     .from("plan_goals")
     .select(
-      "id, skill_id, non_negotiable_id, kind, tier, title, text, est_min, reason, engine_note, sort, result_tier, user_note, daily_plans!inner(day)",
+      "id, skill_id, non_negotiable_id, kind, tier, title, text, est_min, reason, engine_note, sort, result_tier, completed_at, user_note, daily_plans!inner(day)",
     )
     .gte("daily_plans.day", since);
   if (until) q = q.lte("daily_plans.day", until);

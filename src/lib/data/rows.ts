@@ -95,6 +95,7 @@ export type PlanGoalRow = {
   engine_note: string | null;
   sort: number;
   result_tier: Tier | null;
+  completed_at?: string | null;
   user_note: string | null;
   daily_plans: { day: string };
 };

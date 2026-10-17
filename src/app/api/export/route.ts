@@ -24,6 +24,7 @@ const TABLES: Record<string, string> = {
   sleep_sessions: "*",
   weekly_reviews: "*",
   monthly_reviews: "*",
+  journal_entries: "*",
   integrations: "provider, status, config, last_synced_at, last_error, created_at",
 };
 const PAGE = 1000;

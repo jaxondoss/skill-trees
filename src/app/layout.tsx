@@ -6,6 +6,7 @@ import "./globals.css";
 import { OfflineSync } from "@/components/pwa/OfflineSync";
 import { Dock } from "@/components/shell/Dock";
 import { Field } from "@/components/shell/Field";
+import { JournalDialog } from "@/components/shell/JournalDialog";
 import { PointerLight } from "@/components/shell/PointerLight";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Suspense fallback={null}>
           <Dock />
         </Suspense>
+        <JournalDialog />
         <OfflineSync />
       </body>
     </html>

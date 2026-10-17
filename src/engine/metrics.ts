@@ -51,6 +51,12 @@ export const METRIC_DEFS: MetricDef[] = [
   { key: "swim_continuous_m", skill: "triathlon", label: "Continuous swim", unit: "m", format: "number", agg: "max", step: 25 },
   { key: "bike_ride_mi", skill: "triathlon", label: "Bike ride", unit: "mi", format: "number", agg: "max", step: 1 },
   { key: "half_ironman_best_s", skill: "triathlon", label: "70.3 time", unit: "", format: "time", agg: "min" },
+  // Redesign (spec v2 r2, 6): the numbers each skill's visualization draws from.
+  { key: "run_mi", skill: "running", label: "Run", unit: "mi", format: "number", agg: "sum", step: 0.1 },
+  { key: "deadlift_1rm", skill: "strength", label: "Deadlift (top set or 1RM)", unit: "lb", format: "number", agg: "max", step: 5 },
+  { key: "swim_min", skill: "triathlon", label: "Swim", unit: "min", format: "number", agg: "sum", step: 5 },
+  { key: "bike_min", skill: "triathlon", label: "Ride", unit: "min", format: "number", agg: "sum", step: 5 },
+  { key: "vividness", skill: "visualization", label: "Vividness", unit: "of 5", format: "number", agg: "latest", step: 1 },
 ];
 
 export const METRIC_BY_KEY = new Map(METRIC_DEFS.map((d) => [d.key, d]));

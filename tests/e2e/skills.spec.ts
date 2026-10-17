@@ -82,15 +82,13 @@ test("archive sends a skill to the Trophy Room; awaken brings Triathlon into pla
   await page.getByRole("region", { name: "Manage" }).getByRole("button", { name: "Archive" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Archive" }).click();
   await expect(page).toHaveURL("http://localhost:3200/");
-  const archive = page.locator('section[aria-label="Skill archive"]');
-  await expect(archive.getByText("Trophy Room")).toBeVisible();
-  await expect(archive.getByRole("img", { name: /^College Integration, score \d+$/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^College Integration, Trophy Room\./ })).toBeVisible();
 
   await page.goto("/s/triathlon");
   await page.getByRole("button", { name: "Awaken" }).click();
   await expect(page.getByRole("button", { name: "Make dormant" })).toBeVisible();
   await page.goto("/");
-  await expect(archive.getByRole("img", { name: /^Triathlon, score \d+$/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^Triathlon, \d+\./ })).toBeVisible();
 });
 
 test("a locked rack skill cannot be archived", async ({ page }) => {

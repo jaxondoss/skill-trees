@@ -15,7 +15,7 @@ import { addDays, dayKey } from "@/engine/time";
 import type { Tier } from "@/engine/types";
 import { createClient } from "@/lib/supabase/server";
 import { autoClaim } from "./claims";
-import { HISTORY_DAYS, loadGoals, loadUserContext, must } from "./context";
+import { HISTORY_DAYS, loadGoals, loadUserContext, must, type UserContext } from "./context";
 import { syncDue } from "./integrations";
 import { reviewPrompt } from "./reviews";
 import type { CompletionRow, PlanGoalRow, SnapshotRow } from "./rows";
@@ -113,6 +113,11 @@ export type DashboardData = {
  * completion, refreshes today's score snapshots, and caches streak state.
  */
 export async function loadDashboard(at?: Date): Promise<DashboardData> {
+  return (await loadDashboardContext(at)).data;
+}
+
+/** loadDashboard plus the user context it was computed from, for views that need more rows (the board). */
+export async function loadDashboardContext(at?: Date): Promise<{ data: DashboardData; ctx: UserContext }> {
   // Request-time only: this reads the clock and writes today's plan, so it must never be prerendered.
   await connection();
   const supabase = await createClient();
@@ -271,7 +276,7 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
   if (snap.error) throw new Error(`Saving snapshots failed: ${snap.error.message}`);
 
   const nnById = new Map(ctx.nonNegotiables.map((n) => [n.id, n]));
-  return {
+  const data: DashboardData = {
     today,
     overall: { score: overall, display: displayScore(overall), tier: tier.tier, tierNumeral: tier.numeral, tierName: tier.name, trendDelta: overallTrend.delta },
     todayP,
@@ -321,4 +326,5 @@ export async function loadDashboard(at?: Date): Promise<DashboardData> {
     },
     review,
   };
+  return { data, ctx };
 }
