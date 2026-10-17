@@ -1,18 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Suspense } from "react";
+import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import "./globals.css";
 import { OfflineSync } from "@/components/pwa/OfflineSync";
+import { Dock } from "@/components/shell/Dock";
+import { Field } from "@/components/shell/Field";
+import { PointerLight } from "@/components/shell/PointerLight";
 
-const inter = Inter({
-  variable: "--font-inter",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
 });
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const mono = JetBrains_Mono({
+  variable: "--font-jbmono",
   subsets: ["latin"],
-  style: ["normal", "italic"],
+  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -25,16 +30,21 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0A0A0B",
+  themeColor: "#0b0b13",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${fraunces.variable} h-full antialiased`}>
+    <html lang="en" className={`${jakarta.variable} ${mono.variable} h-full antialiased`}>
       <body className="min-h-full">
-        <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] md:max-w-2xl">
+        <Field />
+        <PointerLight />
+        <div className="mx-auto flex min-h-dvh w-full max-w-[1480px] flex-col px-4 pt-[env(safe-area-inset-top)] pb-[calc(96px+env(safe-area-inset-bottom))] sm:px-6">
           {children}
         </div>
+        <Suspense fallback={null}>
+          <Dock />
+        </Suspense>
         <OfflineSync />
       </body>
     </html>

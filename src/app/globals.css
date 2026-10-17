@@ -1,20 +1,51 @@
 @import "tailwindcss";
 
-/* Design tokens (spec 11.1). The app is dark only. */
+/* Design tokens: sharp widgets (spec v2 revision 2, docs/DESIGN-GUIDELINES.md). Dark only. */
 :root {
-  --bg: #0a0a0b; /* warm near-black, never pure black */
-  --surface: rgba(255, 255, 255, 0.06);
-  --border: rgba(255, 255, 255, 0.1);
-  --text: #edeae4;
-  --text-muted: #8e8a84;
-  --gold: #d4af37; /* overall progress, tier names, veins */
-  --business: #e8a33d;
-  --school: #4a7bf7;
-  --mind: #a77bff;
-  --athletics: #e5484d;
-  --nutrition: #2fbf71;
-  --radius-card: 20px;
+  --bg: #0b0b13; /* violet-black ground, never pure black */
+  --surface: rgba(255, 255, 255, 0.05); /* quiet fills inside tiles */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --tile: rgba(21, 21, 30, 0.8);
+  --raised: #1d1e29;
+  --sunk: #101018;
+  --text: #f3f3f7;
+  --text-muted: #9497a8;
+  --text-label: #7f8294;
+  --on-cat: #0b0b13;
+  --gold: #d4af37; /* overall score, tier, veins, kept days, reached steps, records */
+  --gold-hi: #f6d77e;
+  --gold-tint: rgba(212, 175, 55, 0.16);
+  --business: #c8850e;
+  --business-text: #e8a33d;
+  --business-tint: rgba(232, 163, 61, 0.16);
+  --school: #4676f2;
+  --school-text: #6b97ff;
+  --school-tint: rgba(107, 151, 255, 0.16);
+  --athletics: #e3464b;
+  --athletics-text: #f25f66;
+  --athletics-tint: rgba(242, 95, 102, 0.16);
+  --mind: #a966e5;
+  --mind-text: #b88aff;
+  --mind-tint: rgba(184, 138, 255, 0.16);
+  --nutrition: #00a75d;
+  --nutrition-text: #2fc779;
+  --nutrition-tint: rgba(47, 199, 121, 0.16);
+  --r0: #263247;
+  --r1: #385573;
+  --r2: #44698f;
+  --r3: #5b90c7;
+  --r4: #79b0e8;
+  --r5: #afd5fe;
+  --radius-card: 12px;
   --radius-chip: 999px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-tile:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 0 rgba(0, 0, 0, 0.35), 0 1px 0 rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.3),
+    0 22px 44px -22px rgba(0, 0, 0, 0.85);
+  --shadow-lift:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.35), 0 1px 0 rgba(0, 0, 0, 0.55), 0 6px 14px rgba(0, 0, 0, 0.35),
+    0 30px 60px -24px rgba(0, 0, 0, 0.9);
 
   color-scheme: dark;
 }
@@ -23,8 +54,11 @@
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-border: var(--border);
+  --color-raised: var(--raised);
+  --color-sunk: var(--sunk);
   --color-text: var(--text);
   --color-muted: var(--text-muted);
+  --color-label: var(--text-label);
   --color-gold: var(--gold);
   --color-business: var(--business);
   --color-school: var(--school);
@@ -33,19 +67,29 @@
   --color-nutrition: var(--nutrition);
   --radius-card: var(--radius-card);
   --radius-chip: var(--radius-chip);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jbmono), ui-monospace, Menlo, monospace;
 }
 
-html,
-body {
+html {
   background: var(--bg);
-  color: var(--text);
+  /* Keep scrolled-to controls clear of the dock. */
+  scroll-padding-bottom: 104px;
+  scroll-padding-top: 16px;
 }
-
 body {
+  color: var(--text);
+  background: transparent;
   font-family: var(--font-sans);
+  font-weight: 500;
   -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  touch-action: manipulation;
+}
+:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
 }
 
 /* Scores never jitter while animating. */
@@ -53,13 +97,227 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Glass card (spec 4.1 C). */
+/* Every widget is a tile: lit from above, a soft shadow below, translucent over the field,
+   and its edge catches the pointer (--mx and --my are set by PointerLight). */
 @utility glass {
-  background: var(--surface);
+  position: relative;
+  isolation: isolate;
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background:
+    radial-gradient(420px circle at var(--mx, -999px) var(--my, -999px), rgba(255, 255, 255, 0.045), transparent 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 42%), var(--tile);
+  box-shadow: var(--shadow-tile);
+}
+@utility tile {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background:
+    radial-gradient(420px circle at var(--mx, -999px) var(--my, -999px), rgba(255, 255, 255, 0.045), transparent 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 42%), var(--tile);
+  box-shadow: var(--shadow-tile);
+  transition:
+    transform 220ms var(--ease-out),
+    box-shadow 220ms var(--ease-out),
+    border-color 160ms;
+}
+@media (hover: hover) and (min-width: 1024px) {
+  .tile,
+  .glass,
+  .dock {
+    -webkit-backdrop-filter: blur(16px) saturate(1.25);
+    backdrop-filter: blur(16px) saturate(1.25);
+  }
+}
+.tile::after,
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: 3;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: radial-gradient(260px circle at var(--mx, -999px) var(--my, -999px), rgba(255, 255, 255, 0.28), transparent 62%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+}
+/* The category's light in the top right corner. */
+.tile.glow::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  right: -60px;
+  top: -60px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--c, var(--gold)), transparent);
+  opacity: 0.22;
+  transition: opacity 200ms;
+}
+a.tile:hover,
+button.tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+  border-color: var(--border-strong);
+}
+a.tile:hover::before,
+button.tile:hover::before {
+  opacity: 0.34;
+}
+a.tile:active,
+button.tile:active {
+  transform: translateY(0) scale(0.99);
+}
+.tile.flare::before {
+  animation: tile-flare 1200ms var(--ease-out);
+}
+@keyframes tile-flare {
+  20% {
+    opacity: 0.85;
+    transform: scale(1.6);
+  }
+}
+
+/* Category trio on any element: --c is the mark, --ct the text tint, --tint the fill tint. */
+.c-business {
+  --c: var(--business);
+  --ct: var(--business-text);
+  --tint: var(--business-tint);
+}
+.c-school {
+  --c: var(--school);
+  --ct: var(--school-text);
+  --tint: var(--school-tint);
+}
+.c-athletics {
+  --c: var(--athletics);
+  --ct: var(--athletics-text);
+  --tint: var(--athletics-tint);
+}
+.c-mind {
+  --c: var(--mind);
+  --ct: var(--mind-text);
+  --tint: var(--mind-tint);
+}
+.c-nutrition {
+  --c: var(--nutrition);
+  --ct: var(--nutrition-text);
+  --tint: var(--nutrition-tint);
+}
+.c-gold {
+  --c: var(--gold);
+  --ct: var(--gold);
+  --tint: var(--gold-tint);
+}
+
+/* Section header: uppercase label, a hairline to the edge, optional mono meta. */
+.sec {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sec > h2 {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  white-space: nowrap;
+}
+.sec::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  order: 2;
+  background: linear-gradient(90deg, var(--border-strong), var(--border) 40%, transparent);
+}
+.sec > .meta {
+  order: 3;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-label);
+}
+.lbl {
+  font-size: 10.5px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+.bar3 {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.bar3 > b {
+  display: block;
+  height: 100%;
+  width: var(--p, 0%);
+  background: var(--c);
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 10px var(--c);
+  transition: width 600ms var(--ease-out);
+}
+.icon-tile {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: var(--tint);
+  color: var(--ct);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  flex: none;
+}
+/* Rows inside a tile sit lower than it. */
+.sunk-row {
+  background: var(--sunk);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+  border-radius: 9px;
+}
+.field-input {
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--sunk);
+  padding: 8px 10px;
+  outline: none;
+}
+.field-input:focus {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 2px rgba(243, 243, 247, 0.5);
+}
+.field-input::placeholder {
+  color: var(--text-label);
+}
+.dock {
+  border: 1px solid var(--border-strong);
+  background: rgba(21, 21, 30, 0.86);
+  box-shadow: var(--shadow-lift);
+}
+@media (max-width: 639px) {
+  .dock {
+    background: #0e0e14;
+  }
 }
 
 /* Figure stage motion (spec 5.3). */

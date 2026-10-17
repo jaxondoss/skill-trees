@@ -4,7 +4,7 @@ import { loadOnboarding } from "@/lib/data/onboarding";
 
 export default function OnboardingPage() {
   return (
-    <main className="flex flex-1 flex-col py-6">
+    <main className="mx-auto w-full max-w-2xl flex flex-1 flex-col py-6">
       <Suspense fallback={<div className="glass h-64" aria-busy="true" />}>
         <Steps />
       </Suspense>
