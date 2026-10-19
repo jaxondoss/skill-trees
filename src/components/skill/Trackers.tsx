@@ -117,7 +117,7 @@ function FoodTracker({ t, color }: { t: Extract<Tracker, { kind: "food" }>; colo
           </div>
         ))}
         <p className="text-[11px] text-muted">
-          <span className="num">{t.meals}</span> meals logged today.{t.claude ? "" : " Photo logging turns on when Claude is connected. Quick-add works now."}
+          <span className="num">{t.meals}</span> meals logged today.{t.claude ? "" : " Photo logging turns on once GEMINI_API_KEY is set. Quick-add works now."}
         </p>
       </div>
       {t.claude && <MealPhoto />}

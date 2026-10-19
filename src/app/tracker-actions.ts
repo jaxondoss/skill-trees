@@ -10,6 +10,7 @@ import { chessAdapter } from "@/integrations/chess";
 import type { ProviderId } from "@/integrations/types";
 import { passageById, scoreReading, wordCount } from "@/content/reading-passages";
 import { analyzeMeal, claudeAvailable, generateReadingTest } from "@/lib/claude";
+import { analyzeMealWithGemini, geminiAvailable } from "@/lib/gemini";
 import type { MealAnalysis, ReadingTest } from "@/lib/claude-prompts";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "./actions";
@@ -270,9 +271,9 @@ export async function generateReadingPassage(topic: string): Promise<ActionData<
 const MEDIA = ["image/jpeg", "image/png", "image/webp"] as const;
 const MAX_PHOTO_BYTES = 4_500_000;
 
-/** Reads a meal photo into an editable table. Nothing is saved until the user confirms. */
+/** Reads a meal photo into an editable table with Gemini (or Claude). Nothing is saved until the user confirms. */
 export async function analyzeMealPhoto(form: FormData): Promise<ActionData<MealAnalysis>> {
-  if (!claudeAvailable()) return { ok: false, error: "Claude is not connected. Use quick-add." };
+  if (!geminiAvailable() && !claudeAvailable()) return { ok: false, error: "Photo reading is not connected. Use quick-add." };
   const file = form.get("photo");
   if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Choose a photo." };
   if (file.size > MAX_PHOTO_BYTES) return { ok: false, error: "That photo is too large. Try one under 4.5 MB." };
@@ -282,7 +283,7 @@ export async function analyzeMealPhoto(form: FormData): Promise<ActionData<MealA
   if (!uid) return { ok: false, error: "Sign in again." };
   try {
     const base64 = Buffer.from(await file.arrayBuffer()).toString("base64");
-    return { ok: true, data: await analyzeMeal(base64, media) };
+    return { ok: true, data: geminiAvailable() ? await analyzeMealWithGemini(base64, media) : await analyzeMeal(base64, media) };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Could not read the photo." };
   }

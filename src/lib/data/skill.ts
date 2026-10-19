@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { calorieTarget, formatAfterNoon, nights, sleepAnchor } from "@/engine/trackers";
 import { PASSAGES, READING_TEST_EVERY_DAYS } from "@/content/reading-passages";
 import { claudeAvailable } from "@/lib/claude";
+import { geminiAvailable } from "@/lib/gemini";
 import { autoClaim, foodTargets, metricValues, sleepSettings } from "./claims";
 import { loadUserContext, must } from "./context";
 import { SHAPE_BY_CATEGORY, type BottleShape } from "./dashboard";
@@ -368,7 +369,7 @@ function trackerFor(slug: string, ctx: Awaited<ReturnType<typeof loadUserContext
         totals: { calories: sum("meal_calories"), proteinG: sum("meal_protein_g"), fiberG: sum("meal_fiber_g") },
         targets: { calories: calorieTarget(t.calories, longRunToday), proteinG: t.proteinG, fiberG: 38 },
         meals: ctx.metrics.filter((m) => m.key === "meal_calories" && m.day === ctx.today).length,
-        claude: claudeAvailable(),
+        claude: geminiAvailable() || claudeAvailable(),
       };
     }
     case "gut-health":
