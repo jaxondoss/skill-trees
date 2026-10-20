@@ -1,0 +1,530 @@
+{
+ "part": "back-left",
+ "items": [
+  {
+   "id": "library.bookshelf",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 178,
+   "y": 99,
+   "variants": {
+    "s0": "art/back-left/bookshelf-s0.png",
+    "s1": "art/back-left/bookshelf-s1.png",
+    "s2": "art/back-left/bookshelf-s2.png"
+   },
+   "target": {
+    "skill": "reading"
+   },
+   "label": "READING",
+   "led": [
+    201,
+    100
+   ],
+   "note": "tall bookshelf: s0 a few books and boxes, s1 half full, s2 packed with a banker's lamp"
+  },
+  {
+   "id": "library.potions",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 230,
+   "y": 108,
+   "variants": {
+    "base": "art/back-left/potion-shelf.png"
+   },
+   "target": {
+    "feature": "archive"
+   },
+   "label": "ARCHIVE",
+   "led": [
+    243,
+    136
+   ],
+   "note": "wall potion shelf: 15 bottles, one per skill, in category colours at a middling fill"
+  },
+  {
+   "id": "library.chess",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 200,
+   "y": 176,
+   "variants": {
+    "s0": "art/back-left/chess-s0.png",
+    "s1": "art/back-left/chess-s1.png",
+    "s2": "art/back-left/chess-s2.png"
+   },
+   "target": {
+    "skill": "chess"
+   },
+   "label": "CHESS",
+   "led": [
+    229,
+    191
+   ],
+   "note": "low chess table with two stools: s0 board in its box, s1 set up, s2 mid-game with a trophy"
+  },
+  {
+   "id": "library.cushion",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 176,
+   "y": 186,
+   "variants": {
+    "s0": "art/back-left/cushion-s0.png",
+    "s1": "art/back-left/cushion-s1.png",
+    "s2": "art/back-left/cushion-s2.png"
+   },
+   "target": {
+    "skill": "meditation"
+   },
+   "label": "MEDITATION",
+   "led": [
+    186,
+    217
+   ],
+   "note": "floor cushion: s0 flat cushion, s1 plus a candle, s2 zafu, candle, incense and a plant"
+  },
+  {
+   "id": "library.shelf-plant",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 178,
+   "y": 76,
+   "variants": {
+    "t1": "art/back-left/shelf-plant-t1.png",
+    "t3": "art/back-left/shelf-plant-t3.png",
+    "t5": "art/back-left/shelf-plant-t5.png",
+    "base": "art/back-left/shelf-plant-t3.png"
+   },
+   "note": "plant on top of the bookshelf: t1 sad cactus, t3 pothos trailing down the frame, t5 lush fern"
+  },
+  {
+   "id": "library.globe",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 204,
+   "y": 85,
+   "variants": {
+    "base": "art/back-left/globe.png"
+   },
+   "note": "desk globe on top of the bookshelf"
+  },
+  {
+   "id": "library.ladder",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 212,
+   "y": 101,
+   "variants": {
+    "base": "art/back-left/ladder.png"
+   },
+   "note": "wooden ladder leaning on the bookshelf"
+  },
+  {
+   "id": "library.throw",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 210,
+   "y": 146,
+   "variants": {
+    "base": "art/back-left/throw.png"
+   },
+   "note": "knitted throw folded over a ladder rung"
+  },
+  {
+   "id": "library.ledge",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 231,
+   "y": 69,
+   "variants": {
+    "base": "art/back-left/ledge.png"
+   },
+   "note": "wall ledge with brass bookends, small books, hourglass"
+  },
+  {
+   "id": "library.print",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 232,
+   "y": 85,
+   "variants": {
+    "base": "art/back-left/print.png"
+   },
+   "note": "framed jazz-night print above the potion shelf"
+  },
+  {
+   "id": "library.lamp",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 254,
+   "y": 106,
+   "variants": {
+    "t1": "art/back-left/floor-lamp-t1.png",
+    "t3": "art/back-left/floor-lamp-t3.png",
+    "t5": "art/back-left/floor-lamp-t5.png",
+    "base": "art/back-left/floor-lamp-t3.png"
+   },
+   "note": "reading lamp: t1 clamp lamp on the shelf bracket, t3 drum-shade floor lamp, t5 brass pleated lamp"
+  },
+  {
+   "id": "library.string-lights",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 176,
+   "y": 63,
+   "variants": {
+    "base": "art/back-left/string-lights.png"
+   },
+   "note": "warm string lights sagging along the top of the library wall"
+  },
+  {
+   "id": "library.clock",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 243,
+   "y": 144,
+   "variants": {
+    "base": "art/back-left/wall-clock.png"
+   },
+   "note": "round wall clock under the potion shelf"
+  },
+  {
+   "id": "library.records",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 230,
+   "y": 180,
+   "variants": {
+    "t1": "art/back-left/records-t1.png",
+    "t3": "art/back-left/records-t3.png",
+    "t4": "art/back-left/records-t4.png",
+    "t5": "art/back-left/records-t5.png",
+    "base": "art/back-left/records-t3.png"
+   },
+   "note": "records: t1 cardboard box, t3 wood crate, t4 crate with a record player, t5 walnut console"
+  },
+  {
+   "id": "library.magazines",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 230,
+   "y": 140,
+   "variants": {
+    "base": "art/back-left/magazine-rack.png"
+   },
+   "note": "wall magazine pocket under the potion shelf"
+  },
+  {
+   "id": "library.fan",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 214,
+   "y": 85,
+   "variants": {
+    "base": "art/back-left/desk-fan.png"
+   },
+   "note": "small desk fan on top of the bookshelf"
+  },
+  {
+   "id": "library.books-floor",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 225,
+   "y": 188,
+   "variants": {
+    "base": "art/back-left/books-floor.png"
+   },
+   "note": "tall stack of books on the floor beside the shelf"
+  },
+  {
+   "id": "library.books-under",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 3,
+   "x": 226,
+   "y": 201,
+   "variants": {
+    "base": "art/back-left/books-under.png"
+   },
+   "note": "short stack of books under the chess table"
+  },
+  {
+   "id": "window.sill-plants",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 280,
+   "y": 118,
+   "variants": {
+    "s0": "art/back-left/sill-plants-s0.png",
+    "s1": "art/back-left/sill-plants-s1.png",
+    "s2": "art/back-left/sill-plants-s2.png"
+   },
+   "target": {
+    "skill": "gut-health"
+   },
+   "label": "GUT HEALTH",
+   "led": [
+    298,
+    149
+   ],
+   "note": "planter on the sill: s0 one sprout, s1 herbs and a fermenting jar, s2 lush row with kombucha"
+  },
+  {
+   "id": "window.vision-board",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 263,
+   "y": 84,
+   "variants": {
+    "s0": "art/back-left/vision-board-s0.png",
+    "s1": "art/back-left/vision-board-s1.png",
+    "s2": "art/back-left/vision-board-s2.png"
+   },
+   "target": {
+    "skill": "visualization"
+   },
+   "label": "VISUALIZATION",
+   "led": [
+    269,
+    107
+   ],
+   "note": "cork vision board beside the window: s0 bare, s1 a few cut-outs, s2 covered"
+  },
+  {
+   "id": "window.tv",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 300,
+   "y": 154,
+   "variants": {
+    "base": "art/back-left/big-crt.png"
+   },
+   "target": {
+    "feature": "today"
+   },
+   "label": "TODAY",
+   "led": [
+    333,
+    183
+   ],
+   "note": "big CRT on the low stand, screen glowing red with a small sun"
+  },
+  {
+   "id": "window.small-crt",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 343,
+   "y": 161,
+   "variants": {
+    "base": "art/back-left/small-crt.png"
+   },
+   "target": {
+    "feature": "stats"
+   },
+   "label": "STATS",
+   "led": [
+    362,
+    179
+   ],
+   "note": "small CRT on the tape deck, dim slate screen with a bar chart"
+  },
+  {
+   "id": "window.stand",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 296,
+   "y": 182,
+   "variants": {
+    "t1": "art/back-left/tv-stand-t1.png",
+    "t3": "art/back-left/tv-stand-t3.png",
+    "t5": "art/back-left/tv-stand-t5.png",
+    "base": "art/back-left/tv-stand-t3.png"
+   },
+   "note": "TV stand plus the red screen glow on the floor: t1 milk crates, t3 low stand with VCR, t5 walnut"
+  },
+  {
+   "id": "window.amp",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 341,
+   "y": 186,
+   "variants": {
+    "base": "art/back-left/amp.png"
+   },
+   "note": "amplifier with knobs and red LEDs"
+  },
+  {
+   "id": "window.tape-deck",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 342,
+   "y": 180,
+   "variants": {
+    "base": "art/back-left/tape-deck.png"
+   },
+   "note": "double tape deck with red and amber LEDs"
+  },
+  {
+   "id": "window.crt-plant",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 346,
+   "y": 150,
+   "variants": {
+    "base": "art/back-left/crt-plant.png"
+   },
+   "note": "potted plant on top of the small CRT"
+  },
+  {
+   "id": "window.crt-box",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 358,
+   "y": 158,
+   "variants": {
+    "base": "art/back-left/crt-box.png"
+   },
+   "note": "small box on top of the small CRT"
+  },
+  {
+   "id": "window.speaker",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 350,
+   "y": 128,
+   "variants": {
+    "t1": "art/back-left/sill-speaker-t1.png",
+    "t3": "art/back-left/sill-speaker-t3.png",
+    "t5": "art/back-left/sill-speaker-t5.png",
+    "base": "art/back-left/sill-speaker-t3.png"
+   },
+   "note": "speaker on the sill: t1 cheap plastic, t3 bookshelf speaker, t5 walnut"
+  },
+  {
+   "id": "window.lamp",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 3,
+   "x": 368,
+   "y": 186,
+   "variants": {
+    "t1": "art/back-left/lamp-t1.png",
+    "t3": "art/back-left/lamp-t3.png",
+    "t5": "art/back-left/lamp-t5.png",
+    "base": "art/back-left/lamp-t3.png"
+   },
+   "note": "small floor lamp: t1 bare bulb, t3 mushroom lamp, t5 lava lamp"
+  },
+  {
+   "id": "window.vhs",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 3,
+   "x": 346,
+   "y": 200,
+   "variants": {
+    "base": "art/back-left/vhs.png"
+   },
+   "note": "stack of VHS tapes on the floor"
+  },
+  {
+   "id": "window.console",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 3,
+   "x": 306,
+   "y": 203,
+   "variants": {
+    "base": "art/back-left/console.png"
+   },
+   "note": "game console with a red display and a pad"
+  },
+  {
+   "id": "window.remote",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 3,
+   "x": 338,
+   "y": 212,
+   "variants": {
+    "base": "art/back-left/remote.png"
+   },
+   "note": "TV remote on the floor"
+  },
+  {
+   "id": "window.camera",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 3,
+   "x": 360,
+   "y": 208,
+   "variants": {
+    "base": "art/back-left/camera.png"
+   },
+   "note": "vintage camera on the floor"
+  },
+  {
+   "id": "window.power-strip",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 284,
+   "y": 199,
+   "variants": {
+    "base": "art/back-left/power-strip.png"
+   },
+   "note": "power strip with a red switch, cord to the outlet"
+  },
+  {
+   "id": "window.cables-back",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 284,
+   "y": 196,
+   "variants": {
+    "base": "art/back-left/cables-back.png"
+   },
+   "note": "cables along the wall line"
+  },
+  {
+   "id": "window.cables-front",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 3,
+   "x": 286,
+   "y": 208,
+   "variants": {
+    "base": "art/back-left/cables-front.png"
+   },
+   "note": "cables snaking on the floor in front of the TV"
+  }
+ ]
+}

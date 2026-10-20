@@ -1,0 +1,207 @@
+{
+ "part": "shell",
+ "items": [
+  {
+   "id": "shell.sky",
+   "zone": "room",
+   "kind": "shell",
+   "layer": 0,
+   "x": 260,
+   "y": 46,
+   "variants": {
+    "base": "art/shell/sky.png",
+    "night": "art/shell/sky-night.png"
+   },
+   "note": "golden-hour sky with the sun and lit clouds; night sky with moon and stars"
+  },
+  {
+   "id": "shell.outside",
+   "zone": "room",
+   "kind": "shell",
+   "layer": 1,
+   "x": 268,
+   "y": 54,
+   "variants": {
+    "base": "art/shell/outside.png",
+    "night": "art/shell/outside-night.png",
+    "fall": "art/shell/outside-fall.png"
+   },
+   "note": "New Orleans: shotgun houses, live oak with moss, power pole and wires, red streetcar"
+  },
+  {
+   "id": "shell.l2",
+   "zone": "room",
+   "kind": "shell",
+   "layer": 2,
+   "x": 106,
+   "y": 45,
+   "variants": {
+    "base": "art/shell/l2.png",
+    "night": "art/shell/l2-night.png"
+   },
+   "note": "room shell band L2: back wall, ceiling over it, near floor rows, back side-wall columns; draw first in its layer"
+  },
+  {
+   "id": "shell.l3",
+   "zone": "room",
+   "kind": "shell",
+   "layer": 3,
+   "x": 44,
+   "y": 35,
+   "variants": {
+    "base": "art/shell/l3.png",
+    "night": "art/shell/l3-night.png"
+   },
+   "note": "room shell band L3: floor rows 210..222, side-wall columns 52..114, ceiling band; draw first in its layer"
+  },
+  {
+   "id": "shell.l4",
+   "zone": "room",
+   "kind": "shell",
+   "layer": 4,
+   "x": -28,
+   "y": 25,
+   "variants": {
+    "base": "art/shell/l4.png",
+    "night": "art/shell/l4-night.png"
+   },
+   "note": "room shell band L4: floor rows 222..236 with the sunbeam, side-wall columns -20..52, ceiling band; draw first in its layer"
+  },
+  {
+   "id": "shell.l5",
+   "zone": "room",
+   "kind": "shell",
+   "layer": 5,
+   "x": -80,
+   "y": -96,
+   "variants": {
+    "base": "art/shell/l5.png",
+    "night": "art/shell/l5-night.png"
+   },
+   "note": "room shell band L5: front floor with the window reflection, outer wall columns, front ceiling and beam; draw first in its layer"
+  },
+  {
+   "id": "shell.window",
+   "zone": "room",
+   "kind": "shell",
+   "layer": 2,
+   "x": 278,
+   "y": 64,
+   "variants": {
+    "base": "art/shell/window.png",
+    "night": "art/shell/window-night.png"
+   },
+   "note": "window frame, mullion, sill, half-open blinds (night: blinds lowered); draw right after shell.l2"
+  },
+  {
+   "id": "shell.ac",
+   "zone": "room",
+   "kind": "decor",
+   "layer": 2,
+   "x": 299,
+   "y": 61,
+   "variants": {
+    "base": "art/shell/ac.png"
+   },
+   "note": "mini-split AC above the window with a red standby LED"
+  },
+  {
+   "id": "shell.pendant.library",
+   "zone": "room",
+   "kind": "decor",
+   "layer": 3,
+   "x": 196,
+   "y": 48,
+   "variants": {
+    "base": "art/shell/pendant-library.png",
+    "night": "art/shell/pendant-library-night.png",
+    "t1": "art/shell/pendant-library-t1.png",
+    "t3": "art/shell/pendant-library-t3.png",
+    "t5": "art/shell/pendant-library-t5.png"
+   },
+   "note": "pendant lamp over the library: t1 bare bulb, t3 dark dome, t5 brass dome; night lit"
+  },
+  {
+   "id": "shell.pendant.desk",
+   "zone": "room",
+   "kind": "decor",
+   "layer": 3,
+   "x": 411,
+   "y": 48,
+   "variants": {
+    "base": "art/shell/pendant-desk.png",
+    "night": "art/shell/pendant-desk-night.png",
+    "t1": "art/shell/pendant-desk-t1.png",
+    "t3": "art/shell/pendant-desk-t3.png",
+    "t5": "art/shell/pendant-desk-t5.png"
+   },
+   "note": "pendant lamp over the desk: t1 bare bulb, t3 dark dome, t5 brass dome; night lit"
+  },
+  {
+   "id": "shell.fan",
+   "zone": "room",
+   "kind": "decor",
+   "layer": 4,
+   "x": 283,
+   "y": 33,
+   "variants": {
+    "base": "art/shell/fan.png",
+    "t1": "art/shell/fan-t1.png",
+    "t3": "art/shell/fan-t3.png",
+    "t5": "art/shell/fan-t5.png"
+   },
+   "note": "ceiling fan at x 320: t1 cheap fan with a bent blade, t3 dark blades, t5 wood and brass"
+  },
+  {
+   "id": "shell.crop.plant",
+   "zone": "room",
+   "kind": "decor",
+   "layer": 6,
+   "x": -80,
+   "y": -96,
+   "variants": {
+    "base": "art/shell/crop-plant.png",
+    "t1": "art/shell/crop-plant-t1.png",
+    "t3": "art/shell/crop-plant-t3.png",
+    "t5": "art/shell/crop-plant-t5.png"
+   },
+   "note": "frame crop: hanging pothos top-left (t1 sparse, t5 lush)"
+  },
+  {
+   "id": "shell.crop.cabinet",
+   "zone": "room",
+   "kind": "decor",
+   "layer": 6,
+   "x": -80,
+   "y": 234,
+   "variants": {
+    "base": "art/shell/crop-cabinet.png"
+   },
+   "note": "frame crop: filing cabinet bottom-left"
+  },
+  {
+   "id": "shell.crop.speaker",
+   "zone": "room",
+   "kind": "decor",
+   "layer": 6,
+   "x": 628,
+   "y": 238,
+   "variants": {
+    "base": "art/shell/crop-speaker.png"
+   },
+   "note": "frame crop: big floor speaker bottom-right"
+  },
+  {
+   "id": "shell.crop.cables",
+   "zone": "room",
+   "kind": "decor",
+   "layer": 6,
+   "x": 536,
+   "y": -96,
+   "variants": {
+    "base": "art/shell/crop-cables.png"
+   },
+   "note": "frame crop: cables and a power strip hanging top-right"
+  }
+ ]
+}

@@ -1,0 +1,534 @@
+{
+ "part": "right-back",
+ "items": [
+  {
+   "id": "study.pennant",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 383,
+   "y": 72,
+   "variants": {
+    "base": "art/right-back/study-pennant-base.png"
+   },
+   "note": "school-spirit pennant, original design: green felt with a sky-blue wave, no lettering or crest"
+  },
+  {
+   "id": "study.frame",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 421,
+   "y": 69,
+   "variants": {
+    "base": "art/right-back/study-frame-base.png"
+   },
+   "note": "empty wooden picture frame; inner dark area x 424..439, y 73..84 (16 x 12) is where the engine shows the user's image"
+  },
+  {
+   "id": "study.clock",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 445,
+   "y": 71,
+   "variants": {
+    "base": "art/right-back/study-clock-base.png"
+   },
+   "note": "round wall clock with a red second hand"
+  },
+  {
+   "id": "study.calendar",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 402,
+   "y": 94,
+   "variants": {
+    "s0": "art/right-back/study-calendar-s0.png",
+    "s1": "art/right-back/study-calendar-s1.png",
+    "s2": "art/right-back/study-calendar-s2.png"
+   },
+   "target": {
+    "skill": "time-blocking"
+   },
+   "label": "TIME BLOCKING",
+   "led": [
+    414,
+    129
+   ],
+   "note": "wall calendar: s0 blank month, s1 a few days crossed off, s2 colour-blocked weeks"
+  },
+  {
+   "id": "study.corkboard",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 430,
+   "y": 95,
+   "variants": {
+    "base": "art/right-back/study-corkboard-base.png"
+   },
+   "note": "corkboard with sticky notes, an index card, a polaroid, a ticket stub, red yarn"
+  },
+  {
+   "id": "study.shelf",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 382,
+   "y": 100,
+   "variants": {
+    "base": "art/right-back/study-shelf-base.png"
+   },
+   "note": "small floating shelf with books and a trailing pothos in a terracotta pot"
+  },
+  {
+   "id": "study.underdesk",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 386,
+   "y": 160,
+   "variants": {
+    "base": "art/right-back/study-underdesk-base.png"
+   },
+   "note": "shadow under the study desk, a storage box, power strip with a red LED, cords"
+  },
+  {
+   "id": "study.desk",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 383,
+   "y": 158,
+   "variants": {
+    "base": "art/right-back/study-desk-base.png"
+   },
+   "note": "study desk against the back wall with a three-drawer pedestal"
+  },
+  {
+   "id": "study.lamp",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 384,
+   "y": 112,
+   "variants": {
+    "t1": "art/right-back/study-lamp-t1.png",
+    "t3": "art/right-back/study-lamp-t3.png",
+    "t5": "art/right-back/study-lamp-t5.png",
+    "base": "art/right-back/study-lamp-base.png"
+   },
+   "note": "desk lamp lighting the notebook: t1 clip lamp with a bare bulb, t3 architect lamp, t5 brass banker's lamp"
+  },
+  {
+   "id": "study.textbooks",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 398,
+   "y": 140,
+   "variants": {
+    "base": "art/right-back/study-textbooks-base.png"
+   },
+   "note": "stack of textbooks with headphones lying on top"
+  },
+  {
+   "id": "study.notebook",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 409,
+   "y": 154,
+   "variants": {
+    "base": "art/right-back/study-notebook-base.png"
+   },
+   "target": {
+    "feature": "journal"
+   },
+   "label": "JOURNAL",
+   "led": [
+    417,
+    163
+   ],
+   "hit": [
+    409,
+    155,
+    20,
+    9
+   ],
+   "note": "notebook open on the desk under the lamp, a pen on it"
+  },
+  {
+   "id": "study.mug",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 426,
+   "y": 152,
+   "variants": {
+    "base": "art/right-back/study-mug-base.png"
+   },
+   "note": "coffee mug"
+  },
+  {
+   "id": "study.pencup",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 431,
+   "y": 148,
+   "variants": {
+    "base": "art/right-back/study-pencup-base.png"
+   },
+   "note": "pen cup with a pen, a pencil, a marker"
+  },
+  {
+   "id": "study.printer",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 436,
+   "y": 143,
+   "variants": {
+    "base": "art/right-back/study-printer-base.png"
+   },
+   "note": "small printer with paper in the tray and a green and an amber LED"
+  },
+  {
+   "id": "study.chair",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 402,
+   "y": 162,
+   "variants": {
+    "t1": "art/right-back/study-chair-t1.png",
+    "t3": "art/right-back/study-chair-t3.png",
+    "t5": "art/right-back/study-chair-t5.png",
+    "base": "art/right-back/study-chair-base.png"
+   },
+   "note": "chair pushed in with a jacket over the back: t1 metal folding chair with a hoodie, t3 wooden chair, t5 tufted leather chair"
+  },
+  {
+   "id": "study.backpack",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 375,
+   "y": 170,
+   "variants": {
+    "s0": "art/right-back/study-backpack-s0.png",
+    "s1": "art/right-back/study-backpack-s1.png",
+    "s2": "art/right-back/study-backpack-s2.png",
+    "alert": "art/right-back/study-backpack-alert.png"
+   },
+   "target": {
+    "skill": "academics"
+   },
+   "label": "ACADEMICS",
+   "led": [
+    384,
+    198
+   ],
+   "note": "backpack leaning on the desk: s0 slumped and empty, s1 packed, s2 packed with a laptop and a green keychain; alert: a red sheet sticking out (due within 48 h)"
+  },
+  {
+   "id": "study.trash",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 436,
+   "y": 186,
+   "variants": {
+    "base": "art/right-back/study-trash-base.png"
+   },
+   "note": "mesh trash can with paper balls in and around it"
+  },
+  {
+   "id": "study.cables",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 392,
+   "y": 198,
+   "variants": {
+    "base": "art/right-back/study-cables-base.png"
+   },
+   "note": "cords snaking out from under the study desk, a phone charger end"
+  },
+  {
+   "id": "computer.poster",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 470,
+   "y": 54,
+   "variants": {
+    "t1": "art/right-back/computer-poster-t1.png",
+    "t3": "art/right-back/computer-poster-t3.png",
+    "t5": "art/right-back/computer-poster-t5.png",
+    "base": "art/right-back/computer-poster-base.png"
+   },
+   "note": "wall art above the shelf: t1 taped printout, t3 framed dusk poster, t5 neon FORGE sign glowing orange"
+  },
+  {
+   "id": "computer.shelf",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 466,
+   "y": 96,
+   "variants": {
+    "base": "art/right-back/computer-shelf-base.png"
+   },
+   "note": "wall shelf with books, a small robot figure, a hooded figure with a sword, a trophy cup, a trailing pothos"
+  },
+  {
+   "id": "computer.router",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 482,
+   "y": 112,
+   "variants": {
+    "base": "art/right-back/computer-router-base.png"
+   },
+   "anim": {
+    "frames": [
+     "art/right-back/computer-router-f0.png",
+     "art/right-back/computer-router-f1.png"
+    ],
+    "fps": 2
+   },
+   "note": "router on the shelf with blinking green, amber and red lights"
+  },
+  {
+   "id": "computer.saltlamp",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 476,
+   "y": 104,
+   "variants": {
+    "base": "art/right-back/computer-saltlamp-base.png"
+   },
+   "note": "small salt lamp on the shelf, a warm glow on the wall"
+  },
+  {
+   "id": "computer.plant",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 448,
+   "y": 128,
+   "variants": {
+    "base": "art/right-back/computer-plant-base.png"
+   },
+   "note": "snake plant in a terracotta pot in the back corner between the desks"
+  },
+  {
+   "id": "computer.underdesk",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 448,
+   "y": 150,
+   "variants": {
+    "base": "art/right-back/computer-underdesk-base.png"
+   },
+   "note": "shadow under the computer desk, cable tray with sagging cables, floor power strip with a red LED"
+  },
+  {
+   "id": "computer.tower",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 492,
+   "y": 186,
+   "variants": {
+    "base": "art/right-back/computer-tower-base.png"
+   },
+   "note": "PC tower under the desk: glass side with red-ringed fans, red LED strip and power light, red spill on the floor"
+  },
+  {
+   "id": "computer.desk",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 448,
+   "y": 154,
+   "variants": {
+    "t1": "art/right-back/computer-desk-t1.png",
+    "t3": "art/right-back/computer-desk-t3.png",
+    "t5": "art/right-back/computer-desk-t5.png",
+    "base": "art/right-back/computer-desk-base.png"
+   },
+   "note": "computer desk along the right wall: t1 folding table, t3 wood desk, t5 custom walnut slab on black steel with a warm LED strip"
+  },
+  {
+   "id": "computer.speaker",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 462,
+   "y": 136,
+   "variants": {
+    "base": "art/right-back/computer-speaker-base.png"
+   },
+   "note": "small desk speaker with a red power LED"
+  },
+  {
+   "id": "computer.monitor-main",
+   "zone": "computer",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 462,
+   "y": 126,
+   "variants": {
+    "s0": "art/right-back/computer-monitor-main-s0.png",
+    "s1": "art/right-back/computer-monitor-main-s1.png",
+    "s2": "art/right-back/computer-monitor-main-s2.png"
+   },
+   "target": {
+    "skill": "ai-building"
+   },
+   "label": "AI BUILDING",
+   "led": [
+    480,
+    148
+   ],
+   "note": "main monitor: s0 dark screen propped on textbooks, s1 code on screen, s2 code plus chat and a rising chart"
+  },
+  {
+   "id": "computer.monitor-second",
+   "zone": "computer",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 482,
+   "y": 126,
+   "variants": {
+    "s0": "art/right-back/computer-monitor-second-s0.png",
+    "s1": "art/right-back/computer-monitor-second-s1.png",
+    "s2": "art/right-back/computer-monitor-second-s2.png"
+   },
+   "target": {
+    "skill": "dropshipping"
+   },
+   "label": "DROPSHIPPING",
+   "led": [
+    500,
+    151
+   ],
+   "note": "second monitor: s0 dark cheap screen on a cardboard box, s1 store dashboard, s2 busy charts plus a shipping box on the desk"
+  },
+  {
+   "id": "computer.note",
+   "zone": "computer",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 464,
+   "y": 126,
+   "variants": {
+    "base": "art/right-back/computer-note-base.png"
+   },
+   "target": {
+    "feature": "focus"
+   },
+   "label": "FOCUS",
+   "led": [
+    471,
+    134
+   ],
+   "note": "sticky note on the main monitor's bezel"
+  },
+  {
+   "id": "computer.webcam",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 476,
+   "y": 126,
+   "variants": {
+    "base": "art/right-back/computer-webcam-base.png"
+   },
+   "note": "webcam on the main monitor with a red tally light"
+  },
+  {
+   "id": "computer.keyboard",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 456,
+   "y": 154,
+   "variants": {
+    "base": "art/right-back/computer-keyboard-base.png"
+   },
+   "note": "keyboard lit by the screens, mouse on a pad"
+  },
+  {
+   "id": "computer.mic",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 482,
+   "y": 136,
+   "variants": {
+    "base": "art/right-back/computer-mic-base.png"
+   },
+   "note": "desk mic on a short stand with a red mute light"
+  },
+  {
+   "id": "computer.drink",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 478,
+   "y": 150,
+   "variants": {
+    "base": "art/right-back/computer-drink-base.png"
+   },
+   "note": "energy drink can on the desk and a crushed one on the floor"
+  },
+  {
+   "id": "computer.cables",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 452,
+   "y": 196,
+   "variants": {
+    "base": "art/right-back/computer-cables-base.png"
+   },
+   "note": "cables snaking across the floor from the power strip"
+  },
+  {
+   "id": "computer.chair",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 500,
+   "y": 118,
+   "variants": {
+    "t1": "art/right-back/computer-chair-t1.png",
+    "t3": "art/right-back/computer-chair-t3.png",
+    "t5": "art/right-back/computer-chair-t5.png",
+    "base": "art/right-back/computer-chair-base.png"
+   },
+   "note": "chair parked beside the desk: t1 metal folding chair, t3 mesh office chair, t5 gaming chair with red stripes"
+  },
+  {
+   "id": "computer.pegboard",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 518,
+   "y": 80,
+   "variants": {
+    "base": "art/right-back/computer-pegboard-base.png"
+   },
+   "note": "pegboard on the wall above the parked chair with headphones, a cable coil and a cap"
+  }
+ ]
+}

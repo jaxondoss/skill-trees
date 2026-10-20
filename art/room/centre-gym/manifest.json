@@ -1,0 +1,411 @@
+{
+ "part": "centre-gym",
+ "items": [
+  {
+   "id": "gym.flooring",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 530,
+   "y": 205,
+   "variants": {
+    "t1": "art/centre-gym/gym-flooring-t1.png",
+    "t3": "art/centre-gym/gym-flooring-t3.png",
+    "t5": "art/centre-gym/gym-flooring-t5.png",
+    "base": "art/centre-gym/gym-flooring-base.png"
+   },
+   "note": "floor under the bench: t1 one thin exercise mat on the bare tiles, t3 rubber gym tiles, t5 rubber tiles with a wooden lifting-platform inlay and a brass edge"
+  },
+  {
+   "id": "gym.shelf",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 656,
+   "y": 118,
+   "variants": {
+    "base": "art/centre-gym/gym-shelf.png"
+   },
+   "note": "high wall shelf: three protein tubs, a small pre-workout tub, a shaker bottle, amber LED strip washing the wall below"
+  },
+  {
+   "id": "gym.speaker",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 620,
+   "y": 210,
+   "variants": {
+    "base": "art/centre-gym/gym-speaker.png"
+   },
+   "note": "bluetooth speaker lying on the protein shelf, red and amber status LEDs"
+  },
+  {
+   "id": "gym.poster",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 656,
+   "y": 66,
+   "variants": {
+    "t1": "art/centre-gym/gym-poster-t1.png",
+    "t3": "art/centre-gym/gym-poster-t3.png",
+    "t5": "art/centre-gym/gym-poster-t5.png",
+    "base": "art/centre-gym/gym-poster-base.png"
+   },
+   "note": "runner poster above the rack (silhouette mid-stride against a red sun): t1 printout taped up, t3 framed print, t5 framed with a brass picture light"
+  },
+  {
+   "id": "gym.timer",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 620,
+   "y": 66,
+   "variants": {
+    "base": "art/centre-gym/gym-timer.png"
+   },
+   "note": "interval timer on the wall showing 0:45 in red LED digits, red glow on the wall, cord down"
+  },
+  {
+   "id": "gym.mirror",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 628,
+   "y": 100,
+   "variants": {
+    "base": "art/centre-gym/gym-mirror.png"
+   },
+   "note": "tall wall mirror on the front of the right wall, a warm diagonal streak of the sunset"
+  },
+  {
+   "id": "gym.towel",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 628,
+   "y": 100,
+   "variants": {
+    "base": "art/centre-gym/gym-towel.png"
+   },
+   "note": "terracotta gym towel folded over a wall hook beside the running shelf"
+  },
+  {
+   "id": "gym.jumprope",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 656,
+   "y": 112,
+   "variants": {
+    "base": "art/centre-gym/gym-jumprope.png"
+   },
+   "note": "jump rope with red handles and two resistance bands (plum, green) on a hook"
+  },
+  {
+   "id": "gym.trophies",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 656,
+   "y": 136,
+   "variants": {
+    "t1": "art/centre-gym/gym-trophies-t1.png",
+    "t3": "art/centre-gym/gym-trophies-t3.png",
+    "t5": "art/centre-gym/gym-trophies-t5.png",
+    "base": "art/centre-gym/gym-trophies-base.png"
+   },
+   "note": "front wall: t1 two medals on a nail, t3 small shelf with a trophy and two medals, t5 a lit glass display case with medals and trophies"
+  },
+  {
+   "id": "gym.fan",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 586,
+   "y": 196,
+   "variants": {
+    "base": "art/centre-gym/gym-fan.png"
+   },
+   "note": "box fan on the front floor angled at the bench, amber knob light, cord to the wall outlet"
+  },
+  {
+   "id": "gym.duffel",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 540,
+   "y": 214,
+   "variants": {
+    "base": "art/centre-gym/gym-duffel.png"
+   },
+   "note": "black gym duffel with a terracotta stripe slumped on the front floor"
+  },
+  {
+   "id": "gym.yogamat",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 538,
+   "y": 168,
+   "variants": {
+    "base": "art/centre-gym/gym-yogamat.png"
+   },
+   "note": "rolled green yoga mat with a strap, leaning in the back of the gym"
+  },
+  {
+   "id": "gym.kettlebell",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 578,
+   "y": 196,
+   "variants": {
+    "base": "art/centre-gym/gym-kettlebell.png"
+   },
+   "note": "black kettlebell on the floor by the bench's back end"
+  },
+  {
+   "id": "gym.box",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 540,
+   "y": 196,
+   "variants": {
+    "base": "art/centre-gym/gym-box.png"
+   },
+   "note": "cardboard box of supplements pushed under the bench"
+  },
+  {
+   "id": "gym.cables",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 560,
+   "y": 196,
+   "variants": {
+    "base": "art/centre-gym/gym-cables.png"
+   },
+   "note": "speaker and fan cords to the wall outlet, an extension cord snaking across the floor to a red-lit power strip"
+  },
+  {
+   "id": "gym.strength",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 530,
+   "y": 120,
+   "variants": {
+    "s0": "art/centre-gym/gym-strength-s0.png",
+    "s1": "art/centre-gym/gym-strength-s1.png",
+    "s2": "art/centre-gym/gym-strength-s2.png"
+   },
+   "target": {
+    "skill": "strength"
+   },
+   "label": "STRENGTH",
+   "led": [
+    586,
+    196
+   ],
+   "note": "wall dumbbell rack over a flat bench: s0 a few light neoprene dumbbells, s1 a fuller rack of hex dumbbells, s2 heavy hex dumbbells, plates leaning on the wall and a chalk bucket"
+  },
+  {
+   "id": "gym.phone",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 560,
+   "y": 184,
+   "variants": {
+    "base": "art/centre-gym/gym-phone.png"
+   },
+   "note": "phone lying on the bench, a workout timer glowing on its screen"
+  },
+  {
+   "id": "gym.foamroller",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 539,
+   "y": 205,
+   "variants": {
+    "base": "art/centre-gym/gym-foamroller.png"
+   },
+   "note": "plum foam roller lying on the floor in front of the bench"
+  },
+  {
+   "id": "gym.bottle",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 570,
+   "y": 200,
+   "variants": {
+    "base": "art/centre-gym/gym-bottle.png"
+   },
+   "note": "plum water bottle standing on the floor by the bench"
+  },
+  {
+   "id": "gym.ledstrip",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 588,
+   "y": 160,
+   "variants": {
+    "base": "art/centre-gym/gym-ledstrip.png"
+   },
+   "note": "amber LED strip under the running shelf washing the wall below it"
+  },
+  {
+   "id": "gym.running",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 588,
+   "y": 112,
+   "variants": {
+    "s0": "art/centre-gym/gym-running-s0.png",
+    "s1": "art/centre-gym/gym-running-s1.png",
+    "s2": "art/centre-gym/gym-running-s2.png"
+   },
+   "target": {
+    "skill": "running"
+   },
+   "label": "RUNNING",
+   "led": [
+    607,
+    167
+   ],
+   "note": "floating shoe shelf with race bibs pinned above: s0 one pair of old shoes, s1 newer shoes and a bib, s2 two pairs, three bibs and a finisher medal"
+  },
+  {
+   "id": "gym.bike",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 540,
+   "y": 58,
+   "variants": {
+    "base": "art/centre-gym/gym-bike-base.png",
+    "s0": "art/centre-gym/gym-bike-s0.png",
+    "s1": "art/centre-gym/gym-bike-s1.png",
+    "s2": "art/centre-gym/gym-bike-s2.png",
+    "awake": "art/centre-gym/gym-bike-awake.png"
+   },
+   "target": {
+    "skill": "triathlon"
+   },
+   "label": "TRIATHLON",
+   "led": [
+    577,
+    104
+   ],
+   "note": "road bike hung on wall hooks above the rack under a grey dust sheet (s0 heavy dust, s1 lighter dust and a cycling cap on a nail, s2 sheet pulled back off the front wheel, helmet hanging); awake: sheet off, clean red bike, helmet on the bars"
+  },
+  {
+   "id": "centre.dog",
+   "zone": "room",
+   "kind": "decor",
+   "layer": 3,
+   "x": 305,
+   "y": 209,
+   "variants": {
+    "base": "art/centre-gym/centre-dog-base.png",
+    "wag": "art/centre-gym/centre-dog-wag.png"
+   },
+   "anim": {
+    "frames": [
+     "art/centre-gym/centre-dog-base.png",
+     "art/centre-gym/centre-dog-breath.png"
+    ],
+    "fps": 2
+   },
+   "note": "the dog curled up asleep in the sunbeam, collar with a tag; anim: slow breathing; wag: tail up"
+  },
+  {
+   "id": "centre.bowl",
+   "zone": "room",
+   "kind": "decor",
+   "layer": 3,
+   "x": 338,
+   "y": 210,
+   "variants": {
+    "base": "art/centre-gym/centre-bowl.png"
+   },
+   "note": "the dog's water bowl near the TV stand"
+  },
+  {
+   "id": "centre.toy",
+   "zone": "room",
+   "kind": "decor",
+   "layer": 3,
+   "x": 240,
+   "y": 208,
+   "variants": {
+    "base": "art/centre-gym/centre-toy.png"
+   },
+   "note": "a chewed rope toy left on the floor by the rug"
+  },
+  {
+   "id": "centre.statue",
+   "zone": "room",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 258,
+   "y": 149,
+   "variants": {
+    "t1": "art/centre-gym/centre-statue-t1.png",
+    "t2": "art/centre-gym/centre-statue-t2.png",
+    "t3": "art/centre-gym/centre-statue-t3.png",
+    "t4": "art/centre-gym/centre-statue-t4.png",
+    "t5": "art/centre-gym/centre-statue-t5.png",
+    "base": "art/centre-gym/centre-statue-base.png"
+   },
+   "target": {
+    "feature": "overall"
+   },
+   "label": "FORGE",
+   "led": [
+    284,
+    224
+   ],
+   "note": "obsidian figure in contrapposto on a dark plinth with a brass plaque; gold kintsugi veins spread with room tier (t1 hairlines in GOLD_DK ... t5 veins in GOLD and SUN, gilded plinth edge)"
+  },
+  {
+   "id": "centre.rug",
+   "zone": "room",
+   "kind": "decor",
+   "layer": 4,
+   "x": 236,
+   "y": 222,
+   "variants": {
+    "t1": "art/centre-gym/centre-rug-t1.png",
+    "t3": "art/centre-gym/centre-rug-t3.png",
+    "t5": "art/centre-gym/centre-rug-t5.png",
+    "base": "art/centre-gym/centre-rug-base.png"
+   },
+   "note": "rug under the statue: t1 a thin plain mat, t3 kilim with diamonds, t5 kilim with gold diamonds and a fringe; carries the sunbeam and the statue's shadow"
+  },
+  {
+   "id": "centre.statue-closeup",
+   "zone": "room",
+   "kind": "overlay",
+   "layer": 6,
+   "x": 0,
+   "y": 0,
+   "variants": {
+    "t1": "art/centre-gym/centre-statue-closeup-t1.png",
+    "t2": "art/centre-gym/centre-statue-closeup-t2.png",
+    "t3": "art/centre-gym/centre-statue-closeup-t3.png",
+    "t4": "art/centre-gym/centre-statue-closeup-t4.png",
+    "t5": "art/centre-gym/centre-statue-closeup-t5.png",
+    "base": "art/centre-gym/centre-statue-closeup-base.png"
+   },
+   "note": "large close-up of the statue for the statue panel only (UI), t1..t5 like the room statue"
+  }
+ ]
+}

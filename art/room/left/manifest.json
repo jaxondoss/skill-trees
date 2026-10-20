@@ -1,0 +1,539 @@
+{
+ "part": "left",
+ "items": [
+  {
+   "id": "bed.frame",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 110,
+   "y": 118,
+   "variants": {
+    "t1": "art/left/bed-frame-t1.png",
+    "t2": "art/left/bed-frame-t2.png",
+    "t3": "art/left/bed-frame-t3.png",
+    "t5": "art/left/bed-frame-t5.png",
+    "base": "art/left/bed-frame-base.png"
+   },
+   "note": "bed frame by room tier: t1 box spring on the floor, t2 black metal frame, t3 wood, t5 upholstered headboard"
+  },
+  {
+   "id": "bed.bed",
+   "zone": "bed",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 108,
+   "y": 118,
+   "variants": {
+    "s0": "art/left/bed-bed-s0.png",
+    "s1": "art/left/bed-bed-s1.png",
+    "s2": "art/left/bed-bed-s2.png"
+   },
+   "target": {
+    "skill": "sleep"
+   },
+   "label": "SLEEP",
+   "led": [
+    129,
+    189
+   ],
+   "hit": [
+    112,
+    160,
+    86,
+    50
+   ],
+   "note": "the bed along the left wall: s0 bare sheet and comforter on the floor, s1 roughly made, s2 made with the lamp on"
+  },
+  {
+   "id": "bed.nightstand",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 160,
+   "y": 140,
+   "variants": {
+    "base": "art/left/bed-nightstand-base.png"
+   },
+   "note": "bedside wall shelf as the nightstand: alarm clock with red digits, a mug, phone charger cable"
+  },
+  {
+   "id": "bed.phone",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 160,
+   "y": 140,
+   "variants": {
+    "base": "art/left/bed-phone-base.png"
+   },
+   "note": "phone face up on the shelf, screen glowing (warm night mode), tinting the wall"
+  },
+  {
+   "id": "bed.poster",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 118,
+   "y": 80,
+   "variants": {
+    "t1": "art/left/bed-poster-t1.png",
+    "t3": "art/left/bed-poster-t3.png",
+    "t5": "art/left/bed-poster-t5.png",
+    "base": "art/left/bed-poster-base.png"
+   },
+   "note": "poster above the bed: t1 printout taped up, t3 framed concert poster, t5 large framed sunset painting with a picture light"
+  },
+  {
+   "id": "bed.lights",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 112,
+   "y": 40,
+   "variants": {
+    "t2": "art/left/bed-lights-t2.png",
+    "t5": "art/left/bed-lights-t5.png"
+   },
+   "note": "string lights along the wall over the bed (room tier 2+); t5 warmer and denser with clipped photos"
+  },
+  {
+   "id": "bed.pennant",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 120,
+   "y": 40,
+   "variants": {
+    "base": "art/left/bed-pennant-base.png"
+   },
+   "note": "green TULANE pennant pinned high on the wall over the bed"
+  },
+  {
+   "id": "bed.plantshelf",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 110,
+   "y": 55,
+   "variants": {
+    "base": "art/left/bed-plantshelf-base.png"
+   },
+   "note": "wall shelf over the bed foot: trailing pothos, a small cactus, a snake plant"
+  },
+  {
+   "id": "bed.guitar",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 112,
+   "y": 95,
+   "variants": {
+    "base": "art/left/bed-guitar-base.png"
+   },
+   "note": "acoustic guitar on a wall hook above the bed foot, sunburst, lit on its right edge"
+  },
+  {
+   "id": "bed.beads",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 126,
+   "y": 95,
+   "variants": {
+    "base": "art/left/bed-beads-base.png"
+   },
+   "note": "Mardi Gras beads (purple, gold, green) hanging from the plant-shelf bracket"
+  },
+  {
+   "id": "bed.headphones",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 110,
+   "y": 105,
+   "variants": {
+    "base": "art/left/bed-headphones-base.png"
+   },
+   "note": "over-ear headphones hanging from the plant-shelf bracket"
+  },
+  {
+   "id": "bed.mirror",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 96,
+   "y": 90,
+   "variants": {
+    "base": "art/left/bed-mirror-base.png"
+   },
+   "note": "tall mirror between the bed and the door, the sunset caught in it as a dim streak"
+  },
+  {
+   "id": "bed.laundry",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 94,
+   "y": 180,
+   "variants": {
+    "t1": "art/left/bed-laundry-t1.png",
+    "t3": "art/left/bed-laundry-t3.png",
+    "t5": "art/left/bed-laundry-t5.png",
+    "base": "art/left/bed-laundry-base.png"
+   },
+   "note": "laundry by the bed foot: t1 a heap on the floor, t3 a plastic basket, t5 a woven hamper with a lid"
+  },
+  {
+   "id": "bed.hoodies",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 94,
+   "y": 168,
+   "variants": {
+    "base": "art/left/bed-hoodies-base.png"
+   },
+   "note": "stack of folded hoodies on top of the laundry"
+  },
+  {
+   "id": "bed.rug",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 100,
+   "y": 205,
+   "variants": {
+    "t1": "art/left/bed-rug-t1.png",
+    "t3": "art/left/bed-rug-t3.png",
+    "t5": "art/left/bed-rug-t5.png",
+    "base": "art/left/bed-rug-base.png"
+   },
+   "note": "rug in front of the bed: t1 a bath towel thrown down, t3 a plum and brown rug, t5 a patterned rug with fringe"
+  },
+  {
+   "id": "bed.slippers",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 140,
+   "y": 205,
+   "variants": {
+    "base": "art/left/bed-slippers-base.png"
+   },
+   "note": "a pair of slippers on the rug"
+  },
+  {
+   "id": "bed.scale",
+   "zone": "bed",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 118,
+   "y": 186,
+   "variants": {
+    "base": "art/left/bed-scale-base.png"
+   },
+   "target": {
+    "feature": "bodyweight"
+   },
+   "label": "BODYWEIGHT",
+   "led": [
+    134,
+    203
+   ],
+   "note": "dark glass bathroom scale stood on its edge against the bed foot, dim amber readout"
+  },
+  {
+   "id": "bed.cables",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 98,
+   "y": 196,
+   "variants": {
+    "base": "art/left/bed-cables-base.png"
+   },
+   "note": "extension cable snaking out from under the bed across the floor toward the door side"
+  },
+  {
+   "id": "kitchen.door",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 56,
+   "y": 70,
+   "variants": {
+    "base": "art/left/kitchen-door-base.png"
+   },
+   "note": "7 ft panel door in the left wall, brass knob and deadbolt, hallway light leaking under it"
+  },
+  {
+   "id": "kitchen.welcome",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 60,
+   "y": 55,
+   "variants": {
+    "base": "art/left/kitchen-welcome-base.png"
+   },
+   "note": "small painted WELCOME plank over the door"
+  },
+  {
+   "id": "kitchen.corkboard",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 60,
+   "y": 100,
+   "variants": {
+    "s0": "art/left/kitchen-corkboard-s0.png",
+    "s1": "art/left/kitchen-corkboard-s1.png",
+    "s2": "art/left/kitchen-corkboard-s2.png"
+   },
+   "target": {
+    "skill": "college-integration"
+   },
+   "label": "COLLEGE INTEGRATION",
+   "led": [
+    88,
+    143
+   ],
+   "note": "corkboard on the door: s0 nearly empty, s1 a few flyers and a photo, s2 packed with flyers, club cards, a pennant"
+  },
+  {
+   "id": "kitchen.doormat",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 60,
+   "y": 208,
+   "variants": {
+    "base": "art/left/kitchen-doormat-base.png",
+    "alert": "art/left/kitchen-doormat-alert.png"
+   },
+   "target": {
+    "feature": "review"
+   },
+   "label": "REVIEW",
+   "led": [
+    81,
+    217
+   ],
+   "note": "coir doormat in front of the door; alert: a letter with a red wax seal lying on it"
+  },
+  {
+   "id": "kitchen.sneakers",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 84,
+   "y": 210,
+   "variants": {
+    "base": "art/left/kitchen-sneakers-base.png"
+   },
+   "note": "a pair of sneakers kicked off beside the doormat"
+  },
+  {
+   "id": "kitchen.switchboard",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 48,
+   "y": 180,
+   "variants": {
+    "base": "art/left/kitchen-switchboard-base.png"
+   },
+   "target": {
+    "feature": "settings"
+   },
+   "label": "SETTINGS",
+   "led": [
+    54,
+    195
+   ],
+   "note": "tiny dark switch plate low on the wall by the door: three toggles and one amber LED"
+  },
+  {
+   "id": "kitchen.lightswitch",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 48,
+   "y": 130,
+   "variants": {
+    "base": "art/left/kitchen-lightswitch-base.png"
+   },
+   "note": "light switch plate beside the door frame"
+  },
+  {
+   "id": "kitchen.broom",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 30,
+   "y": 115,
+   "variants": {
+    "base": "art/left/kitchen-broom-base.png"
+   },
+   "note": "broom leaning on the wall between the door and the fridge, bristles hidden behind the fridge"
+  },
+  {
+   "id": "kitchen.fridge",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 4,
+   "y": 140,
+   "variants": {
+    "s0": "art/left/kitchen-fridge-s0.png",
+    "s1": "art/left/kitchen-fridge-s1.png",
+    "s2": "art/left/kitchen-fridge-s2.png"
+   },
+   "target": {
+    "skill": "food"
+   },
+   "label": "FOOD",
+   "led": [
+    21,
+    182
+   ],
+   "hit": [
+    10,
+    160,
+    50,
+    75
+   ],
+   "note": "mini fridge with a hot plate and kettle on top: s0 door ajar and empty, s1 groceries and a fruit bowl, s2 meal-prep stack and a herb pot"
+  },
+  {
+   "id": "kitchen.microwave",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 0,
+   "y": 100,
+   "variants": {
+    "base": "art/left/kitchen-microwave-base.png"
+   },
+   "note": "microwave on a wall shelf above the fridge, red clock digits"
+  },
+  {
+   "id": "kitchen.clock",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": -6,
+   "y": 60,
+   "variants": {
+    "base": "art/left/kitchen-clock-base.png"
+   },
+   "note": "round wall clock above the fridge corner"
+  },
+  {
+   "id": "kitchen.hangingplant",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 36,
+   "y": 35,
+   "variants": {
+    "base": "art/left/kitchen-hangingplant-base.png"
+   },
+   "note": "pothos in a terracotta pot hanging from the ceiling, vines trailing"
+  },
+  {
+   "id": "kitchen.calendar",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": -24,
+   "y": 105,
+   "variants": {
+    "base": "art/left/kitchen-calendar-base.png"
+   },
+   "note": "dining hall hours calendar (BRUFF) with a few days circled"
+  },
+  {
+   "id": "kitchen.cart",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": -26,
+   "y": 160,
+   "variants": {
+    "t1": "art/left/kitchen-cart-t1.png",
+    "t3": "art/left/kitchen-cart-t3.png",
+    "t5": "art/left/kitchen-cart-t5.png",
+    "base": "art/left/kitchen-cart-base.png"
+   },
+   "note": "counter with the dish rack, a mug and two water jugs: t1 a taped moving box, t3 black wire cart, t5 wood cart"
+  },
+  {
+   "id": "kitchen.cables",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": -4,
+   "y": 140,
+   "variants": {
+    "base": "art/left/kitchen-cables-base.png"
+   },
+   "note": "power strip on the floor with a lit red switch; cords to the fridge, up the wall to the microwave, toward the door"
+  },
+  {
+   "id": "kitchen.pantry",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": -80,
+   "y": 40,
+   "variants": {
+    "base": "art/left/kitchen-pantry-base.png"
+   },
+   "note": "high pantry shelf: cereal box, ramen packs, a peanut butter jar, stacked bowls, a pot"
+  },
+  {
+   "id": "kitchen.trash",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": -36,
+   "y": 200,
+   "variants": {
+    "base": "art/left/kitchen-trash-base.png"
+   },
+   "note": "trash bin with a wrapper poking out"
+  },
+  {
+   "id": "kitchen.hooks",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": -80,
+   "y": 80,
+   "variants": {
+    "t1": "art/left/kitchen-hooks-t1.png",
+    "t3": "art/left/kitchen-hooks-t3.png",
+    "t5": "art/left/kitchen-hooks-t5.png",
+    "base": "art/left/kitchen-hooks-base.png"
+   },
+   "note": "coat hooks by the door: jacket and a green Tulane cap; t1 a single nail, t3 black rail, t5 wood rail with brass hooks"
+  },
+  {
+   "id": "kitchen.shoes",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": -80,
+   "y": 190,
+   "variants": {
+    "t1": "art/left/kitchen-shoes-t1.png",
+    "t3": "art/left/kitchen-shoes-t3.png",
+    "t5": "art/left/kitchen-shoes-t5.png",
+    "base": "art/left/kitchen-shoes-base.png"
+   },
+   "note": "shoe rack with sneakers and the key bowl on top: t1 sneakers in a cardboard box, t3 black rack, t5 wood rack"
+  }
+ ]
+}
