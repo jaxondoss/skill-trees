@@ -1,0 +1,51 @@
+{
+  "_note": "World coordinates. The 640x270 core is x 0..640, y 0..270; the painted art spans x -80..720, y -96..384 (800x480). Keys 1-7 run left to right (also the arrow loop). focus = what a step-in frames (hotspots plus margin). territory = where that zone's art agent may paint (x range, plus y limits); shell, outside and centre parts are owned separately.",
+  "art": { "x": -80, "y": -96, "w": 800, "h": 480 },
+  "core": { "w": 640, "h": 270 },
+  "horizon": 121,
+  "vp": [320, 121],
+  "zones": [
+    { "id": "kitchen", "n": 1, "name": "KITCHEN", "focus": [-4, 82, 116, 150], "stop": 54, "territory": { "x0": -80, "x1": 100 } },
+    { "id": "bed", "n": 2, "name": "BED", "focus": [98, 108, 96, 114], "stop": 146, "territory": { "x0": 100, "x1": 176 } },
+    { "id": "library", "n": 3, "name": "LIBRARY", "focus": [174, 64, 100, 156], "stop": 224, "territory": { "x0": 176, "x1": 262 } },
+    { "id": "window", "n": 4, "name": "WINDOW", "focus": [262, 64, 116, 160], "stop": 320, "territory": { "x0": 262, "x1": 378 } },
+    { "id": "study", "n": 5, "name": "STUDY DESK", "focus": [376, 76, 92, 142], "stop": 422, "territory": { "x0": 378, "x1": 464 } },
+    { "id": "computer", "n": 6, "name": "COMPUTER", "focus": [446, 100, 100, 120], "stop": 496, "territory": { "x0": 464, "x1": 540 } },
+    { "id": "gym", "n": 7, "name": "GYM", "focus": [528, 84, 116, 156], "stop": 586, "territory": { "x0": 540, "x1": 720 } }
+  ],
+  "shell": {
+    "backWall": [176, 62, 464, 198],
+    "window": [284, 70, 368, 152],
+    "sill": [280, 152, 372, 157],
+    "leftWall": { "backEdgeX": 176, "top": [62, 0.15], "bottom": [198, 0.19375] },
+    "rightWall": "mirror of leftWall about x = 320",
+    "ceilingY": 62,
+    "floorBackY": 198
+  },
+  "centre": {
+    "statue": [258, 149, 36, 81],
+    "statueContactY": 230,
+    "rug": [236, 222, 80, 16],
+    "sunbeam": "floor patch from the window toward the statue and dog",
+    "dogSleep": [318, 224]
+  },
+  "layers": {
+    "_note": "Depth bands. Objects take the band of the floor row they stand on (contact y) or the wall they hang on. Parallax px at full mouse deflection = layer index.",
+    "L0": "sky, sun, clouds",
+    "L1": "New Orleans outside: city, live oaks, power lines, streetcar",
+    "L2": "back wall and everything on it, floor y < 210, side-wall columns x >= 114 (left) / x <= 526 (right): bed, computer desk",
+    "L3": "floor contact 210 <= y < 222; side walls x 52..114 / 526..588: door and corkboard, chess table, cushion, dog",
+    "L4": "floor contact 222 <= y < 236; side walls x -20..52 / 588..660: fridge, statue and rug, dumbbell rack, bench",
+    "L5": "floor contact y >= 236; side walls x < -20 / > 660: covered bike, front floor, front cables",
+    "L6": "frame crops: hanging plant top-left, filing cabinet bottom-left, speaker bottom-right, cables top-right; may intrude up to 12 px into the core, never over a hotspot"
+  },
+  "skills": {
+    "_note": "Every skill maps to exactly one hotspot object.",
+    "food": "kitchen", "college-integration": "kitchen", "sleep": "bed",
+    "reading": "library", "chess": "library", "meditation": "library",
+    "visualization": "window", "gut-health": "window",
+    "academics": "study", "time-blocking": "study",
+    "ai-building": "computer", "dropshipping": "computer",
+    "strength": "gym", "running": "gym", "triathlon": "gym"
+  }
+}
