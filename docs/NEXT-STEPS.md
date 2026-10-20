@@ -5,6 +5,8 @@ visualization for every skill, empty starting lists for new accounts, and the jo
 (lint, typecheck, 162 unit tests, DB tests, 49 e2e tests on a production build).
 
 ## For Jaxon
+- Connections (2026-10-20): open Settings. "Connection check" shows which keys Vercel has. Tap Test Gemini,
+  then Connect Lyfta (pick lb or kg to match Lyfta). Strava is built later, once its keys are in.
 0. No more magic link: the app signs you in on its own. Once: in Supabase > Authentication > Users, add a
    user with your email and a password (Auto confirm). In Vercel > Environment Variables, add
    FORGE_OWNER_EMAIL and FORGE_OWNER_PASSWORD, then redeploy. Also set the Supabase Site URL to
@@ -19,7 +21,7 @@ visualization for every skill, empty starting lists for new accounts, and the jo
 5. Set your class times and training slots in Settings so Next up fills in.
 6. Try Settings > Look and feel: Background Live, Calm or Still; Power-up Comic or Calm.
 7. Still open from before: ANTHROPIC_API_KEY and INTEGRATIONS_KEY in Vercel env vars (never in chat),
-   the Canvas URL and OK to use its public docs, Lifta docs, Google OAuth.
+   the Canvas URL and OK to use its public docs, Google OAuth.
 
 ## Build follow-ups (not done yet)
 - Minutes slider on timed goals in Today (needs a `progress_value` on plan goals).

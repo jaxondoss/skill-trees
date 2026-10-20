@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { decryptSecret, parseKey } from "@/integrations/crypto";
 import { adapterFor } from "@/integrations/index";
+import { loadProfile } from "./context";
 import type { IntegrationEvent, ProviderId } from "@/integrations/types";
 
 /** How often a connected integration re-syncs on app open. */
@@ -46,9 +47,14 @@ export async function syncProvider(supabase: SupabaseClient, uid: string, provid
 
   try {
     const config = adapter.connect(row.config);
-    const secret = row.secret_ciphertext ? decryptSecret(row.secret_ciphertext, parseKey(process.env.INTEGRATIONS_KEY)) : null;
+    const secret = row.secret_ciphertext
+      ? decryptSecret(row.secret_ciphertext, parseKey(process.env.INTEGRATIONS_KEY))
+      : adapter.envKey
+        ? (process.env[adapter.envKey] ?? null)
+        : null;
     const raw = await adapter.sync(config, secret, fetch);
-    const events = adapter.mapToEvents(raw, { today, config });
+    const profile = await loadProfile(supabase);
+    const events = adapter.mapToEvents(raw, { today, config, timeZone: profile.timezone, rolloverHour: profile.rollover_hour });
     await applyEvents(supabase, uid, provider, events);
     await supabase.from("integrations").update({ status: "connected", last_synced_at: new Date().toISOString(), last_error: null }).eq("provider", provider);
     return { ok: true, events: events.length };

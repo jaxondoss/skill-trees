@@ -27,18 +27,10 @@ export const googleCalendarAdapter = pending({
   needs: ["a Google Cloud OAuth client (client ID and secret) with the calendar read scope", "the app's redirect URL added to that client"],
 });
 
-export const liftaAdapter = pending({
-  id: "lifta",
-  label: "Lifta",
-  feeds: "Strength: sessions complete the goal, top sets update bench and squat.",
-  fallback: { label: "Enter top sets on the Strength page", href: "/s/strength" },
-  needs: ["Lifta's API documentation", "a Lifta API key"],
-});
-
-export const claudeAdapter = pending({
-  id: "claude",
-  label: "Claude (Anthropic API)",
-  feeds: "Food: meal photo to nutrition table with portions confirmed. Weekly review debrief and reading tests.",
-  fallback: { label: "Quick-add meals on the Food page", href: "/s/food" },
-  needs: ["an Anthropic API key, set as the ANTHROPIC_API_KEY server env var in Vercel"],
+export const stravaAdapter = pending({
+  id: "strava",
+  label: "Strava",
+  feeds: "Running: runs complete the goal and fill run and long run distance.",
+  fallback: { label: "Log runs on the Running page", href: "/s/running" },
+  needs: ["a Strava API app (strava.com/settings/api) with its client ID and secret as STRAVA_CLIENT_ID and STRAVA_CLIENT_SECRET in Vercel"],
 });

@@ -91,7 +91,11 @@ test("settings lists every integration with what it needs and its manual fallbac
   await page.goto("/settings");
   const list = page.getByRole("region", { name: "Integrations" });
   await expect(list.locator("li")).toHaveCount(5);
-  await expect(list).toContainText("Lifta's API documentation");
+  await expect(list).toContainText("Lyfta");
+  await expect(list).toContainText("STRAVA_CLIENT_ID");
+  const keys = page.getByRole("region", { name: "Connection check" });
+  await expect(keys).toContainText("GEMINI_API_KEY");
+  await expect(keys.locator("li", { hasText: "FORGE_OWNER_EMAIL" })).toContainText("Set");
   await expect(list).toContainText("Canvas personal access token");
   await expect(list.getByRole("link", { name: "Add assignments on the Academics page" })).toHaveAttribute("href", "/s/academics");
 });

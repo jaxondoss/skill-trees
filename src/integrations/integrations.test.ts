@@ -70,6 +70,6 @@ describe("pending adapters", () => {
       expect(a.fallback.href).toMatch(/^\/s\//);
       expect(() => a.connect({})).toThrow(/Needs:/);
     }
-    expect(ADAPTERS.map((a) => a.id)).toEqual(["chess", "google_calendar", "canvas", "lifta", "claude"]);
+    expect(ADAPTERS.map((a) => a.id)).toEqual(["chess", "lyfta", "strava", "google_calendar", "canvas"]);
   });
 });

@@ -1,6 +1,6 @@
 import type { Tier } from "@/engine/types";
 
-export type ProviderId = "chess" | "google_calendar" | "canvas" | "lifta" | "claude";
+export type ProviderId = "chess" | "google_calendar" | "canvas" | "lyfta" | "claude" | "gemini" | "strava";
 
 /** What an integration produces. The app applies these the same way manual entries are stored. */
 export type IntegrationEvent =
@@ -24,7 +24,9 @@ export interface IntegrationAdapter<Config = unknown, Raw = unknown> {
   available: boolean;
   /** What is still needed from the user before it can be built or connected. */
   needs: string[];
+  /** A server env var that holds the API key, used when no token is stored for the connection. */
+  envKey?: string;
   connect(input: unknown): Config;
   sync(config: Config, secret: string | null, fetchImpl: typeof fetch): Promise<Raw>;
-  mapToEvents(raw: Raw, ctx: { today: string; config: Config }): IntegrationEvent[];
+  mapToEvents(raw: Raw, ctx: { today: string; config: Config; timeZone?: string; rolloverHour?: number }): IntegrationEvent[];
 }

@@ -7,8 +7,7 @@ import type { Tier } from "@/engine/types";
 import { createClient } from "@/lib/supabase/server";
 import { calorieTarget, formatAfterNoon, nights, sleepAnchor } from "@/engine/trackers";
 import { PASSAGES, READING_TEST_EVERY_DAYS } from "@/content/reading-passages";
-import { claudeAvailable } from "@/lib/claude";
-import { geminiAvailable } from "@/lib/gemini";
+import { aiAvailable } from "@/lib/ai";
 import { autoClaim, foodTargets, metricValues, sleepSettings } from "./claims";
 import { loadUserContext, must } from "./context";
 import { SHAPE_BY_CATEGORY, type BottleShape } from "./dashboard";
@@ -369,7 +368,7 @@ function trackerFor(slug: string, ctx: Awaited<ReturnType<typeof loadUserContext
         totals: { calories: sum("meal_calories"), proteinG: sum("meal_protein_g"), fiberG: sum("meal_fiber_g") },
         targets: { calories: calorieTarget(t.calories, longRunToday), proteinG: t.proteinG, fiberG: 38 },
         meals: ctx.metrics.filter((m) => m.key === "meal_calories" && m.day === ctx.today).length,
-        claude: geminiAvailable() || claudeAvailable(),
+        claude: aiAvailable(),
       };
     }
     case "gut-health":
@@ -410,7 +409,7 @@ function trackerFor(slug: string, ctx: Awaited<ReturnType<typeof loadUserContext
       const nextDue = last ? addDays(last.day, READING_TEST_EVERY_DAYS) : null;
       const taken = new Set(rows.map((m) => m.meta?.passageId).filter((id): id is string => typeof id === "string"));
       const passage = PASSAGES.find((p) => !taken.has(p.id)) ?? PASSAGES[tests.length % PASSAGES.length]!;
-      return { kind: "reading", tests: tests.slice(-6).reverse(), nextDue, due: !nextDue || nextDue <= ctx.today, passageId: passage.id, claude: claudeAvailable() };
+      return { kind: "reading", tests: tests.slice(-6).reverse(), nextDue, due: !nextDue || nextDue <= ctx.today, passageId: passage.id, claude: aiAvailable() };
     }
     default:
       return { kind: "none" };

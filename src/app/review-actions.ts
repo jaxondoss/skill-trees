@@ -4,7 +4,7 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import { applyDifficulty } from "@/engine/review";
 import type { Tier } from "@/engine/types";
-import { claudeAvailable, writeDebrief } from "@/lib/claude";
+import { aiAvailable, debrief } from "@/lib/ai";
 import { loadUserContext } from "@/lib/data/context";
 import { buildWeek, DROPSHIP_KEYS, monthStartFor, type Decision } from "@/lib/data/reviews";
 import { createClient } from "@/lib/supabase/server";
@@ -85,15 +85,15 @@ export async function saveWeeklyReview(input: z.infer<typeof Weekly>): Promise<A
   return { ok: true };
 }
 
-/** Optional Claude debrief from the saved week's facts. Saved with the review. */
+/** Optional AI debrief (Gemini, else Claude) from the saved week's facts. Saved with the review. */
 export async function requestDebrief(): Promise<ActionData<string>> {
-  if (!claudeAvailable()) return { ok: false, error: "Claude is not connected." };
+  if (!aiAvailable()) return { ok: false, error: "AI is not connected." };
   const { supabase, uid } = await session();
   if (!uid) return { ok: false, error: "Sign in again." };
   const week = await buildWeek(supabase, await loadUserContext(supabase, new Date()));
   if (!week.saved) return { ok: false, error: "Save the review first." };
   try {
-    const text = await writeDebrief(week.facts);
+    const text = await debrief(week.facts);
     const res = await supabase.from("weekly_reviews").update({ debrief: text }).eq("week_start", week.weekStart);
     if (res.error) return { ok: false, error: res.error.message };
     refresh();

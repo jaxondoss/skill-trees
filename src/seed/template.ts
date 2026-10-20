@@ -507,7 +507,7 @@ export const SEED_TEMPLATE: SeedTemplate = {
           identity: "I'm strong and I train like an athlete.",
           hundredMeans: "Bench 315, squat 455, at a lean bodyweight around 190 to 195.",
           metricsNote:
-            "Lifta API (Phase 6): sessions auto-complete the goal, top sets auto-claim lift milestones. Manual entry until connected. Bodyweight weekly.",
+            "Lyfta API: sessions auto-complete the goal, top sets auto-claim lift milestones. Manual entry until connected. Bodyweight weekly.",
           config: {
             current: { bench: 240, squat: 365, bodyweight: 183, asOf: "2026-10" },
             bodyweightGoal: 190,
@@ -533,7 +533,7 @@ export const SEED_TEMPLATE: SeedTemplate = {
             nn({
               name: "Training session",
               floor: "Main lift plus one accessory (about 25 min)",
-              standard: "Full planned session logged in Lifta",
+              standard: "Full planned session logged in Lyfta",
               stretch: "Full session plus a PR attempt or extra volume",
               minutes: { floor: 25, standard: 75, stretch: 90 },
               countsAgainstBudget: false,

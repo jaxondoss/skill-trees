@@ -1,5 +1,6 @@
 /** Row shapes for the columns the app selects. Kept by hand until generated types are wired up. */
 import type { DayType, OverrideKind, SkillStatus, Tier } from "@/engine/types";
+import type { ProviderId } from "@/integrations/types";
 
 export type ProfileRow = {
   timezone: string;
@@ -108,7 +109,7 @@ export type AssignmentRow = { id: string; course: string | null; name: string; d
 export type SleepSessionRow = { id: string; day: string; slept_at: string; woke_at: string | null };
 
 export type IntegrationRow = {
-  provider: "chess" | "google_calendar" | "canvas" | "lifta" | "claude";
+  provider: ProviderId;
   status: "connected" | "error";
   config: Record<string, unknown>;
   last_synced_at: string | null;

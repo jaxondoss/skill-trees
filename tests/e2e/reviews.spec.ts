@@ -50,7 +50,7 @@ test("the weekly review sets the focus line, decides difficulty once, and record
   await store.getByLabel("Revenue").fill("1200");
   await store.getByLabel("Ad spend").fill("300");
   await store.getByLabel("Orders").fill("30");
-  await expect(page.getByRole("button", { name: "Write a debrief with Claude" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Write a debrief" })).toHaveCount(0);
   await page.getByRole("button", { name: "Save review" }).click();
   await expect(page.getByText("Review saved.")).toBeVisible();
 

@@ -212,7 +212,7 @@ export function WeeklyReview({ data }: { data: Data }) {
             onClick={() => claude.runData(() => requestDebrief(), setDebrief)}
             className="min-h-11 w-full rounded-xl border border-border text-sm disabled:opacity-40"
           >
-            {claude.pending ? "Writing" : debrief ? "Write it again" : "Write a debrief with Claude"}
+            {claude.pending ? "Writing" : debrief ? "Write it again" : "Write a debrief"}
           </button>
           {!data.saved && <p className="text-[11px] text-muted">Save the review first; the debrief reads your answer.</p>}
           {claude.line}

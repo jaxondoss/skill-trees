@@ -477,7 +477,7 @@ function strength(d: VizData, w: number, focus = "bench_1rm"): Built {
     const before = (d.series[k] ?? []).filter((e) => e.day < starts[0]!).map((e) => e.value);
     return { k, name, v: v.map((x) => x ?? (before.length ? Math.max(...before) : null)) };
   }).filter((l) => l.v.some((x) => x !== null));
-  const base = { title: "Lifts", empty: "Log a top set, or connect Lifta. Each lift gets its own line.", legend: [{ k: "var(--athletics)", l: "Selected lift, estimated 1 rep max", t: "line" as const }, { k: MUTED, l: "Other lifts", t: "line" as const }, { k: "var(--gold)", l: "A step on your list, or a PR", t: "dash" as const }] };
+  const base = { title: "Lifts", empty: "Log a top set, or connect Lyfta. Each lift gets its own line.", legend: [{ k: "var(--athletics)", l: "Selected lift, estimated 1 rep max", t: "line" as const }, { k: MUTED, l: "Other lifts", t: "line" as const }, { k: "var(--gold)", l: "A step on your list, or a PR", t: "dash" as const }] };
   if (!lines.length) return { ...base, svg: null, reading: base.empty };
   const sel = lines.find((l) => l.k === focus) ?? lines[0]!;
   const selBest = Math.max(...sel.v.filter((p): p is number => p !== null));

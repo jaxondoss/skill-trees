@@ -2,6 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { IntegrationButtons, TestGemini } from "@/components/settings/ConnectionButtons";
 import { SettingsClient, type SettingsData } from "@/components/settings/SettingsClient";
 import { ADAPTERS } from "@/integrations/index";
 import type { IntegrationRow } from "@/lib/data/rows";
@@ -17,6 +18,7 @@ export default function SettingsPage() {
       <h1 className="font-display text-3xl">Settings</h1>
       <Suspense fallback={<div className="glass h-40" aria-busy="true" />}>
         <Settings />
+        <Connections />
         <Integrations />
       </Suspense>
     </main>
@@ -54,6 +56,45 @@ async function Settings() {
   return <SettingsClient data={data} />;
 }
 
+/** Which server keys are set (names only, never values), so a missing one is obvious. */
+const KEYS: { name: string; what: string; optional?: boolean }[] = [
+  { name: "GEMINI_API_KEY", what: "Food photos, weekly debrief, reading tests" },
+  { name: "LYFTA_API_KEY", what: "Lyfta workouts" },
+  { name: "FORGE_OWNER_EMAIL", what: "Automatic sign-in" },
+  { name: "FORGE_OWNER_PASSWORD", what: "Automatic sign-in" },
+  { name: "STRAVA_CLIENT_ID", what: "Strava runs", optional: true },
+  { name: "STRAVA_CLIENT_SECRET", what: "Strava runs", optional: true },
+  { name: "INTEGRATIONS_KEY", what: "Encrypts Strava, Canvas and Google logins", optional: true },
+  { name: "ANTHROPIC_API_KEY", what: "Backup AI if Gemini is down", optional: true },
+];
+
+async function Connections() {
+  await connection();
+  return (
+    <section aria-label="Connection check" className="space-y-3">
+      <h2 className="text-[11px] font-medium tracking-wider text-muted uppercase">Connection check</h2>
+      <p className="text-xs text-muted">Keys set in Vercel. Only whether each one is there shows here, never its value. A new key needs a redeploy before it shows.</p>
+      <ul className="glass divide-y divide-border">
+        {KEYS.map((k) => {
+          const set = Boolean(process.env[k.name]);
+          return (
+            <li key={k.name} className="flex min-h-11 items-center justify-between gap-3 px-4 py-2">
+              <span className="min-w-0">
+                <span className="block font-mono text-xs">{k.name}</span>
+                <span className="block text-[11px] text-muted">{k.what}</span>
+              </span>
+              <span className={`shrink-0 rounded-chip px-2.5 py-0.5 text-[11px] ${set ? "bg-nutrition/15 text-nutrition" : k.optional ? "bg-white/5 text-muted" : "bg-athletics/15 text-athletics"}`}>
+                {set ? "Set" : k.optional ? "Not set, optional" : "Missing"}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      {process.env.GEMINI_API_KEY && <TestGemini />}
+    </section>
+  );
+}
+
 async function Integrations() {
   await connection();
   const supabase = await createClient();
@@ -81,8 +122,11 @@ async function Integrations() {
                   <span className="text-gold">Needs from you:</span> {a.needs.join("; ")}.
                 </p>
               )}
+              {row?.last_synced_at && <p className="text-[11px] text-muted">Last sync {new Date(row.last_synced_at).toLocaleString("en-US", { timeZone: "America/Chicago" })}. Re-syncs every 6 hours when you open the app.</p>}
+              {a.envKey && <IntegrationButtons provider={a.id} connected={Boolean(row)} keySet={Boolean(process.env[a.envKey])} />}
+              {a.envKey && !row && !process.env[a.envKey] && <p className="text-xs text-muted">Add {a.envKey} in Vercel and redeploy to connect.</p>}
               <Link href={a.fallback.href} className="inline-flex min-h-11 items-center text-xs text-muted underline underline-offset-4">
-                {a.available ? (row ? "Manage" : "Connect") : a.fallback.label}
+                {a.available && !a.envKey ? (row ? "Manage" : "Connect") : a.fallback.label}
               </Link>
             </li>
           );

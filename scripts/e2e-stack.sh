@@ -53,6 +53,8 @@ PIDS+=($!)
 node "$ROOT/tests/e2e/stack/gateway.mjs" &
 PIDS+=($!)
 
+# Keep AI and integration keys from the host out of the test app, so tests do not depend on them.
+unset GEMINI_API_KEY ANTHROPIC_API_KEY LYFTA_API_KEY STRAVA_CLIENT_ID STRAVA_CLIENT_SECRET
 export NEXT_PUBLIC_SUPABASE_URL="$(cfg SUPABASE_URL)"
 export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$(cfg ANON_KEY)"
 export FORGE_OWNER_EMAIL="$(cfg USER_EMAIL)"

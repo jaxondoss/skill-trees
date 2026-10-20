@@ -7,7 +7,7 @@ import { applyDifficulty, calibrationDrift, isFirstSunday, isSunday, monthStart,
 import { categoryScore, displayScore, figureTier, overallScore } from "@/engine/scoring";
 import { addDays, weekStart } from "@/engine/time";
 import type { Tier } from "@/engine/types";
-import { claudeAvailable } from "@/lib/claude";
+import { aiAvailable } from "@/lib/ai";
 import type { WeeklyFacts } from "@/lib/claude-prompts";
 import { createClient } from "@/lib/supabase/server";
 import { loadProfile, loadUserContext, must, todayFor, type UserContext } from "./context";
@@ -140,7 +140,7 @@ export async function buildWeek(supabase: SupabaseClient, ctx: UserContext) {
     obstacle: existing?.obstacle ?? "",
     focusLine: existing?.focus_line ?? ctx.profile.focus_line ?? "",
     debrief: existing?.debrief ?? null,
-    claude: claudeAvailable(),
+    claude: aiAvailable(),
     facts,
   };
 }
