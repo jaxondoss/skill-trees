@@ -1,0 +1,658 @@
+{
+ "part": "back",
+ "items": [
+  {
+   "id": "library.bookshelf",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 253,
+   "y": 186,
+   "w": 74,
+   "h": 170,
+   "variants": {
+    "s0": "art-v3/library/bookshelf.s0.png",
+    "s1": "art-v3/library/bookshelf.s1.png",
+    "s2": "art-v3/library/bookshelf.s2.png",
+    "base": "art-v3/library/bookshelf.s0.png"
+   },
+   "target": {
+    "skill": "reading"
+   },
+   "label": "READING",
+   "led": [
+    317,
+    349
+   ],
+   "note": "9 ft bookshelf with a clamp reading lamp"
+  },
+  {
+   "id": "library.armchair",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 3,
+   "x": 258,
+   "y": 292,
+   "w": 61,
+   "h": 73,
+   "variants": {
+    "base": "art-v3/library/armchair.base.png",
+    "t1": "art-v3/library/armchair.t1.png",
+    "t3": "art-v3/library/armchair.t3.png",
+    "t4": "art-v3/library/armchair.t4.png"
+   },
+   "note": "reading chair (t1 beanbag, t3 fabric armchair, t4 tufted leather)"
+  },
+  {
+   "id": "library.archive",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 320,
+   "y": 238,
+   "w": 41,
+   "h": 117,
+   "variants": {
+    "base": "art-v3/library/archive.base.png"
+   },
+   "target": {
+    "feature": "archive"
+   },
+   "label": "ARCHIVE",
+   "led": [
+    351,
+    351
+   ],
+   "note": "lit glass trophy case"
+  },
+  {
+   "id": "library.potions",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 360,
+   "y": 214,
+   "w": 30,
+   "h": 48,
+   "variants": {
+    "base": "art-v3/library/potions.base.png"
+   },
+   "note": "potion shelf, 15 small bottles"
+  },
+  {
+   "id": "library.bookcase",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 355,
+   "y": 298,
+   "w": 40,
+   "h": 57,
+   "variants": {
+    "base": "art-v3/library/bookcase.base.png",
+    "t1": "art-v3/library/bookcase.t1.png",
+    "t4": "art-v3/library/bookcase.t4.png"
+   },
+   "note": "low case under the potions (t1 milk crates, t4 wood bookcase + record player)"
+  },
+  {
+   "id": "library.poster",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 326,
+   "y": 180,
+   "w": 28,
+   "h": 41,
+   "variants": {
+    "base": "art-v3/library/poster.base.png",
+    "t1": "art-v3/library/poster.t1.png",
+    "t3": "art-v3/library/poster.t3.png",
+    "t5": "art-v3/library/poster.t5.png"
+   },
+   "note": "sunset poster (t1 taped, t3 framed, t5 gilt frame)"
+  },
+  {
+   "id": "library.sign",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 270,
+   "y": 147,
+   "w": 50,
+   "h": 34,
+   "variants": {
+    "base": "art-v3/library/sign.base.png",
+    "t1": "art-v3/library/sign.t1.png",
+    "t5": "art-v3/library/sign.t5.png"
+   },
+   "note": "wall shelf with plant; t5 neon FORGE sign"
+  },
+  {
+   "id": "library.chess",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 5,
+   "x": 280,
+   "y": 340,
+   "w": 74,
+   "h": 83,
+   "variants": {
+    "s0": "art-v3/library/chess.s0.png",
+    "s1": "art-v3/library/chess.s1.png",
+    "s2": "art-v3/library/chess.s2.png",
+    "base": "art-v3/library/chess.s0.png"
+   },
+   "target": {
+    "skill": "chess"
+   },
+   "label": "CHESS",
+   "led": [
+    330,
+    417
+   ],
+   "note": "chess table (s0 boxed set, s2 game + clock)"
+  },
+  {
+   "id": "library.stool",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 5,
+   "x": 246,
+   "y": 367,
+   "w": 29,
+   "h": 54,
+   "variants": {
+    "base": "art-v3/library/stool.base.png"
+   },
+   "note": "stool by the chess table"
+  },
+  {
+   "id": "library.books-floor",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 3,
+   "x": 260,
+   "y": 354,
+   "w": 30,
+   "h": 21,
+   "variants": {
+    "base": "art-v3/library/books-floor.base.png"
+   },
+   "note": "book stack + mug on the floor"
+  },
+  {
+   "id": "library.clock",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 367,
+   "y": 181,
+   "w": 17,
+   "h": 17,
+   "variants": {
+    "base": "art-v3/library/clock.base.png"
+   },
+   "note": "round wall clock"
+  },
+  {
+   "id": "library.globe",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 288,
+   "y": 169,
+   "w": 15,
+   "h": 18,
+   "variants": {
+    "base": "art-v3/library/globe.base.png"
+   },
+   "note": "desk globe on the bookshelf top"
+  },
+  {
+   "id": "library.shelf-plant",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 260,
+   "y": 169,
+   "w": 25,
+   "h": 64,
+   "variants": {
+    "base": "art-v3/library/shelf-plant.base.png"
+   },
+   "note": "trailing plant on the bookshelf top"
+  },
+  {
+   "id": "library.on",
+   "zone": "library",
+   "kind": "overlay",
+   "layer": 3,
+   "x": 268,
+   "y": 263,
+   "w": 45,
+   "h": 46,
+   "variants": {
+    "base": "art-v3/library/on.base.png"
+   },
+   "note": "'it's on' light: reading lamp lit with a pool over the chair"
+  },
+  {
+   "id": "window.amp",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 575,
+   "y": 307,
+   "w": 59,
+   "h": 50,
+   "variants": {
+    "base": "art-v3/window/amp.base.png"
+   },
+   "note": "tape deck / amp / EQ tower under the CRTs"
+  },
+  {
+   "id": "window.today",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 582,
+   "y": 265,
+   "w": 42,
+   "h": 46,
+   "variants": {
+    "base": "art-v3/window/today.base.png"
+   },
+   "target": {
+    "feature": "today"
+   },
+   "label": "TODAY",
+   "led": [
+    621,
+    308
+   ],
+   "note": "big CRT (red sun) on the amp tower"
+  },
+  {
+   "id": "window.stats",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 590,
+   "y": 234,
+   "w": 26,
+   "h": 33,
+   "variants": {
+    "base": "art-v3/window/stats.base.png"
+   },
+   "target": {
+    "feature": "stats"
+   },
+   "label": "STATS",
+   "led": [
+    615,
+    263
+   ],
+   "note": "small CRT with stat bars on top"
+  },
+  {
+   "id": "window.plant",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 530,
+   "y": 316,
+   "w": 47,
+   "h": 41,
+   "variants": {
+    "base": "art-v3/window/plant.base.png"
+   },
+   "note": "leafy plant in a pot by the window"
+  },
+  {
+   "id": "window.sill-plant",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 473,
+   "y": 289,
+   "w": 9,
+   "h": 10,
+   "variants": {
+    "base": "art-v3/window/sill-plant.base.png"
+   },
+   "note": "succulent on the sill"
+  },
+  {
+   "id": "window.sill-mug",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 487,
+   "y": 289,
+   "w": 6,
+   "h": 10,
+   "variants": {
+    "base": "art-v3/window/sill-mug.base.png"
+   },
+   "note": "steaming mug on the sill"
+  },
+  {
+   "id": "window.sill-books",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 570,
+   "y": 290,
+   "w": 17,
+   "h": 9,
+   "variants": {
+    "base": "art-v3/window/sill-books.base.png"
+   },
+   "note": "three paperbacks on the sill"
+  },
+  {
+   "id": "window.vinyl",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 491,
+   "y": 334,
+   "w": 37,
+   "h": 27,
+   "variants": {
+    "base": "art-v3/window/vinyl.base.png"
+   },
+   "note": "vinyl crate in the sun patch"
+  },
+  {
+   "id": "window.plantwall",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 606,
+   "y": 165,
+   "w": 27,
+   "h": 77,
+   "variants": {
+    "base": "art-v3/window/plantwall.base.png",
+    "t1": "art-v3/window/plantwall.t1.png",
+    "t4": "art-v3/window/plantwall.t4.png"
+   },
+   "note": "t1 one hanging pot, t4 plant wall panel"
+  },
+  {
+   "id": "window.powerstrip",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 570,
+   "y": 354,
+   "w": 17,
+   "h": 3,
+   "variants": {
+    "base": "art-v3/window/powerstrip.base.png"
+   },
+   "note": "power strip with a red LED"
+  },
+  {
+   "id": "study.desk",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 635,
+   "y": 302,
+   "w": 66,
+   "h": 57,
+   "variants": {
+    "base": "art-v3/study/desk.base.png",
+    "t1": "art-v3/study/desk.t1.png",
+    "t3": "art-v3/study/desk.t3.png",
+    "t5": "art-v3/study/desk.t5.png"
+   },
+   "note": "study desk (t1 folding table, t3 oak desk, t5 custom with LED strip)"
+  },
+  {
+   "id": "study.academics",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 636,
+   "y": 225,
+   "w": 39,
+   "h": 45,
+   "variants": {
+    "s0": "art-v3/study/academics.s0.png",
+    "s1": "art-v3/study/academics.s1.png",
+    "s2": "art-v3/study/academics.s2.png",
+    "alert": "art-v3/study/academics.alert.png",
+    "base": "art-v3/study/academics.s0.png"
+   },
+   "target": {
+    "skill": "academics"
+   },
+   "label": "ACADEMICS",
+   "led": [
+    674,
+    269
+   ],
+   "note": "class corkboard (alert: red sheet, due < 48 h)"
+  },
+  {
+   "id": "study.time",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 676,
+   "y": 222,
+   "w": 21,
+   "h": 64,
+   "variants": {
+    "s0": "art-v3/study/time.s0.png",
+    "s1": "art-v3/study/time.s1.png",
+    "s2": "art-v3/study/time.s2.png",
+    "base": "art-v3/study/time.s0.png"
+   },
+   "target": {
+    "skill": "time-blocking"
+   },
+   "label": "TIME BLOCKING",
+   "led": [
+    691,
+    283
+   ],
+   "note": "wall calendar + planner on a hook"
+  },
+  {
+   "id": "study.courses",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 644,
+   "y": 285,
+   "w": 16,
+   "h": 18,
+   "variants": {
+    "base": "art-v3/study/courses.base.png"
+   },
+   "target": {
+    "feature": "courses"
+   },
+   "label": "COURSES",
+   "led": [
+    653,
+    302
+   ],
+   "note": "course books stack, one coloured spine per course"
+  },
+  {
+   "id": "study.journal",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 665,
+   "y": 297,
+   "w": 14,
+   "h": 7,
+   "variants": {
+    "base": "art-v3/study/journal.base.png"
+   },
+   "target": {
+    "feature": "journal"
+   },
+   "label": "JOURNAL",
+   "led": [
+    674,
+    301
+   ],
+   "note": "notebook + pen on the desk"
+  },
+  {
+   "id": "study.lamp",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 668,
+   "y": 278,
+   "w": 22,
+   "h": 26,
+   "variants": {
+    "base": "art-v3/study/lamp.base.png",
+    "night": "art-v3/study/lamp.night.png",
+    "t1": "art-v3/study/lamp.t1.png",
+    "t2": "art-v3/study/lamp.t2.png",
+    "t5": "art-v3/study/lamp.t5.png"
+   },
+   "note": "desk lamp (t1 clip lamp, t2 desk lamp)"
+  },
+  {
+   "id": "study.chair",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 663,
+   "y": 287,
+   "w": 35,
+   "h": 77,
+   "variants": {
+    "base": "art-v3/study/chair.base.png",
+    "t1": "art-v3/study/chair.t1.png",
+    "t3": "art-v3/study/chair.t3.png",
+    "t5": "art-v3/study/chair.t5.png"
+   },
+   "note": "desk chair (t1 stool, t3 chair)"
+  },
+  {
+   "id": "study.backpack",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 625,
+   "y": 333,
+   "w": 22,
+   "h": 28,
+   "variants": {
+    "base": "art-v3/study/backpack.base.png"
+   },
+   "note": "backpack by the desk"
+  },
+  {
+   "id": "study.pennant",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 633,
+   "y": 173,
+   "w": 51,
+   "h": 26,
+   "variants": {
+    "base": "art-v3/study/pennant.base.png"
+   },
+   "note": "green + sky-blue pennant, no crest or text"
+  },
+  {
+   "id": "study.photo",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 687,
+   "y": 171,
+   "w": 19,
+   "h": 32,
+   "variants": {
+    "base": "art-v3/study/photo.base.png"
+   },
+   "note": "photo frame; engine draws public/room/user/wall-frame.png inside the dark opening if present"
+  },
+  {
+   "id": "study.shelf",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 678,
+   "y": 206,
+   "w": 30,
+   "h": 16,
+   "variants": {
+    "base": "art-v3/study/shelf.base.png"
+   },
+   "note": "small wall shelf, plant + speaker"
+  },
+  {
+   "id": "study.bin",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 701,
+   "y": 341,
+   "w": 15,
+   "h": 21,
+   "variants": {
+    "base": "art-v3/study/bin.base.png"
+   },
+   "note": "waste bin with a crumpled sheet"
+  },
+  {
+   "id": "study.headphones",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 699,
+   "y": 240,
+   "w": 15,
+   "h": 16,
+   "variants": {
+    "base": "art-v3/study/headphones.base.png"
+   },
+   "note": "headphones on a wall hook"
+  },
+  {
+   "id": "study.mug",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 669,
+   "y": 291,
+   "w": 12,
+   "h": 12,
+   "variants": {
+    "base": "art-v3/study/mug.base.png"
+   },
+   "note": "mug + pencil cup"
+  },
+  {
+   "id": "study.on",
+   "zone": "study",
+   "kind": "overlay",
+   "layer": 3,
+   "x": 648,
+   "y": 284,
+   "w": 53,
+   "h": 17,
+   "variants": {
+    "base": "art-v3/study/on.base.png"
+   },
+   "note": "'it's on' light: desk lamp lit with a pool on the desk"
+  }
+ ]
+}

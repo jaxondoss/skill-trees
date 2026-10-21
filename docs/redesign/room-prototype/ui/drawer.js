@@ -192,9 +192,6 @@
     body.appendChild(row('Reduced motion', sw('Reduced motion', !!s.reducedMotion, function (v) {
       setState({ reducedMotion: v });
     }, 'dr-motion')));
-    body.appendChild(row('Parallax', sw('Parallax', s.parallax !== false, function (v) {
-      setState({ parallax: v });
-    }, 'dr-parallax')));
     body.appendChild(row('Sound', sw('Sound', s.muted === false, function (v) {
       if (ROOM.sound && ROOM.sound.setMuted) ROOM.sound.setMuted(!v);
       else setState({ muted: !v });

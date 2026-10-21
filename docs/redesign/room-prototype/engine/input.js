@@ -3,8 +3,7 @@
  * Keyboard: 1-7 zones; Left/Right loop through zones; Enter steps in (or into the zone's first
  * hotspot); Esc steps out; Tab stays inside the current zone; hold Shift 200 ms (no other key) for
  * inspect; T today, P photo mode, ? help, D demo drawer.
- * Mouse: horizontal parallax from the pointer; a click on the room (not on an object) steps into the
- * zone under it.
+ * Mouse: no mouse-look; a click on the room (not on an object) steps into the zone under it.
  * Touch / pan mode: drag pans 1:1 with rubber-banded edges, a release flings (velocity from the last
  * 100 ms) and snaps to the nearest zone stop; a tap steps into the zone under the finger; in a zone a
  * horizontal swipe moves to the next zone.
@@ -174,10 +173,7 @@
   var TAP_PX = 8;
 
   function onPointerMove(e) {
-    if (e.pointerType === 'mouse') {
-      touch = false;
-      if (!drag) ROOM.render.setPointer(CAM.deflection(e.clientX, window.innerWidth));
-    }
+    if (e.pointerType === 'mouse') touch = false;
     if (!drag || e.pointerId !== drag.id) return;
     var dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
     if (Math.abs(dx) > TAP_PX || Math.abs(dy) > TAP_PX) drag.moved = true;
@@ -304,9 +300,6 @@
     window.addEventListener('pointerup', onPointerUp);
     window.addEventListener('pointercancel', onPointerCancel);
     stage.addEventListener('wheel', onWheel, { passive: false });
-    document.documentElement.addEventListener('mouseleave', function () {
-      ROOM.render.setPointer(0);
-    });
   }
 
   ROOM.input = {

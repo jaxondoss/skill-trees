@@ -51,7 +51,7 @@
       readFrame: function () {
         return ROOM.render.readFrame();
       },
-      /** Engine internals: view, camera, dolly progress, lighting step, parallax offsets, pan. */
+      /** Engine internals: view, camera, dolly progress, lighting step, phone-pan depth offsets, pan. */
       get state() {
         return ROOM.render.debugInfo();
       },

@@ -5,6 +5,7 @@
  * ROOM.sound.pour(): quiet liquid pour (filtered noise sweep), for saving a number.
  * ROOM.sound.crack(): low stone crack, for a broken streak.
  * ROOM.sound.bell(): deep struck bell, for a tier-up.
+ * ROOM.sound.anvil() + ROOM.sound.hiss(): a relic is forged (strike, then the quench).
  * Every call is a no-op while ROOM.state.muted is true or where audio is unavailable.
  */
 (function () {
@@ -114,6 +115,35 @@
     });
   }
 
+  /** Anvil strike: a bright metallic ping with inharmonic partials over a short thud. */
+  function anvil() {
+    var a = live();
+    if (!a) return;
+    [1180, 1690, 2410, 3320].forEach(function (f, i) {
+      tone(a, f, 0, 0.9 - i * 0.15, i === 0 ? 0.06 : 0.025, i === 0 ? 'triangle' : 'sine');
+    });
+    tone(a, 90, 0, 0.18, 0.08, 'triangle');
+  }
+
+  /** Quench hiss: high filtered noise that fades, starting just after the strike. */
+  function hiss() {
+    var a = live();
+    if (!a) return;
+    var src = noise(a, 1.1, function (i, len) {
+      var u = i / len;
+      return Math.min(1, u * 12) * (1 - u);
+    });
+    var filter = a.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 3200;
+    var g = a.createGain();
+    g.gain.value = 0.04;
+    src.connect(filter);
+    filter.connect(g);
+    g.connect(a.destination);
+    src.start(a.currentTime + 0.25);
+  }
+
   /** Mute or unmute (remembered per browser) and tell everyone. */
   function setMuted(on) {
     ROOM.state.muted = !!on;
@@ -131,5 +161,7 @@
   ROOM.sound.pour = pour;
   ROOM.sound.crack = crack;
   ROOM.sound.bell = bell;
+  ROOM.sound.anvil = anvil;
+  ROOM.sound.hiss = hiss;
   ROOM.sound.setMuted = setMuted;
 })();

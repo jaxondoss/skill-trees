@@ -19,12 +19,14 @@
   <div id="svh-probe" aria-hidden="true"></div>
 
   <script src="data.js"></script>
-  <!-- Real art if it has been built (scripts/room-art.py); otherwise the engine's test fixture.
-       The fallback is written synchronously so every later script sees window.ROOM_ART. -->
-  <script>window.ROOM_ART_MISSING = false;</script>
-  <script src="art.js" onerror="window.ROOM_ART_MISSING = true"></script>
+  <!-- Art: art-v3.js (960x540 core) if it has been built, else art.js, else the engine's test fixture.
+       Each fallback is written synchronously so every later script sees window.ROOM_ART. -->
+  <script>window.ROOM_ART_V3_MISSING = false;</script>
+  <script src="art-v3.js" onerror="window.ROOM_ART_V3_MISSING = true"></script>
   <script>
-    if (window.ROOM_ART_MISSING || !window.ROOM_ART) document.write('<script src="test-fixture-art.js"><\/script>');
+    if (window.ROOM_ART_V3_MISSING || !window.ROOM_ART)
+      document.write('<script src="art.js" onerror="window.ROOM_ART_MISSING = true"><\/script>' +
+        '<script>if (window.ROOM_ART_MISSING || !window.ROOM_ART) document.write(\'<script src="test-fixture-art.js"><\\/script>\');<\/script>');
   </script>
   <script src="engine/core.js"></script>
   <script src="engine/camera.js"></script>
@@ -33,12 +35,14 @@
   <script src="engine/overlay.js"></script>
   <script src="engine/input.js"></script>
   <script src="engine/fx.js"></script>
+  <script src="engine/glow.js"></script>
   <script src="ui/sound.js"></script>
   <script src="ui/strip.js"></script>
   <script src="ui/today.js"></script>
   <script src="ui/panel.js"></script>
   <script src="ui/drawer.js"></script>
   <script src="ui/help.js"></script>
+  <script src="ui/relics.js"></script>
   <script src="engine/main.js"></script>
 </body>
 </html>

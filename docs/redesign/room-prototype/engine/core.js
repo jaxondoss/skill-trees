@@ -138,6 +138,7 @@
     todayOpen: false,
     photo: false,
     // Engine extras (not in the frozen contract; safe for the ui to read or set):
+    statueLight: false, // the statue's ceiling downlight (on after a statue click, off when leaving the window)
     dog: 'sleep', // 'sleep' at centre.dogSleep, or 'neglect' next to the most neglected skill's object
     ledOverrides: {}, // skill slug -> 'off'|'pending'|'half'|'full'|'blink' (demo drawer)
   };
@@ -207,6 +208,8 @@
     if (item.kind === 'overlay') {
       // Panel-only art (the statue close-up) is never drawn in the room.
       if (/closeup/.test(item.id)) return null;
+      // The statue's ceiling downlight is on only after the statue was clicked.
+      if (/downlight/.test(item.id)) return st.statueLight && v.base ? 'base' : null;
       if (st.holiday && v[st.holiday]) return st.holiday;
       if (st.season && v[st.season]) return st.season;
       if (v.alert && ROOM.alertOn(item)) return 'alert';
@@ -214,6 +217,13 @@
       return v.base ? 'base' : null;
     }
     var skill = ROOM.skillOf(item);
+    // Relic slots: "active" while a relic is set on that slot, else the empty mount.
+    var rs = item.target && item.target.feature && /^relic-(left|window|right)$/.exec(item.target.feature);
+    if (rs) {
+      var rel = ROOM.data.relics && ROOM.data.relics.slots && ROOM.data.relics.slots[rs[1]];
+      if (rel && v.active) return 'active';
+      return v.base ? 'base' : v.empty ? 'empty' : null;
+    }
     if (v.awake && skill && skill.status === 'active') return 'awake';
     if (v.alert && ROOM.alertOn(item)) return 'alert';
     if (st.night && v.night) return 'night';
@@ -223,10 +233,33 @@
       var sk = 's' + ROOM.stageOf(score);
       if (v[sk]) return sk;
     }
+    // Growth pieces (water jug, money tree, medal wall): g0..g3 from the data.
+    if (v.g0 || v.g1) {
+      var g = ROOM.growthOf(item);
+      for (var gi = g; gi >= 0; gi--) if (v['g' + gi]) return 'g' + gi;
+    }
     for (var t = st.roomTier || 1; t >= 1; t--) if (v['t' + t]) return 't' + t;
     if (v.base) return 'base';
     // Last resort: something rather than a hole (e.g. a hotspot drawn only with stage keys).
     return v.s1 ? 's1' : v.s0 ? 's0' : null;
+  };
+
+  /**
+   * Growth stage 0..3 for a growth piece: water jug from today's water, money tree from revenue this
+   * month, medal wall from races finished. Data fields are optional; the linked skill's score stands in.
+   */
+  ROOM.growthOf = function (item) {
+    var d = ROOM.data, id = item.id || '', frac = 0;
+    function skillFrac(slug) {
+      var s = (d.skills || []).filter(function (x) {
+        return x.slug === slug;
+      })[0];
+      return s ? s.display / 100 : 0;
+    }
+    if (/water|jug/.test(id)) frac = d.water && d.water.goal ? d.water.today / d.water.goal : skillFrac('food');
+    else if (/money|tree/.test(id)) frac = d.revenue && d.revenue.goal ? d.revenue.month / d.revenue.goal : skillFrac('dropshipping');
+    else if (/medal/.test(id)) frac = d.races ? Math.min(1, (d.races.length || d.races) / 6) : skillFrac('running');
+    return Math.max(0, Math.min(3, Math.floor(frac * 4)));
   };
 
   /* ------------------------------------------------------------------ clock (debug can freeze it) */

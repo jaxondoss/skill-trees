@@ -1,0 +1,197 @@
+{
+ "_note": "Proposal: swap 4 rarely-used / near-duplicate entries of art/room/common/palette.json for honey-oak wood tones (still 32 colours). Usage counts are pixels across the current prototype art.",
+ "swaps": [
+  {
+   "slot": 2,
+   "old": [
+    "INK_COOL",
+    "#161D1B"
+   ],
+   "new": [
+    "OAK_0",
+    "#5C3721"
+   ],
+   "why": "near-duplicate of INK (8080 px)"
+  },
+  {
+   "slot": 16,
+   "old": [
+    "ROSE_0",
+    "#815A50"
+   ],
+   "new": [
+    "OAK_1",
+    "#7E4C27"
+   ],
+   "why": "muted mauve, same value as the new floor mid"
+  },
+  {
+   "slot": 17,
+   "old": [
+    "ROSE_1",
+    "#AF5D4D"
+   ],
+   "new": [
+    "OAK_2",
+    "#A56A32"
+   ],
+   "why": "near-duplicate of TERRA_2 (3537 px)"
+  },
+  {
+   "slot": 25,
+   "old": [
+    "PLUM_0",
+    "#3A292F"
+   ],
+   "new": [
+    "OAK_DK",
+    "#45291A"
+   ],
+   "why": "near-duplicate of BROWN_1/BROWN_2; not a category colour"
+  }
+ ],
+ "lut_patches": {
+  "R1": {
+   "OAK_2": "OAK_1",
+   "OAK_1": "OAK_0"
+  },
+  "NIGHT": {
+   "OAK_2": "OAK_0",
+   "OAK_1": "OAK_DK"
+  },
+  "DIM": {
+   "OAK_2": "OAK_1"
+  },
+  "replace_targets": "every LUT value PLUM_0 -> BROWN_1, ROSE_0 -> OAK_DK"
+ },
+ "colors": [
+  [
+   "VOID",
+   "#0C0A0C"
+  ],
+  [
+   "INK",
+   "#141517"
+  ],
+  [
+   "OAK_0",
+   "#5C3721"
+  ],
+  [
+   "BROWN_0",
+   "#281B1B"
+  ],
+  [
+   "BROWN_1",
+   "#312D2A"
+  ],
+  [
+   "BROWN_2",
+   "#50302E"
+  ],
+  [
+   "TERRA_0",
+   "#621D1A"
+  ],
+  [
+   "TERRA_1",
+   "#8E432D"
+  ],
+  [
+   "TERRA_2",
+   "#B45B40"
+  ],
+  [
+   "RIM",
+   "#DA6339"
+  ],
+  [
+   "ORANGE",
+   "#F26B2A"
+  ],
+  [
+   "GLOW",
+   "#F39041"
+  ],
+  [
+   "AMBER",
+   "#CE8446"
+  ],
+  [
+   "SUN",
+   "#FEF576"
+  ],
+  [
+   "GOLD",
+   "#D9A441"
+  ],
+  [
+   "GOLD_DK",
+   "#6E5422"
+  ],
+  [
+   "OAK_1",
+   "#7E4C27"
+  ],
+  [
+   "OAK_2",
+   "#A56A32"
+  ],
+  [
+   "LEAF_0",
+   "#212C26"
+  ],
+  [
+   "LEAF_1",
+   "#344136"
+  ],
+  [
+   "LEAF_2",
+   "#3E6B35"
+  ],
+  [
+   "LEAF_3",
+   "#7FA650"
+  ],
+  [
+   "SLATE_0",
+   "#3E4F51"
+  ],
+  [
+   "SLATE_1",
+   "#56858A"
+  ],
+  [
+   "SLATE_2",
+   "#9CC0C2"
+  ],
+  [
+   "OAK_DK",
+   "#45291A"
+  ],
+  [
+   "PLUM_1",
+   "#724F5B"
+  ],
+  [
+   "PLUM_2",
+   "#AF4D61"
+  ],
+  [
+   "PLUM_3",
+   "#D98AA0"
+  ],
+  [
+   "CRT_0",
+   "#D2211A"
+  ],
+  [
+   "CRT_1",
+   "#FC3827"
+  ],
+  [
+   "CREAM",
+   "#F4E6C4"
+  ]
+ ]
+}

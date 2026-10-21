@@ -1,0 +1,342 @@
+{
+ "part": "shell",
+ "items": [
+  {
+   "id": "shell.l2",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 166,
+   "y": 121,
+   "w": 629,
+   "h": 246,
+   "variants": {
+    "base": "art-v3/shell/l2.base.png",
+    "night": "art-v3/shell/l2.night.png"
+   },
+   "note": "room shell band L2 (depth 44..99 ft)"
+  },
+  {
+   "id": "shell.l3",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 3,
+   "x": 91,
+   "y": 110,
+   "w": 779,
+   "h": 271,
+   "variants": {
+    "base": "art-v3/shell/l3.base.png",
+    "night": "art-v3/shell/l3.night.png"
+   },
+   "note": "room shell band L3 (depth 40..44 ft)"
+  },
+  {
+   "id": "shell.l4",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 4,
+   "x": -28,
+   "y": 92,
+   "w": 1017,
+   "h": 313,
+   "variants": {
+    "base": "art-v3/shell/l4.base.png",
+    "night": "art-v3/shell/l4.night.png"
+   },
+   "note": "room shell band L4 (depth 35..40 ft)"
+  },
+  {
+   "id": "shell.l5",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 5,
+   "x": -120,
+   "y": -90,
+   "w": 1200,
+   "h": 720,
+   "variants": {
+    "base": "art-v3/shell/l5.base.png",
+    "night": "art-v3/shell/l5.night.png"
+   },
+   "note": "room shell band L5 (depth 0..35 ft)"
+  },
+  {
+   "id": "shell.sky",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 0,
+   "x": 443,
+   "y": 157,
+   "w": 216,
+   "h": 168,
+   "variants": {
+    "base": "art-v3/shell/sky.base.png",
+    "night": "art-v3/shell/sky.night.png"
+   },
+   "note": "golden-hour sky, sun, clouds, far live oaks (night: slate sky, moon, stars)"
+  },
+  {
+   "id": "shell.outside",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 1,
+   "x": 436,
+   "y": 183,
+   "w": 191,
+   "h": 142,
+   "variants": {
+    "base": "art-v3/shell/outside.base.png",
+    "night": "art-v3/shell/outside.night.png"
+   },
+   "note": "shotgun houses, neutral ground, streetcar, power lines, near oak (night: lit windows, streetlights, headlight)"
+  },
+  {
+   "id": "shell.window",
+   "zone": "window",
+   "kind": "shell",
+   "layer": 2,
+   "x": 459,
+   "y": 177,
+   "w": 152,
+   "h": 128,
+   "variants": {
+    "base": "art-v3/shell/window.base.png",
+    "night": "art-v3/shell/window.night.png"
+   },
+   "note": "window casing, mullion, rolled blind, sill"
+  },
+  {
+   "id": "window.skylight",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 3,
+   "x": 458,
+   "y": 112,
+   "w": 76,
+   "h": 8,
+   "variants": {
+    "base": "art-v3/window/skylight.base.png",
+    "night": "art-v3/window/skylight.night.png"
+   },
+   "note": "small skylight between the beams"
+  },
+  {
+   "id": "kitchen.pendant",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 92,
+   "y": 103,
+   "w": 17,
+   "h": 106,
+   "variants": {
+    "base": "art-v3/kitchen/pendant.base.png",
+    "night": "art-v3/kitchen/pendant.night.png",
+    "t1": "art-v3/kitchen/pendant.t1.png",
+    "t3": "art-v3/kitchen/pendant.t3.png",
+    "t5": "art-v3/kitchen/pendant.t5.png"
+   },
+   "note": "kitchen pendant lamp (t1 bare bulb, t5 brass)"
+  },
+  {
+   "id": "library.pendant",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 5,
+   "x": 304,
+   "y": 83,
+   "w": 21,
+   "h": 130,
+   "variants": {
+    "base": "art-v3/library/pendant.base.png",
+    "night": "art-v3/library/pendant.night.png",
+    "t1": "art-v3/library/pendant.t1.png",
+    "t3": "art-v3/library/pendant.t3.png",
+    "t5": "art-v3/library/pendant.t5.png"
+   },
+   "note": "library pendant lamp (t1 bare bulb, t5 brass)"
+  },
+  {
+   "id": "study.pendant",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 672,
+   "y": 117,
+   "w": 25,
+   "h": 96,
+   "variants": {
+    "base": "art-v3/study/pendant.base.png",
+    "night": "art-v3/study/pendant.night.png",
+    "t1": "art-v3/study/pendant.t1.png",
+    "t3": "art-v3/study/pendant.t3.png",
+    "t5": "art-v3/study/pendant.t5.png"
+   },
+   "note": "study pendant lamp (t1 bare bulb, t5 brass)"
+  },
+  {
+   "id": "bed.stringlights",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 52,
+   "y": 124,
+   "w": 400,
+   "h": 55,
+   "variants": {
+    "t1": "art-v3/bed/stringlights.t1.png",
+    "t2": "art-v3/bed/stringlights.t2.png",
+    "t5": "art-v3/bed/stringlights.t5.png",
+    "night": "art-v3/bed/stringlights.night.png",
+    "base": "art-v3/bed/stringlights.t1.png"
+   },
+   "note": "string lights along the left wall and back wall top (tier II)"
+  },
+  {
+   "id": "library.pothos",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 3,
+   "x": 271,
+   "y": 134,
+   "w": 22,
+   "h": 75,
+   "variants": {
+    "base": "art-v3/library/pothos.base.png"
+   },
+   "note": "trailing pothos hanging from a beam"
+  },
+  {
+   "id": "study.pothos",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 659,
+   "y": 134,
+   "w": 20,
+   "h": 77,
+   "variants": {
+    "base": "art-v3/study/pothos.base.png"
+   },
+   "note": "trailing pothos hanging from a beam"
+  },
+  {
+   "id": "kitchen.pothos",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 137,
+   "y": 124,
+   "w": 21,
+   "h": 47,
+   "variants": {
+    "base": "art-v3/kitchen/pothos.base.png"
+   },
+   "note": "trailing pothos hanging from a beam"
+  },
+  {
+   "id": "window.cables-ceiling",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 3,
+   "x": 389,
+   "y": 126,
+   "w": 318,
+   "h": 89,
+   "variants": {
+    "base": "art-v3/window/cables-ceiling.base.png"
+   },
+   "note": "cable droop along the beams"
+  },
+  {
+   "id": "window.rug",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 5,
+   "x": 325,
+   "y": 358,
+   "w": 141,
+   "h": 91,
+   "variants": {
+    "base": "art-v3/window/rug.base.png",
+    "t1": "art-v3/window/rug.t1.png",
+    "t3": "art-v3/window/rug.t3.png",
+    "t5": "art-v3/window/rug.t5.png"
+   },
+   "contact": 358,
+   "note": "rug from the statue toward the viewer (t1 worn mat, t3 big rug, t5 gilded border)"
+  },
+  {
+   "id": "window.cables-floor",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 5,
+   "x": 152,
+   "y": 368,
+   "w": 679,
+   "h": 262,
+   "variants": {
+    "base": "art-v3/window/cables-floor.base.png"
+   },
+   "contact": 368,
+   "note": "cables snaking across the floor to the CRTs"
+  },
+  {
+   "id": "shell.crop.speaker",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": -120,
+   "y": 448,
+   "w": 127,
+   "h": 182,
+   "variants": {
+    "base": "art-v3/shell/crop.speaker.base.png"
+   },
+   "note": "frame crop: speaker bottom-left"
+  },
+  {
+   "id": "shell.crop.plant",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": -120,
+   "y": -90,
+   "w": 167,
+   "h": 158,
+   "variants": {
+    "base": "art-v3/shell/crop.plant.base.png"
+   },
+   "note": "frame crop: hanging leaves top-left"
+  },
+  {
+   "id": "shell.crop.boxes",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": 952,
+   "y": 440,
+   "w": 128,
+   "h": 190,
+   "variants": {
+    "base": "art-v3/shell/crop.boxes.base.png"
+   },
+   "note": "frame crop: moving boxes bottom-right"
+  },
+  {
+   "id": "shell.crop.cables",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": 940,
+   "y": -90,
+   "w": 140,
+   "h": 161,
+   "variants": {
+    "base": "art-v3/shell/crop.cables.base.png"
+   },
+   "note": "frame crop: cables top-right"
+  }
+ ]
+}

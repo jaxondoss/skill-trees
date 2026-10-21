@@ -1,0 +1,584 @@
+{
+ "part": "left",
+ "items": [
+  {
+   "id": "kitchen.counter",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": -120,
+   "y": 210,
+   "w": 187,
+   "h": 213,
+   "variants": {
+    "base": "art-v3/kitchen/counter.base.png",
+    "t1": "art-v3/kitchen/counter.t1.png",
+    "t3": "art-v3/kitchen/counter.t3.png",
+    "t5": "art-v3/kitchen/counter.t5.png"
+   },
+   "note": "base cabinets, counter, tile backsplash, uppers with under-cabinet light"
+  },
+  {
+   "id": "kitchen.gut",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 5,
+   "x": -17,
+   "y": 262,
+   "w": 80,
+   "h": 58,
+   "variants": {
+    "s0": "art-v3/kitchen/gut.s0.png",
+    "s1": "art-v3/kitchen/gut.s1.png",
+    "s2": "art-v3/kitchen/gut.s2.png",
+    "base": "art-v3/kitchen/gut.s0.png"
+   },
+   "target": {
+    "skill": "gut-health"
+   },
+   "label": "GUT HEALTH",
+   "led": [
+    28,
+    317
+   ],
+   "hit": [
+    0,
+    262,
+    63,
+    58
+   ],
+   "contact": 430,
+   "note": "big leafy monstera in a pot on the counter"
+  },
+  {
+   "id": "kitchen.kettle",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": -64,
+   "y": 309,
+   "w": 24,
+   "h": 19,
+   "variants": {
+    "base": "art-v3/kitchen/kettle.base.png"
+   },
+   "contact": 430,
+   "note": "kettle on the counter"
+  },
+  {
+   "id": "kitchen.microwave",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": -59,
+   "y": 289,
+   "w": 71,
+   "h": 37,
+   "variants": {
+    "base": "art-v3/kitchen/microwave.base.png"
+   },
+   "contact": 430,
+   "note": "microwave on the counter"
+  },
+  {
+   "id": "kitchen.spices",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": -112,
+   "y": 250,
+   "w": 46,
+   "h": 12,
+   "variants": {
+    "base": "art-v3/kitchen/spices.base.png"
+   },
+   "contact": 430,
+   "note": "spice rack on the backsplash"
+  },
+  {
+   "id": "kitchen.board",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": -100,
+   "y": 290,
+   "w": 32,
+   "h": 36,
+   "variants": {
+    "base": "art-v3/kitchen/board.base.png"
+   },
+   "contact": 430,
+   "note": "cutting board leaning on the tiles"
+  },
+  {
+   "id": "kitchen.table",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": -47,
+   "y": 375,
+   "w": 168,
+   "h": 121,
+   "variants": {
+    "base": "art-v3/kitchen/table.base.png",
+    "t1": "art-v3/kitchen/table.t1.png",
+    "t3": "art-v3/kitchen/table.t3.png",
+    "t5": "art-v3/kitchen/table.t5.png"
+   },
+   "note": "small kitchen table in the front-left (t1 folding, t3 oak, t5 butcher block)"
+  },
+  {
+   "id": "kitchen.food",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 5,
+   "x": 11,
+   "y": 364,
+   "w": 44,
+   "h": 24,
+   "variants": {
+    "s0": "art-v3/kitchen/food.s0.png",
+    "s1": "art-v3/kitchen/food.s1.png",
+    "s2": "art-v3/kitchen/food.s2.png",
+    "base": "art-v3/kitchen/food.s0.png"
+   },
+   "target": {
+    "skill": "food"
+   },
+   "label": "FOOD",
+   "led": [
+    46,
+    383
+   ],
+   "contact": 520,
+   "note": "fruit basket on the table (bodyweight logs in the Food panel)"
+  },
+  {
+   "id": "kitchen.water",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": 60,
+   "y": 350,
+   "w": 15,
+   "h": 36,
+   "variants": {
+    "base": "art-v3/kitchen/water.base.png",
+    "g0": "art-v3/kitchen/water.g0.png",
+    "g1": "art-v3/kitchen/water.g1.png",
+    "g2": "art-v3/kitchen/water.g2.png",
+    "g3": "art-v3/kitchen/water.g3.png"
+   },
+   "contact": 520,
+   "note": "water jug growth piece (g0 empty .. g3 full)"
+  },
+  {
+   "id": "kitchen.stool",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": 90,
+   "y": 402,
+   "w": 47,
+   "h": 97,
+   "variants": {
+    "base": "art-v3/kitchen/stool.base.png"
+   },
+   "note": "stool at the table"
+  },
+  {
+   "id": "kitchen.door",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 43,
+   "y": 215,
+   "w": 57,
+   "h": 176,
+   "variants": {
+    "s0": "art-v3/kitchen/door.s0.png",
+    "s1": "art-v3/kitchen/door.s1.png",
+    "s2": "art-v3/kitchen/door.s2.png",
+    "base": "art-v3/kitchen/door.s0.png"
+   },
+   "target": {
+    "skill": "college-integration"
+   },
+   "label": "COLLEGE INTEGRATION",
+   "led": [
+    99,
+    377
+   ],
+   "note": "front door with a flyer board"
+  },
+  {
+   "id": "kitchen.doormat",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 54,
+   "y": 380,
+   "w": 96,
+   "h": 10,
+   "variants": {
+    "base": "art-v3/kitchen/doormat.base.png",
+    "alert": "art-v3/kitchen/doormat.alert.png"
+   },
+   "target": {
+    "feature": "review"
+   },
+   "label": "REVIEW",
+   "led": [
+    137,
+    380
+   ],
+   "contact": 380,
+   "note": "WELCOME doormat (alert: a letter waits)"
+  },
+  {
+   "id": "kitchen.settings",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 100,
+   "y": 278,
+   "w": 11,
+   "h": 22,
+   "variants": {
+    "base": "art-v3/kitchen/settings.base.png"
+   },
+   "target": {
+    "feature": "settings"
+   },
+   "label": "SETTINGS",
+   "led": [
+    110,
+    296
+   ],
+   "note": "small switchboard by the door"
+  },
+  {
+   "id": "kitchen.hooks",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 6,
+   "y": 228,
+   "w": 42,
+   "h": 50,
+   "variants": {
+    "base": "art-v3/kitchen/hooks.base.png"
+   },
+   "note": "coat hooks, rain jacket, cap"
+  },
+  {
+   "id": "kitchen.shoes",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": 1,
+   "y": 364,
+   "w": 76,
+   "h": 35,
+   "variants": {
+    "base": "art-v3/kitchen/shoes.base.png",
+    "t1": "art-v3/kitchen/shoes.t1.png",
+    "t3": "art-v3/kitchen/shoes.t3.png"
+   },
+   "note": "sneakers (t1 pile, t3 shoe rack)"
+  },
+  {
+   "id": "kitchen.clock",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 66,
+   "y": 189,
+   "w": 13,
+   "h": 17,
+   "variants": {
+    "base": "art-v3/kitchen/clock.base.png"
+   },
+   "note": "wall clock above the door"
+  },
+  {
+   "id": "kitchen.switch",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 39,
+   "y": 282,
+   "w": 6,
+   "h": 13,
+   "variants": {
+    "base": "art-v3/kitchen/switch.base.png"
+   },
+   "note": "light switch"
+  },
+  {
+   "id": "kitchen.on",
+   "zone": "kitchen",
+   "kind": "overlay",
+   "layer": 4,
+   "x": 64,
+   "y": 186,
+   "w": 73,
+   "h": 67,
+   "variants": {
+    "base": "art-v3/kitchen/on.base.png"
+   },
+   "note": "'it's on' light: kitchen pendant lit"
+  },
+  {
+   "id": "bed.frame",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 114,
+   "y": 309,
+   "w": 154,
+   "h": 68,
+   "variants": {
+    "base": "art-v3/bed/frame.base.png",
+    "t1": "art-v3/bed/frame.t1.png",
+    "t2": "art-v3/bed/frame.t2.png",
+    "t5": "art-v3/bed/frame.t5.png"
+   },
+   "contact": 380,
+   "note": "t1 pallets, t2 wood frame + headboard, t5 gilt edge"
+  },
+  {
+   "id": "bed.nightstand",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 203,
+   "y": 306,
+   "w": 51,
+   "h": 54,
+   "variants": {
+    "base": "art-v3/bed/nightstand.base.png"
+   },
+   "note": "nightstand with an open shelf"
+  },
+  {
+   "id": "bed.globe",
+   "zone": "bed",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 207,
+   "y": 259,
+   "w": 34,
+   "h": 25,
+   "variants": {
+    "s0": "art-v3/bed/globe.s0.png",
+    "s1": "art-v3/bed/globe.s1.png",
+    "s2": "art-v3/bed/globe.s2.png",
+    "base": "art-v3/bed/globe.s0.png"
+   },
+   "target": {
+    "skill": "visualization"
+   },
+   "label": "VISUALIZATION",
+   "led": [
+    240,
+    275
+   ],
+   "contact": 370,
+   "note": "plasma globe on the nightstand shelf"
+  },
+  {
+   "id": "bed.bed",
+   "zone": "bed",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 123,
+   "y": 299,
+   "w": 133,
+   "h": 51,
+   "variants": {
+    "s0": "art-v3/bed/bed.s0.png",
+    "s1": "art-v3/bed/bed.s1.png",
+    "s2": "art-v3/bed/bed.s2.png",
+    "base": "art-v3/bed/bed.s0.png"
+   },
+   "target": {
+    "skill": "sleep"
+   },
+   "label": "SLEEP",
+   "led": [
+    255,
+    335
+   ],
+   "hit": [
+    119,
+    299,
+    144,
+    77
+   ],
+   "contact": 381,
+   "note": "bed with bedding + alarm clock on the nightstand"
+  },
+  {
+   "id": "bed.cushion",
+   "zone": "bed",
+   "kind": "hotspot",
+   "layer": 5,
+   "x": 142,
+   "y": 383,
+   "w": 87,
+   "h": 24,
+   "variants": {
+    "s0": "art-v3/bed/cushion.s0.png",
+    "s1": "art-v3/bed/cushion.s1.png",
+    "s2": "art-v3/bed/cushion.s2.png",
+    "base": "art-v3/bed/cushion.s0.png"
+   },
+   "target": {
+    "skill": "meditation"
+   },
+   "label": "MEDITATION",
+   "led": [
+    199,
+    401
+   ],
+   "contact": 383,
+   "note": "floor cushion (s1 mat, s2 candle)"
+  },
+  {
+   "id": "bed.sconce",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 193,
+   "y": 243,
+   "w": 12,
+   "h": 13,
+   "variants": {
+    "base": "art-v3/bed/sconce.base.png",
+    "night": "art-v3/bed/sconce.night.png"
+   },
+   "note": "bedside wall sconce"
+  },
+  {
+   "id": "bed.poster",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 145,
+   "y": 189,
+   "w": 45,
+   "h": 56,
+   "variants": {
+    "base": "art-v3/bed/poster.base.png",
+    "t1": "art-v3/bed/poster.t1.png",
+    "t3": "art-v3/bed/poster.t3.png",
+    "t5": "art-v3/bed/poster.t5.png"
+   },
+   "note": "mountain + sun poster (t1 taped, t3 framed, t5 gilt)"
+  },
+  {
+   "id": "bed.hamper",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 236,
+   "y": 315,
+   "w": 28,
+   "h": 40,
+   "variants": {
+    "base": "art-v3/bed/hamper.base.png",
+    "t1": "art-v3/bed/hamper.t1.png",
+    "t3": "art-v3/bed/hamper.t3.png",
+    "t5": "art-v3/bed/hamper.t5.png"
+   },
+   "note": "laundry (t1 pile, t3 basket, t5 woven hamper)"
+  },
+  {
+   "id": "bed.slippers",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 4,
+   "x": 192,
+   "y": 375,
+   "w": 24,
+   "h": 7,
+   "variants": {
+    "base": "art-v3/bed/slippers.base.png"
+   },
+   "note": "slippers by the bed"
+  },
+  {
+   "id": "bed.runner",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 183,
+   "y": 361,
+   "w": 64,
+   "h": 16,
+   "variants": {
+    "base": "art-v3/bed/runner.base.png",
+    "t3": "art-v3/bed/runner.t3.png"
+   },
+   "contact": 361,
+   "note": "bedside runner rug"
+  },
+  {
+   "id": "bed.shelf",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 200,
+   "y": 171,
+   "w": 34,
+   "h": 20,
+   "variants": {
+    "base": "art-v3/bed/shelf.base.png"
+   },
+   "note": "wall shelf above the headboard"
+  },
+  {
+   "id": "bed.charger",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 207,
+   "y": 346,
+   "w": 8,
+   "h": 22,
+   "variants": {
+    "base": "art-v3/bed/charger.base.png"
+   },
+   "note": "phone charger cable"
+  },
+  {
+   "id": "bed.hoodie",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 121,
+   "y": 226,
+   "w": 13,
+   "h": 44,
+   "variants": {
+    "base": "art-v3/bed/hoodie.base.png"
+   },
+   "note": "hoodie on a hook"
+  },
+  {
+   "id": "bed.on",
+   "zone": "bed",
+   "kind": "overlay",
+   "layer": 3,
+   "x": 172,
+   "y": 243,
+   "w": 57,
+   "h": 38,
+   "variants": {
+    "base": "art-v3/bed/on.base.png"
+   },
+   "note": "'it's on' light: bedside sconce lit"
+  }
+ ]
+}

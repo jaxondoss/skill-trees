@@ -306,6 +306,12 @@
   border: 0;
   color: var(--cream);
 }
+.ui-strip > .strip-menu {
+  display: none;
+}
+.ui-strip > .strip-menu .px-icon {
+  width: 14px;
+}
 .ui-strip > button:hover {
   background: rgba(80, 48, 46, 0.7); /* BROWN_2 */
 }
@@ -1659,12 +1665,26 @@ body.ui-debug-hits #room-hotspots .hs:not([hidden]) {
   .ui-strip {
     background: rgba(12, 10, 12, 0.9); /* VOID: the zone title sits under the strip on a phone */
   }
+  .ui-strip {
+    flex-wrap: wrap;
+    max-width: calc(100vw - 2 * var(--ui-gap));
+  }
   .ui-strip > button {
     padding: 0 6px;
-    min-height: 40px;
+    min-height: 44px;
   }
   .ui-strip > .strip-icon {
-    width: 40px;
+    width: 44px;
+  }
+  /* Collapsed strip: score, today %, streak and the menu. The rest opens under it. */
+  .ui-strip > .strip-menu {
+    display: inline-flex;
+  }
+  .ui-strip > .strip-more {
+    display: none;
+  }
+  .ui-strip.menu-open > .strip-more:not([hidden]) {
+    display: inline-flex;
   }
   .strip-stats .s-mini {
     display: none;
@@ -1774,4 +1794,99 @@ body.ui-debug-hits #room-hotspots .hs:not([hidden]) {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* ------------------------------------------------------------------ relics */
+.relic-shelf {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 4px;
+  padding: 4px;
+  background: var(--brown-0, #281b1b);
+  border-bottom: 3px solid var(--brown-2);
+  margin-bottom: 6px;
+}
+.relic-item {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 6px 4px;
+  background: rgba(12, 10, 12, 0.6);
+  border: 1px solid var(--brown-2);
+  color: var(--gold);
+  text-align: center;
+  cursor: pointer;
+}
+.relic-item:hover,
+.relic-item:focus-visible {
+  border-color: var(--gold);
+  color: var(--sun);
+}
+.relic-item .nm {
+  color: var(--cream);
+  font-size: 12px;
+  line-height: 1.2;
+}
+.relic-item .ic {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--rose-0, #815a50);
+}
+.relic-glyph {
+  width: 27px;
+  height: 27px;
+}
+.relic-field {
+  margin-bottom: 8px;
+}
+.relic-field .px-field {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+.relic-t {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.relic-t .relic-glyph {
+  width: 18px;
+  height: 18px;
+}
+.p-earned {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.p-courses {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.p-courses li {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  gap: 6px 8px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--brown-2);
+}
+.p-courses li .dot {
+  width: 8px;
+  height: 8px;
+}
+.p-courses li .c-main {
+  display: grid;
+}
+.p-courses li .c-main small {
+  color: var(--rose-0, #815a50);
+}
+.p-courses li .px-btn {
+  grid-column: 2 / 4;
+  justify-self: start;
+  min-height: 44px;
 }

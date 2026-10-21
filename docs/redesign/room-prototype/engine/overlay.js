@@ -3,7 +3,8 @@
  * Canvas marks (drawn into the framebuffer after the LUT, true palette colours):
  *   - nameplates: 3x5 pixel font on a GOLD_DK plate, "STRENGTH 52", shown for the hovered or focused
  *     hotspot, or for every visible hotspot in inspect mode, de-overlapped greedily upward;
- *   - the zone title: 5x7 pixel font, fading in over 1.5 s as a Bayer dither.
+ *   (the zone title is a DOM canvas, #zone-title: 5x7 pixel font, revealed in Bayer steps within
+ *   ~120 ms of the click, also during the dolly; on a phone it sits below the HUD strip).
  * DOM (accessible):
  *   - one transparent <button> per hotspot over its hit box, named like "Strength, 52";
  *     at least 24 CSS px on fine pointers, 44 on touch (where they exist only in zone view);
@@ -112,7 +113,6 @@
   /* ------------------------------------------------------------------ canvas marks */
   var titleT0 = -1e9;
   var titleText = null;
-  var TITLE_FADE_MS = 1500;
 
   function currentTitle() {
     var R = ROOM.render;
@@ -174,32 +174,58 @@
         R.plot(f, x, y, C.CREAM);
       });
     });
-
-    // Zone title, revealed through the Bayer matrix (world-anchored) as it fades in.
-    var title = currentTitle();
-    if (title !== titleText) {
-      titleText = title;
-      titleT0 = f.now;
-    }
-    if (title) {
-      var step = ROOM.state.reducedMotion ? 16 : Math.min(16, Math.floor((16 * (f.now - titleT0)) / TITLE_FADE_MS) + 1);
-      var tw = textWidth(FONT5, title);
-      var tx = Math.round(visLeft + visW / 2 - tw / 2), ty = visTop + 6;
-      var B = R.BAYER;
-      var shown = function (x, y) {
-        return B[((y + f.y0) & 3) * 4 + ((x + f.x0) & 3)] < step;
-      };
-      eachPixel(FONT5, title, tx, ty, function (x, y) {
-        if (shown(x + 1, y + 1)) R.plot(f, x + 1, y + 1, C.VOID);
-      });
-      eachPixel(FONT5, title, tx, ty, function (x, y) {
-        if (shown(x, y)) R.plot(f, x, y, C.CREAM);
-      });
-    }
   }
 
-  function busy(now) {
-    return !!titleText && now - titleT0 < TITLE_FADE_MS + 100;
+  function busy() {
+    return false;
+  }
+
+  /* ------------------------------------------------------------------ DOM: zone title */
+  var titleCanvas = null, titleRaf = 0;
+  var TITLE_MS = 120;
+
+  function hexOf(name) {
+    var c = ROOM.art.palette.colors[C[name]];
+    return c ? c[1] : '#000';
+  }
+
+  /** Show the current title (zone name, or on a phone the nearest zone), revealed in Bayer steps. */
+  function updateTitle() {
+    if (!titleCanvas) return;
+    var title = currentTitle();
+    if (title === titleText) return;
+    titleText = title;
+    titleT0 = performance.now();
+    cancelAnimationFrame(titleRaf);
+    if (!title) {
+      titleCanvas.hidden = true;
+      return;
+    }
+    var tw = textWidth(FONT5, title) + 1, th = 8;
+    titleCanvas.width = tw;
+    titleCanvas.height = th;
+    var scale = Math.max(2, Math.round(3 * Math.min(1, window.innerWidth / 900)));
+    titleCanvas.style.width = tw * scale + 'px';
+    titleCanvas.style.height = th * scale + 'px';
+    titleCanvas.setAttribute('aria-hidden', 'true');
+    titleCanvas.hidden = false;
+    var ctx = titleCanvas.getContext('2d');
+    var cream = hexOf('CREAM'), dark = hexOf('VOID');
+    var B = ROOM.render.BAYER;
+    function frame() {
+      var step = ROOM.state.reducedMotion ? 16 : Math.min(16, Math.floor((16 * (performance.now() - titleT0)) / TITLE_MS) + 4);
+      ctx.clearRect(0, 0, tw, th);
+      var put = function (col, ox) {
+        ctx.fillStyle = col;
+        eachPixel(FONT5, title, ox, ox, function (x, y) {
+          if (B[(y & 3) * 4 + (x & 3)] < step) ctx.fillRect(x, y, 1, 1);
+        });
+      };
+      put(dark, 1);
+      put(cream, 0);
+      if (step < 16) titleRaf = requestAnimationFrame(frame);
+    }
+    frame();
   }
 
   /* ------------------------------------------------------------------ DOM: hotspot buttons */
@@ -216,6 +242,10 @@
     return ROOM.zoneById(it.zone) || ROOM.camera.zoneAtX(it.x, ROOM.zones);
   }
 
+  /**
+   * A click on an object: dolly into its zone (anticipation, push-in), spotlight pulse on landing,
+   * then its panel slides in. The statue zooms to the window and switches its downlight on.
+   */
   function activate(d) {
     var zone = zoneOfItem(d.item);
     if (!ROOM.state.zone && isTouch()) {
@@ -223,8 +253,19 @@
       return;
     }
     ROOM.emit('hotspot', { item: d.item });
-    if (ROOM.ui && typeof ROOM.ui.open === 'function') ROOM.ui.open(d.id);
-    else if (!ROOM.state.zone) ROOM.go(zone.id);
+    var statue = d.statue;
+    var target = statue ? 'window' : zone.id;
+    var opener = document.activeElement;
+    ROOM.go(target, {
+      item: d.id,
+      onArrive: function () {
+        if (statue) {
+          ROOM.state.statueLight = true;
+          ROOM.invalidate();
+        }
+        if (ROOM.ui && typeof ROOM.ui.open === 'function') ROOM.ui.open(d.id, { opener: opener });
+      },
+    });
   }
 
   // (Re)create the buttons when the scene changes; order them left to right by zone, then x.
@@ -291,6 +332,7 @@
       lastKey = '';
     }
     var touch = isTouch();
+    updateTitle();
     var key = rest.key + '|' + touch + '|' + ROOM.state.photo;
     if (key === lastKey) return;
     lastKey = key;
@@ -378,10 +420,13 @@
     dotsNav = ensure('zone-dots', 'nav', document.body);
     dotsNav.setAttribute('aria-label', 'Zones');
     live = ensure('room-live', 'div', document.body, 'sr-only');
+    titleCanvas = ensure('zone-title', 'canvas', document.body);
+    titleCanvas.hidden = true;
     live.setAttribute('aria-live', 'polite');
     buildDots();
     ROOM.on('zone', function (d) {
       updateDots();
+      updateTitle(); // within ~120 ms of the click, while the dolly runs
       var z = d.zone && ROOM.zoneById(d.zone);
       live.textContent = z ? titleCase(z.name) : 'Room';
     });

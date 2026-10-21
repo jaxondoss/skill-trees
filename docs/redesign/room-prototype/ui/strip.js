@@ -253,11 +253,11 @@
     return n.charAt(0).toUpperCase() + n.slice(1);
   };
   K.TIERS = [
-    { tier: 1, numeral: 'I', name: 'Raw', min: 0, items: ['Half-unpacked boxes', 'Mattress on the floor', 'Bare bulb', 'Laundry', 'Folding desk'] },
-    { tier: 2, numeral: 'II', name: 'Awakened', min: 20, items: ['Bed frame', 'String lights', 'Desk lamp', 'First framed poster'] },
-    { tier: 3, numeral: 'III', name: 'Forged', min: 40, items: ['Rug', 'Proper chair', 'Framed posters', 'More plants', 'Tidy cables'] },
-    { tier: 4, numeral: 'IV', name: 'Ascendant', min: 60, items: ['Record player and vinyl', 'Wood bookcase', 'Leather chair', 'Plant wall'] },
-    { tier: 5, numeral: 'V', name: 'Sovereign', min: 80, items: ['Neon FORGE sign', 'Custom desk', 'Trophy case', 'Gilded plinth', 'Statement art', 'Warm accent lights'] },
+    { tier: 1, numeral: 'I', name: 'Raw', min: 0, items: ['Mattress on the floor', 'Bare bulb', 'Folding desk'] },
+    { tier: 2, numeral: 'II', name: 'Awakened', min: 20, items: ['Bed frame', 'String lights', 'Desk lamp'] },
+    { tier: 3, numeral: 'III', name: 'Forged', min: 40, items: ['Big rug', 'Desk chair', 'Framed posters'] },
+    { tier: 4, numeral: 'IV', name: 'Ascendant', min: 60, items: ['Leather armchair', 'Wood bookcase', 'Plant wall'] },
+    { tier: 5, numeral: 'V', name: 'Sovereign', min: 80, items: ['Neon FORGE sign', 'Gilded pedestal', 'Warm light everywhere'] },
   ];
 
   /* ------------------------------------------------------------------ env helpers */
@@ -359,7 +359,7 @@
   };
 
   /* ================================================================== corner strip */
-  var strip, bStats, bToday, bMute, bHelp, bInspect;
+  var strip, bStats, bToday, bMute, bHelp, bInspect, bMenu;
   var elTier, elScore, elToday, elMini, elStreak;
 
   function build() {
@@ -400,9 +400,31 @@
       if (typeof ROOM.invalidate === 'function') ROOM.invalidate();
       update();
     } } }, K.icon('magnifier'));
-    strip = K.h('div', { class: 'ui-strip', role: 'group', 'aria-label': 'Status' }, bStats, bToday, bMute, bHelp, bInspect);
+    // Phone: the strip collapses to score, today % and streak plus this menu (the rest folds into it).
+    bMenu = K.h('button', { type: 'button', class: 'strip-icon strip-menu', 'aria-label': 'Menu', 'aria-expanded': 'false', on: { click: function () {
+      setMenu(!strip.classList.contains('menu-open'));
+    } } }, K.bitmap(['#######', '.......', '#######', '.......', '#######'], { '#': 'currentColor' }));
+    [bToday, bMute, bHelp, bInspect].forEach(function (b) {
+      b.classList.add('strip-more');
+      b.addEventListener('click', function () {
+        if (K.isPhone()) setMenu(false);
+      });
+    });
+    strip = K.h('div', { class: 'ui-strip', role: 'group', 'aria-label': 'Status' }, bStats, bMenu, bToday, bMute, bHelp, bInspect);
     root.appendChild(strip);
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && strip.classList.contains('menu-open')) {
+        setMenu(false);
+        bMenu.focus();
+        e.stopPropagation();
+      }
+    }, true);
     update();
+  }
+
+  function setMenu(open) {
+    strip.classList.toggle('menu-open', !!open);
+    bMenu.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
 
   function openStats() {

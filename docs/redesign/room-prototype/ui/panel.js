@@ -25,6 +25,8 @@
     review: { title: 'DOORMAT', aliases: ['review', 'doormat', 'letter', 'mail'], re: /doormat|letter/ },
     settings: { title: 'SWITCHBOARD', aliases: ['settings', 'switchboard'], re: /switchboard|settings/ },
     focus: { title: 'STICKY NOTE', aliases: ['focus', 'sticky', 'sticky-note', 'focus-line'], re: /sticky/ },
+    courses: { title: 'COURSE BOOKS', aliases: ['courses', 'course-books', 'textbooks', 'books'], re: /course|textbook/ },
+    relic: { title: 'RELIC', aliases: ['relic'], re: /^relic/ },
   };
   // Two skills that live on one object get skill tabs.
   var SHARED = { 'ai-building': ['ai-building', 'dropshipping'], dropshipping: ['ai-building', 'dropshipping'] };
@@ -42,6 +44,16 @@
   }
   function resolve(id) {
     if (!id) return null;
+    // Relic slots: engine-drawn ("relic.left") or art items with target.feature "relic-<slot>".
+    var rm = /^relic\.(left|window|right)$/.exec(id);
+    var rit = !rm && K.item(id);
+    var rf = rit && rit.target && rit.target.feature && /^relic-(left|window|right)$/.exec(rit.target.feature);
+    if (rm || rf) return { id: id, kind: 'feature', feature: 'relic', slot: (rm || rf)[1], item: rit || null };
+    // Bodyweight lives in the Food panel (no scale hotspot of its own).
+    if (rit && rit.target && rit.target.feature === 'bodyweight') {
+      var food = K.itemForSkill('food');
+      return food ? resolve(food) : resolve('ui:skill:food');
+    }
     var m = /^ui:skill:(.+)$/.exec(id);
     if (m) return K.skill(m[1]) ? { id: id, kind: 'skill', skills: [m[1]], skill: m[1], item: null } : null;
     m = /^ui:(.+)$/.exec(id);
@@ -254,6 +266,73 @@
     body.appendChild(t.list);
     body.appendChild(t.panel);
     ({ today: skillToday, steps: skillSteps, data: skillData, notes: skillNotes })[tab](s, t.panel);
+    if (slug === 'food') bodyweight(body);
+  }
+
+  /* Bodyweight: logged in the Food panel (the room has no scale hotspot). */
+  function bodyweight(el) {
+    var d = K.data();
+    var log = (d.bodyweight = d.bodyweight || [{ day: 'OCT 13', lb: 182.4 }, { day: 'OCT 16', lb: 181.8 }, { day: 'OCT 19', lb: 181.2 }]);
+    el.appendChild(h('div', { class: 'px-label', text: 'Bodyweight · lb' }));
+    var ul = h('ul', { class: 'p-list' });
+    log.slice(-4).forEach(function (r) {
+      ul.appendChild(h('li', null, r.day, h('span', { class: 'px-num', text: String(r.lb) })));
+    });
+    el.appendChild(ul);
+    var input = h('input', { id: 'bw-input', class: 'lcd', type: 'text', inputmode: 'decimal', autocomplete: 'off', placeholder: '000.0', 'data-k': 'bw' });
+    function save() {
+      var v = parseFloat(String(input.value).replace(',', '.'));
+      if (!isFinite(v) || v < 60 || v > 500) {
+        K.announce('Enter a weight in pounds.');
+        input.focus();
+        return;
+      }
+      log.push({ day: (d.weekdayLabel || 'TODAY').replace(/^\w+ /, ''), lb: Math.round(v * 10) / 10 });
+      if (ROOM.sound && typeof ROOM.sound.pour === 'function') ROOM.sound.pour();
+      K.announce('Bodyweight saved.');
+      K.emit('data');
+    }
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        save();
+      }
+    });
+    el.appendChild(h('label', { for: 'bw-input', class: 'px-label', text: 'Log bodyweight' }));
+    el.appendChild(h('div', { class: 'lcd-row' }, input, h('button', { type: 'button', class: 'px-btn is-primary', 'data-k': 'bw-save', text: 'Save', on: { click: save } })));
+  }
+
+  /* Course books: one book per course, coloured spines (sample courses unless data has its own). */
+  var SAMPLE_COURSES = [
+    { code: 'CMPS 1500', name: 'Intro to Computer Science', grade: 'A-', tone: 'LEAF_3', due: ['Lab 6 · Thu'] },
+    { code: 'MATH 1210', name: 'Calculus I', grade: 'B+', tone: 'AMBER', due: ['Problem set 7 · Fri'] },
+    { code: 'ECON 1010', name: 'Intro to Microeconomics', grade: 'A', tone: 'LEAF_3', due: [] },
+    { code: 'ENGL 1010', name: 'Writing', grade: 'B', tone: 'AMBER', due: ['Essay draft · Mon'] },
+    { code: 'TIDE 1520', name: 'First-year seminar', grade: 'A', tone: 'LEAF_3', due: [] },
+  ];
+  function fCourses(el) {
+    var d = K.data();
+    var acad = K.skill('academics') || {};
+    var courses = (acad.config && acad.config.courses) || d.courses || SAMPLE_COURSES;
+    var due = d.dueSoon || [];
+    el.appendChild(h('div', { class: 'px-label', text: 'This semester · ' + courses.length + ' courses' }));
+    var ul = h('ul', { class: 'p-courses' });
+    courses.forEach(function (c) {
+      var code = c.code || c.name;
+      var items = (c.due || []).slice();
+      due.forEach(function (x) {
+        if (x.name && x.name.indexOf(code) === 0 && items.indexOf(x.name) < 0) items.push(x.name.replace(code + ': ', '') + ' · ' + Math.round(x.hours) + ' h');
+      });
+      ul.appendChild(h('li', null,
+        h('span', { class: 'dot', 'aria-hidden': 'true', style: { background: K.hex(c.tone || (/^A/.test(c.grade || '') ? 'LEAF_3' : /^B/.test(c.grade || '') ? 'AMBER' : 'CRT_1')) } }),
+        h('span', { class: 'c-main' }, h('b', { text: code }), h('span', { text: c.name || '' }),
+          h('small', { text: items.length ? 'Due: ' + items.join(', ') : 'Nothing due' })),
+        h('span', { class: 'px-chip', 'aria-label': 'Grade ' + (c.grade || 'none'), text: c.grade || '--' }),
+        h('button', { type: 'button', class: 'px-btn', 'data-k': 'canvas-' + code, text: 'Open in Canvas', on: { click: function () {
+          K.announce('Canvas is not connected in this prototype.');
+        } } })));
+    });
+    el.appendChild(ul);
   }
 
   function ledState(slug) {
@@ -426,10 +505,17 @@
     var f = cur.feature;
     var def = FEATURES[f];
     titleEl.textContent = def ? def.title : String((cur.item && cur.item.label) || 'OBJECT').toUpperCase();
+    if (f === 'relic') {
+      var rel = ROOM.uiRelics && ROOM.uiRelics.get(cur.slot);
+      titleEl.textContent = rel ? 'RELIC' : 'RELIC SLOT';
+    }
     win.setAttribute('aria-label', def ? titleCase(def.title) : 'Object');
     var fn = {
       statue: fStatue, stats: fStats, archive: fArchive, calendar: fCalendar, journal: fJournal,
-      review: fReview, settings: fSettings, focus: fFocus,
+      review: fReview, settings: fSettings, focus: fFocus, courses: fCourses,
+      relic: function (el) {
+        if (ROOM.uiRelics) ROOM.uiRelics.render(el, cur.slot, { rerender: render, close: close, h: h, K: K });
+      },
     }[f];
     if (fn) fn(body);
     else body.appendChild(h('div', { class: 'p-none' }, h('b', { text: 'Nothing here yet' }), 'This object has no panel in the prototype.'));
@@ -455,6 +541,7 @@
     var next = K.TIERS.filter(function (t) {
       return t.min > (o.display || 0);
     })[0];
+    el.appendChild(h('p', { class: 'p-text', text: 'Tier ' + (o.numeral || 'I') + ' ' + (o.name || 'Raw') + (next ? ' · next threshold ' + next.min + ' (' + next.numeral + ' ' + next.name + ')' : ' · top tier') }));
     el.appendChild(h('p', { class: 'p-text px-muted', text: next ? next.min - (o.display || 0) + ' points to ' + next.numeral + ' ' + next.name + '. Categories count equally, so a lopsided week holds the room back.' : 'Sovereign. The room is complete.' }));
 
     el.appendChild(h('div', { class: 'px-label', text: 'Five categories' }));
@@ -497,6 +584,16 @@
     el.appendChild(h('div', { class: 'tier-track' }, range, marks));
     el.appendChild(card);
     show(now);
+    var earned = [];
+    K.TIERS.forEach(function (t) {
+      if (t.tier <= now && t.tier > 1) earned = earned.concat(t.items);
+    });
+    el.appendChild(h('div', { class: 'px-label', text: 'Earned' }));
+    var er = h('ul', { class: 'p-earned' });
+    (earned.length ? earned : ['Nothing yet. Tier II starts at 20.']).forEach(function (x) {
+      er.appendChild(h('li', { class: earned.length ? 'px-chip is-on' : 'px-muted', text: x }));
+    });
+    el.appendChild(er);
     el.appendChild(h('p', { class: 'p-text px-muted', style: { marginTop: '8px' }, text: 'Higher tiers replace items. The room never empties.' }));
   }
 
@@ -552,6 +649,7 @@
     });
     el.appendChild(grid);
     el.appendChild(h('p', { class: 'p-text px-muted', style: { marginTop: '10px' }, text: 'Dormant and archived skills keep their bottle and their steps. Pick one to open it.' }));
+    if (ROOM.uiRelics) ROOM.uiRelics.trophyList(el);
   }
 
   var RAMP = [
@@ -748,11 +846,6 @@
       K.emit('state');
       render();
     }, 'set-motion')));
-    ul.appendChild(h('li', null, 'Parallax', sw('Parallax', st.parallax !== false, function () {
-      st.parallax = st.parallax === false;
-      K.emit('state');
-      render();
-    }, 'set-parallax')));
     ul.appendChild(h('li', null, 'Night after 10 PM', h('span', { class: 'px-chip is-on', text: 'Auto' })));
     el.appendChild(ul);
     el.appendChild(h('div', { class: 'px-label', text: 'Placeholders' }));

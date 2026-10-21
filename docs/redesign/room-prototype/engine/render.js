@@ -14,13 +14,21 @@
  * device pixels and smoothing is off, so sampling is nearest-neighbour and still never blends.
  * No globalAlpha anywhere: the dim is a LUT.
  *
- * Frames are drawn only on change. Ambient motion (anim sprites, LED blink) ticks at 10 fps at most,
- * parallax at 30 fps at most, the dolly, dissolve and phone pan at display rate. Hidden tabs pause.
+ * Frames are drawn only on change. Ambient motion (anim sprites, LED blink, skill glow, embers) ticks
+ * at 10 fps at most, phone-pan depth at 30 fps at most, the dolly, dissolve and phone pan at display
+ * rate. Hidden tabs pause. There is no mouse-look parallax: layers separate only during the dolly and
+ * while the phone pan moves.
+ *
+ * Stepping into a zone: an 80 ms anticipation pull-back, the push-in, then on landing the rest of the
+ * room dims in DIM steps, the clicked object gets a spotlight pulse and opts.onArrive runs (the ui
+ * opens the panel). World size, horizon and zones come from ROOM_ART.zones (camera.configure).
  */
 (function () {
   'use strict';
   var ROOM = window.ROOM;
   var CAM = ROOM.camera;
+  CAM.configure(ROOM.art.zones || {});
+  var MID_X = CAM.CORE_W / 2;
   var D = ROOM.decode;
   var C = ROOM.C;
   var T = 255;
@@ -153,7 +161,7 @@
         cat: categoryOf(it, skill),
         // Engine dust only when the art has no "dust" variant of its own.
         dust: !!(skill && skill.neglected && key !== 'dust'),
-        statue: /statue/.test(it.id) || !!(it.target && it.target.feature === 'overall'),
+        statue: !!(it.target && it.target.feature === 'overall') || (it.kind === 'hotspot' && /statue/.test(it.id)),
         dog: /(^|[.\-_])dog\b/.test(it.id),
       };
       // Anim frames replace the base look only (a night or alert variant is a still).
@@ -170,6 +178,9 @@
           ? [d.x + img.bounds[0], d.y + img.bounds[1], img.bounds[2], img.bounds[3]]
           : [d.x, d.y, img.w, img.h];
       d.led = it.led ? [it.led[0] + dx, it.led[1] + dy] : null;
+      list.push(d);
+    });
+    if (ROOM.glow) ROOM.glow.relicDrawables().forEach(function (d) {
       list.push(d);
     });
     // Layer, then shell plates before objects (a full-height shell plate would otherwise sort last
@@ -263,12 +274,24 @@
         tA = statA;
         tB = statB;
       }
+      if (ROOM.glow) {
+        var sA = ROOM.glow.spotTable(d, tA, f.now);
+        if (sA) {
+          tA = sA;
+          tB = tA === tB ? sA : ROOM.glow.spotTable(d, tB, f.now);
+        }
+      }
       blit(f.buf, f.w, f.h, img, dx, dy, tA, tB, f.step, f.x0, f.y0);
       if (opts.marks) {
         if (d.dust) ROOM.fx.drawDust(f, img, dx, dy);
+        if (ROOM.glow) {
+          if (opts.outline) ROOM.glow.drawSkillGlow(f, d, img, dx, dy);
+          ROOM.glow.drawEmbers(f, d, img, dx, dy);
+          ROOM.glow.drawSpotRing(f, d, img, dx, dy);
+        }
         if (d.led && d.hotspot) ROOM.fx.drawLed(f, d, d.led[0] + f.offs[d.layer] - f.x0, d.led[1] - f.y0);
       }
-      if (opts.outline && d.hotspot && (d.id === hoverId || d.id === focusId || ROOM.state.inspect)) {
+      if (opts.outline && d.hotspot && !(d.skill && ROOM.glow) && (d.id === hoverId || d.id === focusId || ROOM.state.inspect)) {
         var ring = D.ring(img), col = lightCatColor(d.cat);
         for (var k = 0; k < ring.length; k += 2) plot(f, dx + ring[k], dy + ring[k + 1], col);
       }
@@ -278,8 +301,9 @@
   /* ------------------------------------------------------------------ view and camera */
   var stage, canvas, ctx;
   var view = null;
-  var pan = { x: 320, v: 0, target: null, dragging: false };
-  var mTarget = 0, mSmooth = 0;
+  var pan = { x: MID_X, v: 0, target: null, dragging: false };
+  var panSpeed = 0; // smoothed pan speed (CSS px/s) that drives the phone-pan layer depth
+  var arrive = null; // {item, fn}: what to do once the camera lands in a zone
   var hoverId = null, focusId = null;
   var lastZone = null;
 
@@ -296,11 +320,9 @@
     return cam;
   }
 
-  function parallaxEnabled() {
-    return !ROOM.state.reducedMotion && ROOM.state.parallax !== false;
-  }
   function offsetsFor(z) {
-    return parallaxEnabled() ? CAM.parallaxOffsets(mSmooth, view.s, z) : ZERO;
+    if (ROOM.state.reducedMotion || !view || view.mode !== 'pan' || ROOM.state.zone) return ZERO;
+    return CAM.panDepthOffsets(panSpeed, view.s, z);
   }
 
   /* ------------------------------------------------------------------ rest frame */
@@ -337,6 +359,7 @@
       },
       { marks: true, outline: true }
     );
+    if (ROOM.glow) ROOM.glow.post(f, dimOn);
     if (ROOM.fx) ROOM.fx.drawMotes(f);
     if (ROOM.overlay && !ROOM.state.photo) ROOM.overlay.drawMarks(f);
     // Expand indices to RGBA and draw once at z.
@@ -394,7 +417,7 @@
     var now = ROOM.now();
     var plan = CAM.dollyPlan(from, to, view);
     // Every layer stays inside the union of the start and end windows (it scales about the pivot
-    // between the two), plus parallax and rounding margin.
+    // between the two), plus pan depth and rounding margin.
     var R = padRect([CAM.visibleRect(from, view), CAM.visibleRect(to, view)], 12);
     var base = { now: now, lutA: light.from, lutB: light.to, step: light.step };
     var layers = [];
@@ -414,7 +437,7 @@
       [-1, 1].forEach(function (side) {
         var w = 0;
         var c = layerCanvas(R6, base, function (d) {
-          var ok = d.layer === 6 && (d.x + d.img.w / 2 < 320 ? -1 : 1) === side;
+          var ok = d.layer === 6 && (d.x + d.img.w / 2 < MID_X ? -1 : 1) === side;
           if (ok) w = Math.max(w, d.img.w); // slide the widest crop on this side fully clear
           return ok;
         });
@@ -427,6 +450,8 @@
       layers: layers,
       crops: crops,
       leaving: leaving,
+      // Push-ins into a zone get an anticipation pull-back first (not on the way out).
+      lead: toZone && !ROOM.state.reducedMotion ? CAM.ANTICIPATE_MS : 0,
       t0: now,
       oFrom: offsetsFor(from.z),
       oTo: offsetsFor(to.z),
@@ -443,7 +468,10 @@
 
   /** Draw one dolly frame. Returns false once the dolly has finished (u >= 1). */
   function renderDolly(now) {
-    var u = (now - dolly.t0) / CAM.DOLLY_MS;
+    var t = now - dolly.t0;
+    var u = Math.max(0, (t - dolly.lead) / CAM.DOLLY_MS);
+    // Scale about the screen centre: pulls back during the lead, released by the push-in.
+    var k = !dolly.lead ? 1 : t < dolly.lead ? CAM.anticipation(t) : CAM.release(u);
     if (u >= 1) {
       endDolly();
       return false;
@@ -454,7 +482,7 @@
     var p = dolly.plan;
     for (var L = 0; L <= 5; L++) {
       if (!dolly.layers[L]) continue;
-      drawSnapped(dolly.layers[L], dolly.R, CAM.dollyLayer(p, L, u, dolly.oFrom[L], dolly.oTo[L]), 0);
+      drawSnapped(dolly.layers[L], dolly.R, CAM.scaleAbout(CAM.dollyLayer(p, L, u, dolly.oFrom[L], dolly.oTo[L]), k, view), 0);
     }
     dolly.crops.forEach(function (cr) {
       var cam = dolly.leaving ? p.from : p.to;
@@ -472,10 +500,20 @@
     lastDollyU = null;
     if (ROOM.overlay) ROOM.overlay.setHidden(false);
     dirty = true;
+    landed();
+  }
+
+  // The camera is at rest in the target: spotlight pulse on the clicked object, then onArrive.
+  function landed() {
+    var a = arrive;
+    arrive = null;
+    if (!a) return;
+    if (a.item && ROOM.glow) ROOM.glow.spotlight(a.item);
+    if (a.fn) setTimeout(a.fn, ROOM.state.reducedMotion || !a.item ? 0 : 220);
   }
 
   /* ------------------------------------------------------------------ scheduler */
-  var raf = 0, timer = 0, dirty = true, lastTick = 0, lastParallaxDraw = -1e9, lastOffsKey = '', lastAmbient = '';
+  var raf = 0, timer = 0, dirty = true, lastTick = 0, lastDepthDraw = -1e9, lastOffsKey = '', lastAmbient = '';
 
   function kick() {
     if (!raf && !document.hidden && view) raf = requestAnimationFrame(tick);
@@ -492,12 +530,12 @@
       var d = drawables[i];
       if (d.frames) k += (Math.floor((now / 1000) * d.fps) % d.frames.length) + ',';
     }
-    return k + '|' + (ROOM.fx ? ROOM.fx.ambientKey(now) : '');
+    return k + '|' + (ROOM.fx ? ROOM.fx.ambientKey(now) : '') + '|' + (ROOM.glow ? ROOM.glow.ambientKey(now) : '');
   }
   function hasAmbient() {
     if (ROOM.state.reducedMotion) return false;
     for (var i = 0; i < drawables.length; i++) if (drawables[i].frames) return true;
-    return ROOM.fx ? ROOM.fx.hasAmbient() : false;
+    return (ROOM.fx && ROOM.fx.hasAmbient()) || (ROOM.glow && ROOM.glow.hasAmbient());
   }
   function scheduleAmbient() {
     if (timer || document.hidden || !hasAmbient()) return;
@@ -540,22 +578,24 @@
       dirty = true;
       busy = true;
     }
-    // On the phone, parallax follows the pan velocity so layers lead and lag, then realign at rest.
-    if (view.mode === 'pan' && !ROOM.state.zone) {
-      mTarget = CAM.clamp((pan.v * view.s) / view.dpr / 600, -1, 1);
-    }
-    mSmooth = CAM.easeParallax(mSmooth, mTarget, dt);
-    if (Math.abs(mTarget - mSmooth) < 0.002) mSmooth = mTarget;
+    // On the phone, layers lead and lag with the pan speed, then realign at rest (no mouse-look).
+    var speedTarget = view.mode === 'pan' && !ROOM.state.zone ? (pan.v * view.s) / view.dpr : 0;
+    panSpeed += (speedTarget - panSpeed) * (1 - Math.exp(-dt / 180));
+    if (Math.abs(speedTarget - panSpeed) < 1) panSpeed = speedTarget;
     else busy = true;
     var offsKey = offsetsFor(restCamera().z).join(',');
     if (offsKey !== lastOffsKey) {
-      if (now - lastParallaxDraw >= 33 || ROOM.clock.frozen) {
+      if (now - lastDepthDraw >= 33 || ROOM.clock.frozen) {
         lastOffsKey = offsKey;
-        lastParallaxDraw = now;
+        lastDepthDraw = now;
         dirty = true;
       } else busy = true; // 30 fps cap: come back next frame
     }
     if (ROOM.fx && ROOM.fx.busy(now)) {
+      dirty = true;
+      busy = true;
+    }
+    if (ROOM.glow && ROOM.glow.busy(now)) {
       dirty = true;
       busy = true;
     }
@@ -648,6 +688,8 @@
   /**
    * Step into a zone (id) or back out to the room (null) with the dolly.
    * opts.push (default true) asks the router to push a history entry; opts.instant skips the dolly.
+   * opts.item: the clicked object (spotlight pulse on landing); opts.onArrive: called once the camera
+   * is at rest (also when already in that zone).
    */
   ROOM.go = function (zoneId, opts) {
     opts = opts || {};
@@ -655,8 +697,16 @@
     if (zoneId && !zone) return false;
     var id = zone ? zone.id : null;
     var prev = ROOM.state.zone;
-    if (id === prev) return false;
+    if (id === prev) {
+      if (opts.item || opts.onArrive) {
+        arrive = { item: opts.item || null, fn: opts.onArrive || null };
+        if (!dolly) landed();
+      }
+      return false;
+    }
     if (dolly) endDolly();
+    arrive = opts.item || opts.onArrive ? { item: opts.item || null, fn: opts.onArrive || null } : null;
+    if (id !== 'window' && ROOM.state.statueLight) ROOM.state.statueLight = false;
     var from = view ? restCamera() : null;
     if (!id && prev && view && view.mode === 'pan') {
       // Back to the room on the phone: settle on the zone's stop.
@@ -671,6 +721,7 @@
       startDolly(from, restCamera(), prev, id);
     }
     ROOM.emit('zone', { zone: id, from: prev, push: opts.push !== false });
+    if (!dolly) landed();
     invalidate();
     return true;
   };
@@ -758,10 +809,6 @@
       return canvas;
     },
     pan: pan,
-    setPointer: function (m) {
-      mTarget = CAM.clamp(m, -1, 1);
-      kick();
-    },
     setHover: function (id) {
       if (hoverId !== id) {
         hoverId = id;

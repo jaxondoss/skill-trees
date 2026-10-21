@@ -1,0 +1,163 @@
+{
+ "part": "statue-relics",
+ "items": [
+  {
+   "id": "window.statue",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 384,
+   "y": 135,
+   "w": 86,
+   "h": 224,
+   "variants": {
+    "base": "art-v3/window/statue.base.png",
+    "t1": "art-v3/window/statue.t1.png",
+    "t2": "art-v3/window/statue.t2.png",
+    "t3": "art-v3/window/statue.t3.png",
+    "t4": "art-v3/window/statue.t4.png",
+    "t5": "art-v3/window/statue.t5.png"
+   },
+   "target": {
+    "feature": "overall"
+   },
+   "label": "FORGE",
+   "led": [
+    461,
+    355
+   ],
+   "contact": 357,
+   "note": "10 ft obsidian figure, backlit alcove, gold plating by section (0/2/4/6/7), pedestal stone/marble/gilded + tier plaque"
+  },
+  {
+   "id": "window.downlight-fixture",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 418,
+   "y": 126,
+   "w": 17,
+   "h": 6,
+   "variants": {
+    "base": "art-v3/window/downlight-fixture.base.png"
+   },
+   "note": "ceiling downlight above the statue (off)"
+  },
+  {
+   "id": "window.statue-downlight",
+   "zone": "window",
+   "kind": "overlay",
+   "layer": 3,
+   "x": 357,
+   "y": 126,
+   "w": 140,
+   "h": 244,
+   "variants": {
+    "base": "art-v3/window/statue-downlight.base.png"
+   },
+   "anim": {
+    "frames": [
+     "art-v3/window/statue-downlight.f0.png",
+     "art-v3/window/statue-downlight.f1.png",
+     "art-v3/window/statue-downlight.f2.png"
+    ],
+    "fps": 4
+   },
+   "note": "shown when the statue is selected: downlight on, cone, dust motes (anim frames move the motes)"
+  },
+  {
+   "id": "window.statue-closeup",
+   "zone": "window",
+   "kind": "overlay",
+   "layer": 6,
+   "x": 180,
+   "y": 145,
+   "w": 241,
+   "h": 456,
+   "variants": {
+    "base": "art-v3/window/statue-closeup.base.png",
+    "t1": "art-v3/window/statue-closeup.t1.png",
+    "t2": "art-v3/window/statue-closeup.t2.png",
+    "t3": "art-v3/window/statue-closeup.t3.png",
+    "t4": "art-v3/window/statue-closeup.t4.png",
+    "t5": "art-v3/window/statue-closeup.t5.png"
+   },
+   "note": "panel close-up of the statue at 2x detail, per tier"
+  },
+  {
+   "id": "window.relic",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 514,
+   "y": 134,
+   "w": 41,
+   "h": 46,
+   "variants": {
+    "base": "art-v3/window/relic.base.png",
+    "active": "art-v3/window/relic.active.png",
+    "hot": "art-v3/window/relic.hot.png",
+    "gold": "art-v3/window/relic.gold.png"
+   },
+   "target": {
+    "feature": "relic-window"
+   },
+   "label": "RELIC",
+   "led": [
+    554,
+    177
+   ],
+   "note": "arched relic niche above the window (base: empty with a pixel plus; active: forged iron medal)"
+  },
+  {
+   "id": "kitchen.relic",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 97,
+   "y": 236,
+   "w": 21,
+   "h": 31,
+   "variants": {
+    "base": "art-v3/kitchen/relic.base.png",
+    "active": "art-v3/kitchen/relic.active.png",
+    "hot": "art-v3/kitchen/relic.hot.png",
+    "gold": "art-v3/kitchen/relic.gold.png"
+   },
+   "target": {
+    "feature": "relic-left"
+   },
+   "label": "RELIC",
+   "led": [
+    113,
+    262
+   ],
+   "note": "left relic wall mount beside the door"
+  },
+  {
+   "id": "gym.relic",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 802,
+   "y": 234,
+   "w": 21,
+   "h": 31,
+   "variants": {
+    "base": "art-v3/gym/relic.base.png",
+    "active": "art-v3/gym/relic.active.png",
+    "hot": "art-v3/gym/relic.hot.png",
+    "gold": "art-v3/gym/relic.gold.png"
+   },
+   "target": {
+    "feature": "relic-right"
+   },
+   "label": "RELIC",
+   "led": [
+    817,
+    260
+   ],
+   "note": "right relic bracket by the gym"
+  }
+ ]
+}
