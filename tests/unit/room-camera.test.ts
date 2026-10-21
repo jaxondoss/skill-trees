@@ -27,7 +27,7 @@ describe("device table", () => {
     ["390x844@3 phone", 390, 844, 3, 9, "pan", 130, 281],
   ];
   it.each(rows)("%s", (_name, w, h, dpr, s, mode, wv, hv) => {
-    const v = view(w, h, dpr);
+    const v = view(w!, h!, dpr!);
     expect(v.s).toBe(s);
     expect(v.mode).toBe(mode);
     expect(Math.round(v.Wv)).toBe(wv);
@@ -43,9 +43,9 @@ describe("mode rule", () => {
       [1366, 650, 1],
       [2560, 1440, 1],
     ]) {
-      const v = view(w, h, dpr);
+      const v = view(w!, h!, dpr!);
       expect(v.mode).toBe("room");
-      expect(v.s / dpr).toBeGreaterThanOrEqual(1.5);
+      expect(v.s / dpr!).toBeGreaterThanOrEqual(1.5);
       expect(v.s).toBe(Math.min(Math.floor(v.Wd / 640), Math.floor(v.Hd / 270)));
     }
   });
@@ -78,7 +78,7 @@ describe("mode rule", () => {
       [1366, 650, 1],
       [2560, 1440, 1],
     ]) {
-      const v = view(w, h, dpr);
+      const v = view(w!, h!, dpr!);
       expect(v.z0).toBeGreaterThanOrEqual(v.s);
       expect(v.z0).toBeLessThanOrEqual(1.3 * v.s + 1e-9);
       const r = C.visibleRect(C.roomCamera(v), v);
@@ -130,7 +130,7 @@ describe("zone zoom", () => {
       [1536, 730, 1.25],
       [1366, 650, 1],
     ]) {
-      const v = view(w, h, dpr);
+      const v = view(w!, h!, dpr!);
       for (const z of zones) {
         const zz = C.zoneZoom(v, z.focus);
         expect(Number.isInteger(zz)).toBe(true);
@@ -148,14 +148,14 @@ describe("zone zoom", () => {
   });
   it("clamps the zone camera so the window stays inside the art", () => {
     const v = view(1440, 702, 2);
-    const kitchen = C.zoneCamera(v, zones[0].focus);
-    const gym = C.zoneCamera(v, zones[6].focus);
+    const kitchen = C.zoneCamera(v, zones[0]!.focus);
+    const gym = C.zoneCamera(v, zones[6]!.focus);
     for (const [cam, z] of [
-      [kitchen, zones[0]],
-      [gym, zones[6]],
+      [kitchen, zones[0]!],
+      [gym, zones[6]!],
     ] as const) {
       const r = C.visibleRect(cam, v);
-      const fx = z.focus[0] + z.focus[2] / 2;
+      const fx = z.focus[0]! + z.focus[2]! / 2;
       expect(fx).toBeGreaterThanOrEqual(r.x);
       expect(fx).toBeLessThanOrEqual(r.x + r.w);
     }
@@ -211,8 +211,8 @@ describe("dolly", () => {
         for (let L = 0; L <= 5; L++) {
           for (let i = 0; i <= 20; i++) {
             const [X, Y] = point(C.dollyLayer(plan, L, i / 20), P.x, P.y);
-            expect(X).toBeCloseTo(fixed[0], 6);
-            expect(Y).toBeCloseTo(fixed[1], 6);
+            expect(X).toBeCloseTo(fixed[0]!, 6);
+            expect(Y).toBeCloseTo(fixed[1]!, 6);
           }
         }
       }
@@ -221,7 +221,7 @@ describe("dolly", () => {
 
   it("zooms monotonically, near layers ahead of far layers", () => {
     const v = devices[0];
-    const plan = C.dollyPlan(C.roomCamera(v), C.zoneCamera(v, zones[2].focus), v);
+    const plan = C.dollyPlan(C.roomCamera(v), C.zoneCamera(v, zones[2]!.focus), v);
     for (let L = 0; L <= 5; L++) {
       let prev = 0;
       for (let i = 0; i <= 30; i++) {
@@ -327,7 +327,7 @@ describe("phone pan", () => {
         t += 1 / 60;
       }
       expect(t).toBeLessThan(2);
-      expect(Math.abs(x - target)).toBeLessThan(0.05);
+      expect(Math.abs(x! - target)).toBeLessThan(0.05);
     }
   });
   it("picks the stop nearest the momentum target", () => {

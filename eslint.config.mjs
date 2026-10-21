@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     "coverage/**",
     // Static design mockups, not app code.
     "docs/**",
+    // The room prototype copied by scripts/room-sync.mjs (classic browser scripts).
+    "public/room/**",
   ]),
 ]);
 

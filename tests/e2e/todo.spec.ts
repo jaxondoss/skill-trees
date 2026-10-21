@@ -48,7 +48,7 @@ test("a step is added with a size and details", async ({ page }) => {
 });
 
 test("adding a goal from Today puts it on today's plan", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/board");
   const today = page.locator("#today");
   await today.getByLabel("New goal for today").fill("E2E Stretch hips");
   await today.getByLabel("Skill").selectOption({ label: "Strength" });
@@ -57,7 +57,7 @@ test("adding a goal from Today puts it on today's plan", async ({ page }) => {
 });
 
 test("the journal saves to Mind from the L key", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/board");
   const dialog = page.getByRole("dialog", { name: "Journal" });
   // The key listener attaches on hydration; press until it answers.
   await expect(async () => {

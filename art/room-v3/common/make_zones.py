@@ -25,7 +25,7 @@ def main():
                  else (i["x"], i["y"], i["x"] + i["w"], i["y"] + i["h"]) for i in hs]
         x0 = min(b[0] for b in boxes); y0 = min(b[1] for b in boxes)
         x1 = max(b[2] for b in boxes); y1 = max(b[3] for b in boxes)
-        w = max(330, (x1 - x0) + 36, ((y1 - y0) + 30) * 16 / 9)
+        w = min(400, max(330, (x1 - x0) + 36, ((y1 - y0) + 30) * 16 / 9))  # ~1/3 of the room
         h = w * 9 / 16
         cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
         fx = min(max(cx - w / 2, AX), AX + AW - w)

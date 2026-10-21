@@ -198,7 +198,7 @@
    "zone": "library",
    "kind": "decor",
    "layer": 3,
-   "x": 271,
+   "x": 365,
    "y": 134,
    "w": 22,
    "h": 75,
@@ -272,14 +272,14 @@
    "zone": "window",
    "kind": "decor",
    "layer": 5,
-   "x": 152,
-   "y": 368,
-   "w": 679,
-   "h": 262,
+   "x": 622,
+   "y": 358,
+   "w": 79,
+   "h": 8,
    "variants": {
     "base": "art-v3/window/cables-floor.base.png"
    },
-   "contact": 368,
+   "contact": 358,
    "note": "cables snaking across the floor to the CRTs"
   },
   {
@@ -303,8 +303,8 @@
    "layer": 6,
    "x": -120,
    "y": -90,
-   "w": 167,
-   "h": 158,
+   "w": 129,
+   "h": 138,
    "variants": {
     "base": "art-v3/shell/crop.plant.base.png"
    },

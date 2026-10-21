@@ -36,6 +36,6 @@ test("start with empty lists clears goals and open steps, then starter ideas fil
   await goals.getByRole("button", { name: "Read" }).click();
   await expect(goals.getByRole("button", { name: "Edit Read" })).toBeVisible();
 
-  await page.goto("/");
+  await page.goto("/board");
   await expect(page.locator("a[data-skill-tile]", { hasText: "Meditation" })).toContainText("Empty to-do list");
 });

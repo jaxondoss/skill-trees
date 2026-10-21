@@ -1,51 +1,80 @@
 # FORGE spec v3: the room
 
-Status: phase 1 delivered (this spec + clickable prototype). Supersedes v2 sections 3, 4, 8, 9, 10 once built.
-Prototype: `docs/redesign/room-prototype/` (open `index.html` via any static server; `?state=fresh` shows a
-new account). Contract and file ownership: `docs/redesign/room-prototype/CONTRACT.md`. Design maths:
-camera, layers and rendering as recorded in the contract and `engine/camera.js` (unit-tested in
-`tests/unit/room-camera.test.ts`).
+Status: live in the app at `/` and `/room/<zone>` (2026-10-21) with real data and real logging; the v2 board
+moved to `/board`. The owner's revision of 2026-10-21 (below) supersedes earlier text where they differ.
+Prototype (source of truth for engine, ui and art): `docs/redesign/room-prototype/`; `node
+scripts/room-sync.mjs` copies it into `public/room/`. Contract: `docs/redesign/room-prototype/CONTRACT.md`.
+Camera maths: `engine/camera.js`, tested in `tests/unit/room-camera.test.ts`.
 
 ## 1. The idea
 One 16-bit pixel-art diorama of Jaxon's college room, seen whole from eye level like a stage set. Effort
-fills the obsidian statue with gold; every skill lives in one object; logging stays under 30 seconds.
-Light is earned: the sun, the statue's gold and lit LEDs are the brightest things on screen. Misses show as
-dust, never damage. Reference: `docs/references/sunset-room.jpg` (measured 1129 x 2000, 84% of pixels
-below 35% luma; we keep about that darkness).
+plates the obsidian statue in gold; every skill lives in one object; logging stays under 30 seconds.
+Light is earned. Light order: statue gold > relic embers > skill outlines > decor. Window, sun patch and
+statue gold are brightest; lamp pools, CRTs and LEDs are mid (radial <= 24 px); edges stay dark (vignette
+on the outer 15%). Misses show as dust, never damage.
 
-## 2. Camera and screen fit (decision D1)
-- Integer scaling in device pixels. Art is 800 x 480 around the 640 x 270 core, so every laptop shows all
-  seven zones with no black bars. Room mode when an art pixel is at least 1.5 CSS px, otherwise pan mode.
-- Jaxon's browser (1440 x 702 @2x): scale 4, 720 x 351 visible. 1920 x 950 @1x: scale 3. iPhone
-  390 x 844 @3x: scale 9, 130 x 281 window, swipe to pan with momentum and soft snap to zone stops.
-- Horizon at 45% of the visible window. Zone step-in is an integer zoom (2x on laptop), a 450 ms dolly
-  pivoting on the zone (near layers grow faster and leave first), landing exactly on the integer scale.
-- Parallax: horizontal only, 0 px (sky) to 6 px (frame crops), snapped to whole pixels. Reduced motion:
-  cuts, no parallax.
+## 2. Camera
+- Art core 960 x 540 (art-v3.js). Default view is the whole room, 1.3x closer than the old full view,
+  horizon at about 42%. No mouse-look parallax anywhere: depth layers move only during the zoom dolly and
+  the phone pan.
+- Zoom into a zone fills the screen with about 1/3 of the room (focus boxes capped at 400 px wide). The
+  dolly: 80 ms anticipation pull-back, push-in, the rest of the room dims by palette steps, the clicked
+  object gets a spotlight pulse on landing, then its panel slides in. The zone title fades in within
+  about 120 ms of the click. Clicking a Today goal never moves the camera (only the mote flies). After a
+  log inside a zone the camera stays until Esc.
+- Routing: `/` (or `/room`) is the whole room, `/room/<zone>` a zone; steps use history.pushState so Back
+  walks out. Keys 1-7 step in, Esc steps out.
 
-## 3. Composition and layers
-Back wall: library (left), window (centre), study desk (right). Left wall: bed (back), door and kitchen
-(front). Right wall: computer (back), gym (front). Statue on a plinth and rug forward-left of centre, dog
-in the sunbeam, ceiling fan, pendants, AC unit, conduit. Seven depth bands L0 sky ... L6 frame crops; an
-object takes the band of the floor row it stands on (see contract). Decision D2: the statue is about 3/5
-scale (81 px with plinth), because a life-size figure at eye level would be 120 to 140 px and cover the
-window; tiers also read through veins, halo, plinth and the panel close-up.
+## 3. Perspective and look
+- Original geometry idea (art/room/common/room.py), scaled to the new resolution: the side walls are raked
+  flats that get bigger toward the viewer (left wall top y = 62 - 0.15(176 - x), bottom
+  y = 198 + 0.19375(176 - x), mirrored on the right), so the room opens wide instead of narrowing.
+- Look from the approved still (art/room-v2/build.py): honey-oak plank floor leading to the statue, warm
+  wood panelled walls a shade darker, ceiling with wood beams, trailing pothos, a small skylight, pendant
+  lamps, cables; no fan.
+- Statue: about 10 ft obsidian figure on the back wall between the bookcase and the window, backlit with a
+  clear rim light, same pose always. Gold plating by body section (tiers I..V: 0, 2, 4, 6, all 7
+  sections; V eyes glow). Pedestal stone, marble, gilded by tier with a plaque showing only the tier name
+  (for example "III · FORGED"). Clicking it zooms to the window area and turns on a ceiling downlight cone
+  with dust motes.
+- Tiers change three big things plus the light: II bed frame, string lights, desk lamp; III big rug, desk
+  chair, framed posters; IV leather armchair, wood bookcase, plant wall; V neon FORGE sign, gilded pedestal,
+  warm light everywhere.
+- Every zone has an "it's on" light when the zone or its object opens (bedside lamp, reading lamp, desk
+  lamp, monitor glow, gym light, kitchen pendant, statue downlight).
+- Night: blinds up, slate night sky, lit shotgun-house windows, streetlights, streetcar headlight, cool
+  moonlight in, warm lamps; completion sets how many lamps are on. The floor sun patch is hidden at night.
+- Signs never carry invented words (symbols or blank lines), except FORGE, WELCOME, the pennant and the
+  plaque. No Tulane crest, no IRONMAN M-dot.
 
-## 4. Zones and hotspots (keys 1-7, left to right)
-| Key | Zone | Hotspots |
-| --- | --- | --- |
-| 1 | Kitchen and door | fridge + hot plate + kettle (Food), door corkboard (College Integration), doormat (review letter), switchboard (Settings) |
-| 2 | Bed | bed (Sleep), scale (bodyweight) |
-| 3 | Library | bookshelf (Reading), chess table (Chess), floor cushion (Meditation), potion shelf (archive, 15 bottles) |
-| 4 | Window | sill plants (Gut Health), vision board (Visualization), big CRT (Today), small CRT (stats) |
-| 5 | Study desk | backpack (Academics, red sheet when something is due within 48 h), wall calendar (Time Blocking + completion calendar), notebook (journal); pennant and photo frame are decor |
-| 6 | Computer | main monitor (AI Building), second monitor (Dropshipping), sticky note (focus line) |
-| 7 | Gym | dumbbell rack + bench (Strength), shoes + bib (Running), covered bike (Triathlon, dormant) |
-| 0 | Full room | statue (overall, tiers, upgrade tree) |
+## 4. Zones (keys 1-7), one object per skill, no overlaps
+| Key | Zone | Skill objects | Features | Decor (art manifests) |
+| --- | --- | --- | --- | --- |
+| 1 | Kitchen and door | fruit basket (Food; bodyweight logs here), big leafy plant (Gut Health), door with flyer board (College Integration) | water jug growth piece, doormat (review letter), switchboard (Settings), LEFT relic mount | pendant, pothos, counter, kettle, microwave, spices, board, table, water, stool, hooks, shoes, clock, switch |
+| 2 | Bed | bed with alarm clock (Sleep), floor cushion (Meditation), plasma globe (Visualization) | | string lights, frame, nightstand, sconce, poster, hamper, slippers, runner, shelf, charger |
+| 3 | Library | bookshelf with reading chair and lamp (Reading), chess table (Chess) | lit trophy case + potion shelf of 15 bottles (archive) | pendant, pothos, armchair, potions, bookcase, poster, sign, stool, books on the floor, clock, globe, shelf plant |
+| 4 | Window | statue (overall) | relic NICHE above the window, big CRT (Today), small CRT (stats) | skylight, ceiling and floor cables, rug, amp, plants, sill mug and books, vinyl, plant wall, power strip, downlight fixture |
+| 5 | Study | desk with backpack, lamp, class corkboard (Academics; red sheet when due < 48 h), wall calendar + planner (Time Blocking) | course books (one per course, coloured spines), journal | pendant, pothos, desk, lamp, chair, backpack, pennant, photo frame, shelf, bin, headphones, mug |
+| 6 | Computer | computer and monitors (AI Building), product whiteboard (Dropshipping) | money tree growth piece, sticky note (focus line) | desk, money tree, chair, speakers, router, cables, boxes, LED strip, headset, shelf, can |
+| 7 | Gym | weight rack (Strength), shoes + medal wall + bib + mileage poster (Running), bike half under a tarp with the swim/bike/run emblem (Triathlon; tarp off when active) | RIGHT relic bracket | medals, tiles, kettlebell, bag, roller, bottle, rope, timer, trophies, mat, light, chalk |
 
-Each zone has at least 10 named decor props; the full inventory (153 items) is in the manifests
-`art/room/*/manifest.json` (field `note`). Every hotspot object has stages s0/s1/s2 (scores 0-33, 34-66,
-67-100) and engine-drawn dust when neglected 7+ days.
+130 art items: 27 hotspots, 88 decor, 7 shell, 8 overlays (`art/room-v3/*/manifest.json`).
+
+## 4a. Skill glow
+1 px warm-gold outline on the outer silhouette of every skill object, breathing 30%..70% over 2.5 s; a
+3-frame shimmer (one bright pixel, then a 3x3 plus with a white centre and pastel arms, then four dim tips)
+at 8-10 fps, once every 4-7 s per item with random offsets. Hover or focus: outline 100% plus one sparkle.
+Done today: outline and sparkles off (the LED still shows done). Reduced motion: static outline only.
+
+## 4b. Relics
+Three mounts: left by the door, the niche above the window, the right bracket by the gym. An empty mount
+shows a subtle pixel plus; clicking opens a pixel shop shelf of about 50 relics by category plus a custom
+one (title, linked skill, a number target or comma-separated steps, optional deadline). An active relic
+glows with embers (orange to deep red, uneven flicker, rising ember pixels, brighter at night) and is
+forged dark iron (< 1/3), glowing hot, then cast gold at 100%. Achieved: anvil strike and hiss, then it
+moves to the trophy case. Data: table `relics` (migration 0011, owner RLS, one active relic per slot).
+Progress is computed on the server from the linked skill's metric against the target (src/lib/data/room.ts
+RELIC_METRIC), a milestone, or the steps. Actions: `src/app/relic-actions.ts`.
 
 ## 5. Status in the world (D5)
 LEDs drawn by the engine in true category colour: dark socket = no goal today, hollow = pending, half =
@@ -71,9 +100,9 @@ School slate, Athletics CRT red, Nutrition leaf, Mind plum. Silkscreen for label
 body text in pixel windows.
 
 ## 8. Art pipeline
-Art is drawn by Pixel Art Studio build scripts (`art/room/<part>/build.py`), palette-locked by
-`art/room/common/room.py`, merged by `scripts/room-art.py` into `art.js` (indexed, RLE), which fails on any
-off-palette pixel. Each part ran at least three see, critique, fix passes. Room tiers I-V swap decor
+v3 art is drawn by Pixel Art Studio build scripts (`art/room-v3/<part>/build.py`: shell, left, back, right,
+statue-relics), palette-locked by `art/room-v3/common/room.py`, merged by `art/room-v3/merge.py` into
+`art-v3.js` (indexed, RLE), which fails on any off-palette pixel. Each part ran at least three see, critique, fix passes. Room tiers I-V swap decor
 variants (bare bulb to brass dome, mattress on the floor to upholstered bed, folding desk to custom desk
 with a neon FORGE sign); higher tiers replace items, never empty the room.
 
@@ -86,9 +115,14 @@ with a neon FORGE sign); higher tiers replace items, never empty the room.
 - D9: room-tier losses only after 7 days below a threshold, with 2-point hysteresis, from score snapshots.
 - D12: the sky is a completion meter, not a clock: a 9 AM sky stays dusky until goals are done.
 
-## 10. Phases after review (each ends green; v2 stays live until the room covers every feature)
-2. Art polish and assets in `public/room/`, palette check in CI. 3. Engine in the app: `src/components/room/`,
-`/room/[[...zone]]` with shallow routing. 4. Today HUD wired to the real actions (keeping `#today`,
-"Complete:"/"Undo:", "Jump to today's goals"). 5. Panels on the real skill pages, calendar, journal,
-archive, reviews. 6. Stages, tiers, night, seasons, holidays, dog, photo mode, sound. 7. Cutover: `/`
-renders the room, v2 board retired, e2e suite migrated.
+## 10. In the app (2026-10-21)
+- `/` and `/room/<zone>`: `src/app/(room)/layout.tsx` loads `loadRoomData()` (src/lib/data/room.ts, same
+  shape as the prototype's data.js plus `live: true`) and renders `src/components/room/RoomClient.tsx`,
+  which loads the classic scripts from `public/room/` in order and bridges the room's events to the server:
+  log -> completeGoal, swap -> swapGoal, bodyweight and numbers -> addMetric, focus -> saveFocusLine,
+  relic -> createRelic / updateRelicSteps / achieveRelic / abandonRelic. Fresh data is applied once no save
+  is in flight; errors show as a pixel status line. The dock, field and pointer light stay off the room.
+- `/board` keeps the v2 board; the dock has Room and Overview.
+- Tests: `tests/e2e/room.spec.ts` (zones and URLs, Back, Today logging under 30 s to 100%, panels, Shift
+  nameplates, relics). Next: panels for calendar, journal, archive and reviews on real data; photo frame
+  from `public/room/user/wall-frame.png`; the optional 1.2x goal boost for a relic's linked skill.

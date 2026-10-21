@@ -1,0 +1,165 @@
+/* FORGE room prototype: engine styles (stage, canvas, hotspot buttons, zone dots).
+   ui/ui.css is linked after this file and styles the HUD, panel, drawer and help sheet. */
+
+:root {
+  --void: #0c0a0c;
+  --ink: #141517;
+  --gold-dk: #6e5422;
+  --gold: #d9a441;
+  --cream: #f4e6c4;
+  --rim: #da6339;
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--void);
+  color: var(--cream);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+#room-stage {
+  position: fixed;
+  inset: 0;
+  touch-action: none; /* the engine handles pan and taps */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#room-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated; /* the canvas is sized in device pixels; this only guards odd zooms */
+  cursor: pointer;
+}
+
+/* Hotspot buttons: transparent targets over the art. The canvas draws the focus outline in the
+   object's category colour, so the default ring is replaced by a thin matching inset. */
+#room-hotspots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#room-hotspots.moving {
+  visibility: hidden;
+}
+#room-hotspots .hs {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: auto;
+  cursor: pointer;
+  outline: none;
+}
+#room-hotspots .hs:focus-visible {
+  outline: 1px dashed var(--gold);
+  outline-offset: 2px;
+}
+#room-hotspots .hs[hidden] {
+  display: none;
+}
+
+/* Zone dots, bottom centre. */
+#zone-dots {
+  position: fixed;
+  left: 50%;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 20;
+}
+#zone-dots .zone-dot {
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+#zone-dots .zone-dot::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--gold-dk);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+#zone-dots .zone-dot:hover::before {
+  background: var(--gold);
+}
+#zone-dots .zone-dot[aria-current="true"]::before {
+  width: 8px;
+  height: 8px;
+  background: var(--cream);
+}
+#zone-dots .zone-dot:focus-visible {
+  outline: 1px dashed var(--gold);
+  outline-offset: -2px;
+}
+
+/* Zone title: a pixel-font canvas, revealed in Bayer steps within ~120 ms of the click. */
+#zone-title {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  pointer-events: none;
+  image-rendering: pixelated;
+}
+#zone-title[hidden] {
+  display: none;
+}
+
+/* Photo mode (P): hide everything but the room. ui/ui.css can key off body.photo too. */
+body.photo #zone-dots,
+body.photo #zone-title,
+body.photo #room-hotspots {
+  display: none;
+}
+
+#svh-probe {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100svh;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Phone: the zone title sits below the HUD strip (8 px gap + 44 px buttons + strip padding). */
+@media (max-width: 640px) {
+  #zone-title {
+    top: calc(68px + env(safe-area-inset-top, 0px));
+  }
+}
+
+@media (pointer: coarse) {
+  #zone-dots .zone-dot {
+    width: 32px;
+    height: 44px;
+  }
+}

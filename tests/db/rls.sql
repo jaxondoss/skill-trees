@@ -54,7 +54,8 @@ begin
     'profiles', 'categories', 'skills', 'milestones', 'non_negotiables', 'schedule_templates',
     'schedule_days', 'day_overrides', 'key_dates', 'rack_pins', 'daily_plans', 'plan_goals',
     'metrics', 'skill_logs', 'score_snapshots', 'daily_completions', 'streak_state',
-    'integrations', 'assignments', 'sleep_sessions', 'weekly_reviews', 'monthly_reviews', 'journal_entries'
+    'integrations', 'assignments', 'sleep_sessions', 'weekly_reviews', 'monthly_reviews', 'journal_entries',
+    'relics'
   ] loop
     execute format('select count(*) from public.%I where user_id <> $1', t) into foreign_rows using me;
     assert foreign_rows = 0, format('A can read other users rows in %s', t);
@@ -134,6 +135,44 @@ do $$ begin
   -- Slot 2 was seeded unlocked (onboarding confirms the rack), so it can change.
   delete from public.rack_pins where slot = 2;
   assert (select count(*) from public.rack_pins) = 4, 'unlocked pin removed';
+end $$;
+commit;
+
+-- ── Relics: owner-only, one active relic per mount.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', :b, true) \g /dev/null
+insert into public.relics (user_id, slot, title) values ('bbbbbbbb-0000-0000-0000-000000000002', 'left', 'B relic');
+commit;
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', :a, true) \g /dev/null
+do $$
+declare n bigint;
+begin
+  assert (select count(*) from public.relics) = 0, 'A sees B relics';
+  begin
+    insert into public.relics (user_id, slot, title) values ('bbbbbbbb-0000-0000-0000-000000000002', 'right', 'forged');
+    raise exception 'relic insert as B succeeded';
+  exception when insufficient_privilege then null;
+  end;
+  with u as (update public.relics set title = 'hacked' where user_id = 'bbbbbbbb-0000-0000-0000-000000000002' returning 1)
+  select count(*) into n from u;
+  assert n = 0, 'A updated B relics';
+  insert into public.relics (user_id, slot, title) values (auth.uid(), 'window', 'First');
+  begin
+    insert into public.relics (user_id, slot, title) values (auth.uid(), 'window', 'Second');
+    raise exception 'two active relics in one slot';
+  exception when unique_violation then null;
+  end;
+  update public.relics set status = 'achieved', achieved_at = now() where slot = 'window';
+  insert into public.relics (user_id, slot, title) values (auth.uid(), 'window', 'Second');
+  assert (select count(*) from public.relics where slot = 'window') = 2, 'achieved relic frees the slot';
+  begin
+    insert into public.relics (user_id, slot, title) values (auth.uid(), 'ceiling', 'Bad');
+    raise exception 'bad slot accepted';
+  exception when check_violation then null;
+  end;
 end $$;
 commit;
 

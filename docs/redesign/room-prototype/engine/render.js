@@ -415,6 +415,7 @@
 
   function startDolly(from, to, fromZone, toZone) {
     var now = ROOM.now();
+    if (light.key === null) updateLighting(now); // a key pressed before the first frame
     var plan = CAM.dollyPlan(from, to, view);
     // Every layer stays inside the union of the start and end windows (it scales about the pivot
     // between the two), plus pan depth and rounding margin.

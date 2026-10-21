@@ -13,7 +13,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("smoke: complete 3 goals, then the ring, calendar, and bottles update", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/board");
   await expect(todayPercent(page)).toContainText("0%");
   const before = await page.locator('#today button[aria-label^="Dropshipping,"]').getAttribute("aria-label");
 
@@ -37,7 +37,7 @@ test("smoke: complete 3 goals, then the ring, calendar, and bottles update", asy
 });
 
 test("a full day's logging takes under 30 seconds", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/board");
   const rows = coreRows(page);
   const n = await rows.count();
   const started = Date.now();
@@ -49,7 +49,7 @@ test("a full day's logging takes under 30 seconds", async ({ page }) => {
 });
 
 test("tap again undoes a completion", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/board");
   const row = coreRows(page).first();
   await checkbox(row).click();
   await expect(checkbox(row)).toHaveAttribute("aria-pressed", "true");
@@ -59,7 +59,7 @@ test("tap again undoes a completion", async ({ page }) => {
 });
 
 test("long-press opens tiers, intention, and notes; choosing Floor logs at Floor", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/board");
   const row = coreRows(page).first();
   await row.scrollIntoViewIfNeeded();
   const box = (await row.locator("p").last().boundingBox())!;
@@ -85,7 +85,7 @@ test("long-press opens tiers, intention, and notes; choosing Floor logs at Floor
 });
 
 test("swipe left swaps a goal, once per day", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/board");
   const balance = page.locator("#today h3:has-text('Balance') + ul li").first();
   const name = await balance.locator("p").first().textContent();
   await balance.scrollIntoViewIfNeeded();
@@ -105,7 +105,7 @@ test("swipe left swaps a goal, once per day", async ({ page }) => {
 });
 
 test("pinning locks a skill for 7 days; an unlocked pin can be replaced", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/board");
   await page.getByRole("button", { name: /^Academics, \d+$/ }).click();
   await page.getByRole("button", { name: "Remove Academics from the rack" }).click();
   await expect(page.getByRole("button", { name: "Empty slot 5. Pin a skill" })).toBeVisible();
@@ -124,7 +124,7 @@ test("pinning locks a skill for 7 days; an unlocked pin can be replaced", async 
 });
 
 test("calendar day opens a detail sheet with each goal's result", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/board");
   await checkbox(coreRows(page).first()).click();
   await page.locator('section[aria-label="Completion calendar"] button.today-pulse').click();
   const sheet = page.getByRole("dialog");
@@ -139,7 +139,7 @@ test("a broken streak cracks once, then shows the ending and best", async ({ pag
   const rows = [90, 90, 95, 100, 40].map((p, i) => `('${USER_ID}', '${addDays(today, i - 5)}', ${p}, 7, ${p >= 85})`).join(",");
   sql(`insert into public.daily_completions (user_id, day, p, n_core, kept_streak) values ${rows}`);
 
-  await page.goto("/");
+  await page.goto("/board");
   const dialog = page.getByRole("alertdialog");
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText("Streak ended at 4. Best: 4.");

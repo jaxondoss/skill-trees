@@ -75,7 +75,7 @@ async function Skill({ params }: { params: PageProps<"/s/[slug]">["params"] }) {
           <SkillIcon slug={d.skill.slug} size={26} />
         </span>
         <div className="min-w-0">
-          <Link href="/" className="-ml-2 inline-flex min-h-9 items-center gap-1 rounded-lg pr-3 pl-1 text-sm font-bold text-muted hover:bg-raised hover:text-text">
+          <Link href="/board" className="-ml-2 inline-flex min-h-9 items-center gap-1 rounded-lg pr-3 pl-1 text-sm font-bold text-muted hover:bg-raised hover:text-text">
             <ChevronLeft size={16} aria-hidden />
             Overview
           </Link>

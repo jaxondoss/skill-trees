@@ -65,6 +65,10 @@
     for (var i = 0; i < CATALOG.length; i++) if (CATALOG[i][0] === name) return CATALOG[i];
     return CATALOG[CATALOG.length - 1];
   }
+  function catForIcon(icon) {
+    for (var i = 0; i < CATALOG.length; i++) for (var j = 0; j < CATALOG[i][2].length; j++) if (CATALOG[i][2][j][1] === icon) return CATALOG[i][0];
+    return 'Custom';
+  }
   function glyph(cat, tone, label) {
     return K.bitmap(GLYPH[cat] || GLYPH.Custom, { '#': tone || 'currentColor' }, 'relic-glyph', label);
   }
@@ -89,9 +93,13 @@
   function ensure() {
     var d = ROOM.data;
     if (!d) return null;
-    if (!d.relics) d.relics = ROOM.dataKey === 'fresh' ? { slots: { left: null, window: null, right: null }, trophies: [] } : sample();
+    if (!d.relics) d.relics = ROOM.dataKey === 'fresh' || d.live ? { slots: { left: null, window: null, right: null }, trophies: [] } : sample();
     d.relics.slots = d.relics.slots || { left: null, window: null, right: null };
     d.relics.trophies = d.relics.trophies || [];
+    // Live data stores only the catalog icon: find the shelf category for the glyph.
+    [d.relics.slots.left, d.relics.slots.window, d.relics.slots.right].concat(d.relics.trophies).forEach(function (r) {
+      if (r && !r.cat) r.cat = catForIcon(r.icon);
+    });
     return d.relics;
   }
   ensure();
@@ -168,6 +176,7 @@
           return { text: x.trim(), done: false };
         }) : null;
         ensure().slots[slot] = { title: t, icon: p.icon, cat: p.cat, skill: skill.value || null, target: steps ? null : target.value.trim(), steps: steps, deadline: deadline.value || null, progress: 0 };
+        K.emit('relic', { op: 'create', slot: slot, relic: ensure().slots[slot] });
         delete picking[slot];
         K.announce(t + ' is on the mount.');
         changed();
@@ -204,6 +213,7 @@
           rel.progress = rel.steps.filter(function (x) {
             return x.done;
           }).length / rel.steps.length;
+          K.emit('relic', { op: 'steps', slot: slot, id: rel.id, steps: rel.steps });
           changed();
           ctx.rerender();
         } } }), ' ' + s.text)));
@@ -212,7 +222,7 @@
     }
     el.appendChild(h('p', { class: 'p-text px-muted', text: 'Under a third it is dark iron, then it glows hot, and at 100% it is cast in gold.' }));
     el.appendChild(h('div', { class: 'p-actions' },
-      h('button', { type: 'button', class: 'px-btn', 'data-k': 'relic-plus', text: 'Add 10%', on: { click: function () {
+      ROOM.data && ROOM.data.live ? null : h('button', { type: 'button', class: 'px-btn', 'data-k': 'relic-plus', text: 'Add 10%', on: { click: function () {
         rel.progress = Math.min(1, (rel.progress || 0) + 0.1);
         changed();
         ctx.rerender();
@@ -222,6 +232,7 @@
         ctx.close();
       } } }),
       h('button', { type: 'button', class: 'px-btn', 'data-k': 'relic-clear', text: 'Take it down', on: { click: function () {
+        K.emit('relic', { op: 'abandon', slot: slot, id: rel.id });
         ensure().slots[slot] = null;
         K.announce('The mount is empty.');
         changed();
@@ -235,6 +246,7 @@
     var rel = r.slots[slot];
     if (!rel) return;
     rel.progress = 1;
+    K.emit('relic', { op: 'achieve', slot: slot, id: rel.id });
     if (ROOM.sound) {
       if (typeof ROOM.sound.anvil === 'function') ROOM.sound.anvil();
       if (typeof ROOM.sound.hiss === 'function') ROOM.sound.hiss();

@@ -28,7 +28,7 @@ test("the service worker and offline page are served without a session", async (
 });
 
 test("after one online visit, the dashboard and offline page are cached on the device", async ({ page, context }) => {
-  await page.goto("/");
+  await page.goto("/board");
   await expect(page.locator("#today li").first()).toBeVisible();
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
@@ -40,9 +40,9 @@ test("after one online visit, the dashboard and offline page are cached on the d
 
   // Chromium's offline emulation does not cover the worker's own fetches, so check the caches directly.
   const cached = await page.evaluate(async () => {
-    const pages = await caches.open("forge-pages-v1");
-    const statics = await caches.open("forge-static-v1");
-    const home = await pages.match("/");
+    const pages = await caches.open("forge-pages-v2");
+    const statics = await caches.open("forge-static-v2");
+    const home = await pages.match("/board");
     return { home: home ? (await home.text()).includes('id="today"') : false, offline: Boolean(await statics.match("/offline.html")) };
   });
   expect(cached).toEqual({ home: true, offline: true });

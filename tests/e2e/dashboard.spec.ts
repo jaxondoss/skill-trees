@@ -13,7 +13,7 @@ test.describe("dashboard with real data", () => {
     page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
     page.on("pageerror", (e) => errors.push(e.message));
 
-    await page.goto("/");
+    await page.goto("/board");
 
     const hero = page.locator('section[aria-label="The statue"]');
     await expect(hero).toContainText(/Raw|Awakened|Forged|Ascendant|Sovereign/);
@@ -40,20 +40,20 @@ test.describe("dashboard with real data", () => {
   });
 
   test("creates today's plan once: reloading does not duplicate goals", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/board");
     const first = await page.locator("#today li").count();
     await page.reload();
     await expect(page.locator("#today li")).toHaveCount(first);
   });
 
   test("the Today ring jumps to the checklist", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/board");
     await page.getByRole("button", { name: /Jump to today's goals/ }).click();
     await expect(page.locator("#today")).toBeInViewport();
   });
 
   test("a number tile is its own input", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/board");
     await page.getByRole("button", { name: /^Bodyweight: / }).click();
     const input = page.getByLabel("Bodyweight");
     await input.fill("184.2");
@@ -62,13 +62,13 @@ test.describe("dashboard with real data", () => {
   });
 
   test("a skill tile opens its page", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/board");
     await page.locator("a[data-skill-tile]", { hasText: "Strength" }).click();
     await expect(page).toHaveURL(/\/s\/strength$/);
   });
 
   test("a category box opens its page with explainable scores", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/board");
     await page.locator('section[aria-label="The statue"] a[href="/c/athletics"]').click();
     await expect(page).toHaveURL(/\/c\/athletics$/);
     await expect(page.getByRole("heading", { name: "Athletics" })).toBeVisible();
@@ -81,8 +81,8 @@ test.describe("dashboard with real data", () => {
 test("opening the app with no session signs the owner in and lands on the dashboard", async ({ page }) => {
   resetUser();
   sql(`update public.profiles set onboarded_at = null where user_id = '${USER_ID}'`);
-  await page.goto("/");
-  await expect(page).toHaveURL("http://localhost:3200/");
+  await page.goto("/board");
+  await expect(page).toHaveURL("http://localhost:3200/board");
   await expect(page.locator("#today")).toBeVisible();
   expect((await page.context().cookies()).some((c) => c.name.startsWith(AUTH_COOKIE))).toBe(true);
   expect(sql(`select onboarded_at is not null from public.profiles where user_id = '${USER_ID}'`)).toBe("t");

@@ -1,6 +1,6 @@
 "use client";
 
-import { Brain, Briefcase, CalendarCheck, Dumbbell, GraduationCap, LayoutGrid, Leaf, PenLine, Settings } from "lucide-react";
+import { Armchair, Brain, Briefcase, CalendarCheck, Dumbbell, GraduationCap, LayoutGrid, Leaf, PenLine, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { JOURNAL_EVENT } from "@/lib/journal-event";
@@ -29,10 +29,16 @@ export function Dock({ categoryPath }: { categoryPath?: string }) {
       aria-label="Sections"
       className="dock fixed inset-x-0 bottom-0 z-30 flex justify-around gap-1 px-2 pt-1.5 pb-[calc(6px+env(safe-area-inset-bottom))] sm:inset-x-auto sm:bottom-[calc(18px+env(safe-area-inset-bottom))] sm:left-1/2 sm:-translate-x-1/2 sm:justify-start sm:rounded-[18px] sm:p-1.5"
     >
-      <Link href="/" className={`${item} ${path === "/" ? active : ""}`} aria-current={path === "/" ? "page" : undefined}>
+      {/* A full load: the room's scripts are globals and start fresh. */}
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+      <a href="/" className={item}>
+        <Armchair size={18} strokeWidth={1.75} aria-hidden />
+        <span className="max-lg:sm:sr-only">Room</span>
+      </a>
+      <Link href="/board" className={`${item} ${path === "/board" ? active : ""}`} aria-current={path === "/board" ? "page" : undefined}>
         <LayoutGrid size={18} strokeWidth={1.75} aria-hidden />
         <span className="max-lg:sm:sr-only">Overview</span>
-        {path === "/" && <span aria-hidden className="absolute bottom-1 size-1 rounded-full bg-gold shadow-[0_0_6px_var(--gold)]" />}
+        {path === "/board" && <span aria-hidden className="absolute bottom-1 size-1 rounded-full bg-gold shadow-[0_0_6px_var(--gold)]" />}
       </Link>
       {CATS.map(({ slug, name, Icon }) => (
         <Link

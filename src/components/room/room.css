@@ -1,0 +1,42 @@
+/* App-only room chrome (the room's own styles live in public/room). */
+.room-board-link {
+  position: fixed;
+  right: calc(var(--ui-gap, 12px) + env(safe-area-inset-right));
+  bottom: calc(var(--ui-gap, 12px) + env(safe-area-inset-bottom));
+  z-index: 33;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  background: var(--void, #0c0a0c);
+  color: var(--amber, #d9a441);
+  border: 2px solid var(--gold-dk, #6e5422);
+  font-family: var(--f-pixel, monospace);
+  font-size: 11px;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.room-board-link:hover,
+.room-board-link:focus-visible {
+  color: var(--sun, #f4e6c4);
+  border-color: var(--gold, #d9a441);
+}
+.room-status {
+  position: fixed;
+  left: 50%;
+  bottom: calc(64px + env(safe-area-inset-bottom));
+  z-index: 60;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 6px 10px;
+  max-width: calc(100vw - 32px);
+  background: var(--void, #0c0a0c);
+  color: var(--cream, #f4e6c4);
+  border: 2px solid var(--rim, #da6339);
+  font-family: var(--f-pixel, monospace);
+  font-size: 11px;
+}
+.room-status[hidden] {
+  display: none;
+}

@@ -69,7 +69,7 @@ test("the weekly review sets the focus line, decides difficulty once, and record
   await expect(page.getByText("Review saved.")).toBeVisible();
   expect(tier()).toBe("stretch");
 
-  await page.goto("/");
+  await page.goto("/board");
   await expect(page.getByText("Win the morning")).toBeVisible();
 });
 
@@ -92,7 +92,7 @@ test("the monthly review logs calibration and adds a skill that asks for milesto
 });
 
 test("a goal logged offline is kept on the phone and syncs when the connection returns", async ({ page, context }) => {
-  await page.goto("/");
+  await page.goto("/board");
   const row = page.locator("#today li").first();
   const toggle = row.locator("button[aria-pressed]");
   await expect(toggle).toHaveAttribute("aria-pressed", "false");
@@ -113,7 +113,7 @@ test("a goal logged offline is kept on the phone and syncs when the connection r
 });
 
 test("main screens have no serious accessibility violations", async ({ page }) => {
-  for (const path of ["/", "/overall", "/c/athletics", "/review", "/review/month", "/s/reading", "/s/strength", "/s/food", "/settings"]) {
+  for (const path of ["/board", "/overall", "/c/athletics", "/review", "/review/month", "/s/reading", "/s/strength", "/s/food", "/settings"]) {
     await page.goto(path);
     await page.waitForLoadState("networkidle");
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();

@@ -535,7 +535,7 @@ export function SkillActions({ data }: { data: SkillPageData }) {
               () => setSkillStatus(data.skill.id, confirm!),
               () => {
                 setConfirm(null);
-                if (confirm === "archived") router.push("/");
+                if (confirm === "archived") router.push("/board");
               },
             )
           }

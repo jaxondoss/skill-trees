@@ -553,20 +553,6 @@
    "note": "phone charger cable"
   },
   {
-   "id": "bed.hoodie",
-   "zone": "bed",
-   "kind": "decor",
-   "layer": 3,
-   "x": 121,
-   "y": 226,
-   "w": 13,
-   "h": 44,
-   "variants": {
-    "base": "art-v3/bed/hoodie.base.png"
-   },
-   "note": "hoodie on a hook"
-  },
-  {
    "id": "bed.on",
    "zone": "bed",
    "kind": "overlay",

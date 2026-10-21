@@ -21,7 +21,7 @@ test("an unstarted assignment due within 48 hours becomes today's Academics goal
 
   // Today's plan is generated on the next open of the dashboard.
   sql(`delete from public.daily_plans where user_id = '${USER_ID}'`);
-  await page.goto("/");
+  await page.goto("/board");
   await expect(page.locator("#today")).toContainText("Start CMPS: Lab 6");
 });
 
@@ -51,7 +51,7 @@ test("the meditation timer ends with a bell and completes today's goal", async (
   // Pin Meditation so today's plan has a meditation goal.
   sql(`update public.rack_pins set skill_id = (select id from public.skills where user_id = '${USER_ID}' and slug = 'meditation') where user_id = '${USER_ID}' and slot = 5`);
   await page.clock.install();
-  await page.goto("/");
+  await page.goto("/board");
   await expect(page.locator("#today")).toContainText("Sit");
   await page.goto("/s/meditation");
   await page.getByRole("button", { name: "3 min" }).click();
@@ -59,7 +59,7 @@ test("the meditation timer ends with a bell and completes today's goal", async (
   await expect(page.getByRole("region", { name: "Sit" }).getByText(/^[23]:\d\d$/)).toBeVisible();
   await page.clock.fastForward(3 * 60_000 + 1000);
   await expect(page.getByText("Sat 3 minutes. Logged.")).toBeVisible();
-  await page.goto("/");
+  await page.goto("/board");
   const row = page.locator("#today li", { hasText: "Sit" }).first();
   await expect(row.locator("button[aria-pressed]")).toHaveAttribute("aria-pressed", "true");
   await expect(row).toContainText("Floor");

@@ -53,13 +53,13 @@ test("archive sends a skill to the Trophy Room; awaken brings Triathlon into pla
   await page.goto("/s/college-integration");
   await page.getByRole("region", { name: "Manage" }).getByRole("button", { name: "Archive" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Archive" }).click();
-  await expect(page).toHaveURL("http://localhost:3200/");
+  await expect(page).toHaveURL("http://localhost:3200/board");
   await expect(page.getByRole("link", { name: /^College Integration, Trophy Room\./ })).toBeVisible();
 
   await page.goto("/s/triathlon");
   await page.getByRole("button", { name: "Awaken" }).click();
   await expect(page.getByRole("button", { name: "Make dormant" })).toBeVisible();
-  await page.goto("/");
+  await page.goto("/board");
   await expect(page.getByRole("link", { name: /^Triathlon, \d+\./ })).toBeVisible();
 });
 
@@ -87,7 +87,7 @@ test("editing a non-negotiable and logging a note", async ({ page }) => {
 });
 
 test("every score explains itself: overall page and category history", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/board");
   await page.getByRole("link", { name: /Overall score \d+/ }).first().click();
   await expect(page).toHaveURL(/\/overall$/);
   await expect(page.getByText(/\/ 5 = \d+\.\d/)).toBeVisible();

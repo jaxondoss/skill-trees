@@ -18,7 +18,7 @@ import { supabasePublicEnv } from "@/lib/supabase/env";
 
 const MOOD: Record<string, string> = { heavy: "Heavy", strained: "Strained", steady: "Steady", clear: "Clear", locked_in: "Locked in" };
 
-export default function Home() {
+export default function BoardPage() {
   return (
     <main className="flex flex-1 flex-col pt-4 pb-6">
       <Suspense fallback={<BoardSkeleton />}>
@@ -55,7 +55,7 @@ async function Board() {
       {!data.tierUp && data.streakBreak && <StreakBreak length={data.streakBreak.length} best={data.streakBreak.best} soundOn={data.soundOn} />}
 
       <header className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2">
-        <Link href="/" className="flex items-center gap-2.5 text-sm font-extrabold tracking-[0.22em]" aria-label="FORGE, overview">
+        <Link href="/board" className="flex items-center gap-2.5 text-sm font-extrabold tracking-[0.22em]" aria-label="FORGE, overview">
           <svg viewBox="0 0 26 26" width="26" height="26" aria-hidden>
             <rect x="1" y="1" width="24" height="24" rx="7" fill="#1d1e29" stroke="rgba(255,255,255,.12)" />
             <path d="M10 5 L13.5 11 L11 14 L15.5 18 L13.6 22" fill="none" stroke="#d4af37" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />

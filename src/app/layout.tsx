@@ -7,6 +7,7 @@ import { OfflineSync } from "@/components/pwa/OfflineSync";
 import { Dock } from "@/components/shell/Dock";
 import { Field } from "@/components/shell/Field";
 import { JournalDialog } from "@/components/shell/JournalDialog";
+import { OffRoom } from "@/components/shell/OffRoom";
 import { PointerLight } from "@/components/shell/PointerLight";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -38,13 +39,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${jakarta.variable} ${mono.variable} h-full antialiased`}>
       <body className="min-h-full">
-        <Field />
-        <PointerLight />
+        <Suspense fallback={null}>
+          <OffRoom>
+            <Field />
+            <PointerLight />
+          </OffRoom>
+        </Suspense>
         <div className="mx-auto flex min-h-dvh w-full max-w-[1480px] flex-col px-4 pt-[env(safe-area-inset-top)] pb-[calc(96px+env(safe-area-inset-bottom))] sm:px-6">
           {children}
         </div>
         <Suspense fallback={null}>
-          <Dock />
+          <OffRoom>
+            <Dock />
+          </OffRoom>
         </Suspense>
         <JournalDialog />
         <OfflineSync />

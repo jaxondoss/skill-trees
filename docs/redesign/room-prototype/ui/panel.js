@@ -272,7 +272,7 @@
   /* Bodyweight: logged in the Food panel (the room has no scale hotspot). */
   function bodyweight(el) {
     var d = K.data();
-    var log = (d.bodyweight = d.bodyweight || [{ day: 'OCT 13', lb: 182.4 }, { day: 'OCT 16', lb: 181.8 }, { day: 'OCT 19', lb: 181.2 }]);
+    var log = (d.bodyweight = d.bodyweight || (d.live ? [] : [{ day: 'OCT 13', lb: 182.4 }, { day: 'OCT 16', lb: 181.8 }, { day: 'OCT 19', lb: 181.2 }]));
     el.appendChild(h('div', { class: 'px-label', text: 'Bodyweight · lb' }));
     var ul = h('ul', { class: 'p-list' });
     log.slice(-4).forEach(function (r) {
@@ -288,6 +288,7 @@
         return;
       }
       log.push({ day: (d.weekdayLabel || 'TODAY').replace(/^\w+ /, ''), lb: Math.round(v * 10) / 10 });
+      K.emit('bodyweight', { lb: Math.round(v * 10) / 10 });
       if (ROOM.sound && typeof ROOM.sound.pour === 'function') ROOM.sound.pour();
       K.announce('Bodyweight saved.');
       K.emit('data');
@@ -439,12 +440,16 @@
 
   function skillData(s, el) {
     var logs = (s.log = s.log || []);
-    var base = sampleSeries(s.slug, 14 - Math.min(logs.length, 7), s.display || 10);
+    var live = !!K.data().live;
+    var base = live ? (s.series || []).map(function (v, _i, a) {
+      var m = Math.max.apply(null, a.concat([1]));
+      return Math.max(0.08, v / m);
+    }) : sampleSeries(s.slug, 14 - Math.min(logs.length, 7), s.display || 10);
     var max = 1;
     logs.forEach(function (v) {
       max = Math.max(max, v);
     });
-    el.appendChild(h('div', { class: 'px-label', text: 'Last 14 days · sample' }));
+    el.appendChild(h('div', { class: 'px-label', text: live ? (base.length ? 'Last ' + base.length + ' entries' : 'No numbers logged yet') : 'Last 14 days · sample' }));
     var chart = h('div', { class: 'p-chart', role: 'img', 'aria-label': 'Bar chart placeholder, last 14 days' + (logs.length ? ', latest ' + logs[logs.length - 1] : '') });
     base.forEach(function (v) {
       chart.appendChild(h('i', { style: { height: Math.round(v * 100) + '%' } }));
@@ -455,7 +460,9 @@
     el.appendChild(chart);
     el.appendChild(h('div', { class: 'p-chart-cap', 'aria-hidden': 'true' }, h('span', { text: '14D AGO' }), h('span', { text: 'TODAY' })));
 
-    var unit = UNITS[s.slug] || 'value';
+    if (live) el.appendChild(h('a', { class: 'px-btn', href: '/s/' + s.slug, 'data-k': 'skill-page', text: 'Full skill page' }));
+    if (live && !s.logKey) return;
+    var unit = (live ? s.logUnit : UNITS[s.slug]) || 'value';
     var inputId = 'lcd-' + s.slug;
     var status = h('p', { class: 'p-saved', role: 'status' });
     var input = h('input', { id: inputId, class: 'lcd', type: 'text', inputmode: 'decimal', autocomplete: 'off', placeholder: '000', 'data-k': 'lcd' });
@@ -469,6 +476,7 @@
       }
       logs.push(v);
       if (ROOM.sound && typeof ROOM.sound.pour === 'function') ROOM.sound.pour();
+      K.emit('metric', { skill: s.slug, key: s.logKey || null, value: v });
       K.emit('data');
       var st = win.querySelector('.p-saved');
       if (st) st.textContent = 'SAVED ' + v + ' ' + unit.toUpperCase();
@@ -862,6 +870,7 @@
     var input = h('input', { id: 'focus-line', class: 'px-field', type: 'text', maxlength: '60', value: d.focusLine || '', 'data-k': 'focus-input' });
     function save() {
       d.focusLine = input.value.trim();
+      K.emit('focus', { line: d.focusLine });
       K.emit('data');
       K.announce('Focus line saved.');
     }

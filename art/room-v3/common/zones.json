@@ -1,0 +1,282 @@
+{
+ "_note": "World coordinates. The 960x540 core is x 0..960, y 0..540; the painted art spans x -120..1080, y -90..630 (1200x720, core centred, so laptops never letterbox). Keys 1-7 run left to right (also the arrow loop). focus = what a zone step-in frames (~1/3 of the room, 16:9, hotspots plus margin). stop = zone centre x for the phone pan; phoneStop is clamped for a 180 px wide portrait slice. territory = x range of the zone's hotspots.",
+ "art": {
+  "x": -120,
+  "y": -90,
+  "w": 1200,
+  "h": 720
+ },
+ "core": {
+  "w": 960,
+  "h": 540
+ },
+ "horizon": 227,
+ "vp": [
+  480,
+  227
+ ],
+ "camera": {
+  "defaultZoom": 1.3,
+  "defaultZoomNote": "default view is 1.3x closer than the full core but still shows the whole room (crop the outer margin first); no mouse-look parallax; depth layers move only during the zoom dolly and the phone pan",
+  "horizonPct": 0.42
+ },
+ "zones": [
+  {
+   "id": "kitchen",
+   "n": 1,
+   "name": "KITCHEN",
+   "focus": [
+    -108,
+    200,
+    366,
+    206
+   ],
+   "stop": 75,
+   "phoneStop": 90,
+   "hotspots": [
+    "kitchen.gut",
+    "kitchen.food",
+    "kitchen.door",
+    "kitchen.doormat",
+    "kitchen.settings",
+    "kitchen.relic"
+   ],
+   "territory": {
+    "x0": 0,
+    "x1": 150
+   }
+  },
+  {
+   "id": "bed",
+   "n": 2,
+   "name": "BED",
+   "focus": [
+    26,
+    240,
+    330,
+    186
+   ],
+   "stop": 191,
+   "phoneStop": 191,
+   "hotspots": [
+    "bed.globe",
+    "bed.bed",
+    "bed.cushion"
+   ],
+   "territory": {
+    "x0": 119,
+    "x1": 263
+   }
+  },
+  {
+   "id": "library",
+   "n": 3,
+   "name": "LIBRARY",
+   "focus": [
+    107,
+    192,
+    400,
+    225
+   ],
+   "stop": 307,
+   "phoneStop": 307,
+   "hotspots": [
+    "library.bookshelf",
+    "library.archive",
+    "library.chess"
+   ],
+   "territory": {
+    "x0": 253,
+    "x1": 361
+   }
+  },
+  {
+   "id": "window",
+   "n": 4,
+   "name": "WINDOW",
+   "focus": [
+    304,
+    134,
+    400,
+    225
+   ],
+   "stop": 504,
+   "phoneStop": 504,
+   "hotspots": [
+    "window.today",
+    "window.stats",
+    "window.statue",
+    "window.relic"
+   ],
+   "territory": {
+    "x0": 384,
+    "x1": 624
+   }
+  },
+  {
+   "id": "study",
+   "n": 5,
+   "name": "STUDY DESK",
+   "focus": [
+    502,
+    170,
+    330,
+    186
+   ],
+   "stop": 666,
+   "phoneStop": 666,
+   "hotspots": [
+    "study.academics",
+    "study.time",
+    "study.courses",
+    "study.journal"
+   ],
+   "territory": {
+    "x0": 636,
+    "x1": 697
+   }
+  },
+  {
+   "id": "computer",
+   "n": 6,
+   "name": "COMPUTER",
+   "focus": [
+    572,
+    179,
+    363,
+    204
+   ],
+   "stop": 753,
+   "phoneStop": 753,
+   "hotspots": [
+    "computer.ai",
+    "computer.board",
+    "computer.focus"
+   ],
+   "territory": {
+    "x0": 711,
+    "x1": 795
+   }
+  },
+  {
+   "id": "gym",
+   "n": 7,
+   "name": "GYM",
+   "focus": [
+    642,
+    236,
+    400,
+    225
+   ],
+   "stop": 842,
+   "phoneStop": 842,
+   "hotspots": [
+    "gym.bike",
+    "gym.running",
+    "gym.strength",
+    "gym.relic"
+   ],
+   "territory": {
+    "x0": 741,
+    "x1": 942
+   }
+  }
+ ],
+ "shell": {
+  "backWall": [
+   250,
+   133,
+   710,
+   350
+  ],
+  "window": [
+   469,
+   183,
+   600,
+   298
+  ],
+  "sill": [
+   459,
+   299,
+   610,
+   304
+  ],
+  "leftWall": {
+   "backEdgeX": 250,
+   "top": [
+    133,
+    0.15
+   ],
+   "bottom": [
+    350,
+    0.19375
+   ],
+   "formula": "top y = 133 - 0.15 (250 - x); bottom y = 350 + 0.19375 (250 - x) (v1 raked flats x1.6)"
+  },
+  "rightWall": "mirror of leftWall about x = 480",
+  "ceilingY": 133,
+  "floorBackY": 350,
+  "projection": {
+   "F": 870.24,
+   "ZB": 48.0,
+   "HALF": 12.7,
+   "CEIL": 12.0,
+   "EYE": 6.795,
+   "K": 0.46606,
+   "note": "P(X, h, Z) = (480 + F X / Z, 227 + F (EYE - h) / Z); left wall X = -HALF - K (ZB - Z)"
+  }
+ },
+ "centre": {
+  "statue": [
+   384,
+   135,
+   86,
+   224
+  ],
+  "statueContactY": 357,
+  "rug": [
+   325,
+   358,
+   141,
+   91
+  ],
+  "downlight": [
+   426,
+   127
+  ],
+  "sunbeam": "floor patch from the window toward the statue and the rug"
+ },
+ "relics": {
+  "relic-left": "kitchen.relic",
+  "relic-window": "window.relic",
+  "relic-right": "gym.relic"
+ },
+ "layers": {
+  "_note": "Depth bands (feet from the camera, back wall at 48). Objects take the band of their NEAREST floor contact or wall depth. No mouse parallax: layers separate only during the zoom dolly and the phone pan. Shell bands overlap 1.6 ft into the nearer band so a dolly never opens seams. Items may carry 'contact' (sort key); use it instead of y + h when present (flat rugs/mats use their top edge, things on a counter or table sort after it).",
+  "L0": "sky, sun, clouds, far oaks (window view)",
+  "L1": "New Orleans outside: shotgun houses, streetcar, power lines, near oak",
+  "L2": "back wall and everything on it; depth >= 44 ft: library, statue, window, CRTs, study desk, nightstand",
+  "L3": "depth 40..44: bed, armchair, computer desk, whiteboard, both relic mounts",
+  "L4": "depth 35..40: door, doormat, switchboard, running wall, medals",
+  "L5": "depth < 35: counter, kitchen table, cushion, chess table, rug, bike, weight rack, front floor",
+  "L6": "frame crops in the bleed (speaker, leaves, boxes, cables); never over a hotspot"
+ },
+ "skills": {
+  "_note": "Every skill maps to exactly one hotspot object. Bodyweight logs in the Food panel.",
+  "food": "kitchen",
+  "gut-health": "kitchen",
+  "college-integration": "kitchen",
+  "sleep": "bed",
+  "meditation": "bed",
+  "visualization": "bed",
+  "reading": "library",
+  "chess": "library",
+  "academics": "study",
+  "time-blocking": "study",
+  "ai-building": "computer",
+  "dropshipping": "computer",
+  "strength": "gym",
+  "running": "gym",
+  "triathlon": "gym"
+ }
+}

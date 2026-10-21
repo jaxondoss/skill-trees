@@ -188,8 +188,9 @@
     var prevUsed = !!d.swapUsed;
     d.swapUsed = true;
     recompute(d);
+    K.emit('swap', { goalId: g.id });
     K.emit('data');
-    setUndo({ type: 'swap', index: idx, goal: g, prevUsed: prevUsed, nextId: next.id });
+    if (!d.live) setUndo({ type: 'swap', index: idx, goal: g, prevUsed: prevUsed, nextId: next.id });
     K.announce('Swapped ' + g.title + ' for ' + s.name + ': ' + next.title + '.');
     focusGoal(next.id);
     return true;

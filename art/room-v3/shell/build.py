@@ -493,9 +493,10 @@ def crop_cables(cv, v):
 
 
 def floor_cables(cv, v):
-    for k, (sx, sy, ex, ey) in enumerate(((150, 630, 430, 400), (820, 630, 610, 372))):
-        pts = [(sx + (ex - sx) * t + 16 * math.sin(t * 7 + k), sy + (ey - sy) * t + 5 * math.sin(t * 11 + k)) for t in np.linspace(0, 1, 70)]
-        cv.lines(pts, VOID, 2)
+    # one short run from the CRT stand along the back of the floor to the computer desk (kept quiet, 1 px)
+    for k, (sx, sy, ex, ey) in enumerate(((622, 358, 700, 366),)):
+        pts = [(sx + (ex - sx) * t, sy + (ey - sy) * t + 3 * math.sin(t * 6 + k)) for t in np.linspace(0, 1, 40)]
+        cv.lines(pts, INK, 1)
 
 
 def main():
@@ -513,7 +514,7 @@ def main():
              variants=("base", "night", "t1", "t3", "t5"), note=f"{zone} pendant lamp (t1 bare bulb, t5 brass)")
     emit("bed.stringlights", zone="bed", kind="decor", layer=2, paint=string_lights, variants=("t1", "t2", "t5", "night"),
          note="string lights along the left wall and back wall top (tier II)")
-    for zone, X, Z, ln, seed in (("library", -9.6, 42.4, 64, 3), ("study", 9.2, 42.4, 74, 8), ("kitchen", -14.6, 38.2, 54, 12)):
+    for zone, X, Z, ln, seed in (("library", -5.0, 42.4, 64, 3), ("study", 9.2, 42.4, 74, 8), ("kitchen", -14.6, 38.2, 54, 12)):
         emit(f"{zone}.pothos", zone=zone, kind="decor", layer=layer_for_z(Z), paint=pothos_painter(X, Z, ln, seed),
              note="trailing pothos hanging from a beam")
     emit("window.cables-ceiling", zone="window", kind="decor", layer=3, paint=ceiling_cables, light=False, rim=False,

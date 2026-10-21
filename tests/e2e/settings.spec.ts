@@ -13,7 +13,7 @@ test.afterEach(() => {
 });
 
 test("settings change the budget, and a sick-day override rebuilds an untouched plan", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/board");
   await expect(page.locator("#today li").first()).toBeVisible();
 
   await page.goto("/settings");
@@ -33,7 +33,7 @@ test("settings change the budget, and a sick-day override rebuilds an untouched 
 
   await page.getByRole("button", { name: "Rebuild today's plan with these settings" }).click();
   await expect(page.getByText("Today's plan will rebuild on the dashboard.")).toBeVisible();
-  await page.goto("/");
+  await page.goto("/board");
   await expect(page.locator("#today")).toContainText("Sick day");
 });
 

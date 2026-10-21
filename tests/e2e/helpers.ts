@@ -32,6 +32,7 @@ export function resetUser() {
     delete from public.integrations where user_id = '${USER_ID}';
     delete from public.weekly_reviews where user_id = '${USER_ID}';
     delete from public.journal_entries where user_id = '${USER_ID}';
+    delete from public.relics where user_id = '${USER_ID}';
     delete from public.monthly_reviews where user_id = '${USER_ID}';
     delete from public.skills where user_id = '${USER_ID}' and slug like 'e2e-%';
     update public.milestones set claimed_at = case when suggest_claim then now() end, proof_value = null, proof_url = null where user_id = '${USER_ID}';
