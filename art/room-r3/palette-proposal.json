@@ -1,0 +1,165 @@
+{
+ "_note": "room-r3 palette proposal: v3 master palette with 5 rarely used entries swapped for charcoal / slate-green plaster and obsidian statue tones.",
+ "swaps": [
+  {
+   "from": "BROWN_0",
+   "to": "CHAR",
+   "hex": "#1E2423",
+   "why": "charcoal plaster (shadow)"
+  },
+  {
+   "from": "PLUM_1",
+   "to": "WALL_G",
+   "hex": "#2B3633",
+   "why": "slate-green plaster (main wall)"
+  },
+  {
+   "from": "PLUM_2",
+   "to": "STAT_1",
+   "hex": "#19202C",
+   "why": "obsidian body, near-black blue"
+  },
+  {
+   "from": "AMBER",
+   "to": "STAT_2",
+   "hex": "#2E3B50",
+   "why": "obsidian sheen, dark blue"
+  },
+  {
+   "from": "BROWN_2",
+   "to": "STAT_HI",
+   "hex": "#C6DCEE",
+   "why": "cool blue-white specular"
+  }
+ ],
+ "colors": [
+  [
+   "VOID",
+   "#0C0A0C"
+  ],
+  [
+   "INK",
+   "#141517"
+  ],
+  [
+   "OAK_0",
+   "#5C3721"
+  ],
+  [
+   "CHAR",
+   "#1E2423"
+  ],
+  [
+   "BROWN_1",
+   "#312D2A"
+  ],
+  [
+   "STAT_HI",
+   "#C6DCEE"
+  ],
+  [
+   "TERRA_0",
+   "#621D1A"
+  ],
+  [
+   "TERRA_1",
+   "#8E432D"
+  ],
+  [
+   "TERRA_2",
+   "#B45B40"
+  ],
+  [
+   "RIM",
+   "#DA6339"
+  ],
+  [
+   "ORANGE",
+   "#F26B2A"
+  ],
+  [
+   "GLOW",
+   "#F39041"
+  ],
+  [
+   "STAT_2",
+   "#2E3B50"
+  ],
+  [
+   "SUN",
+   "#FEF576"
+  ],
+  [
+   "GOLD",
+   "#D9A441"
+  ],
+  [
+   "GOLD_DK",
+   "#6E5422"
+  ],
+  [
+   "OAK_1",
+   "#7E4C27"
+  ],
+  [
+   "OAK_2",
+   "#A56A32"
+  ],
+  [
+   "LEAF_0",
+   "#212C26"
+  ],
+  [
+   "LEAF_1",
+   "#344136"
+  ],
+  [
+   "LEAF_2",
+   "#3E6B35"
+  ],
+  [
+   "LEAF_3",
+   "#7FA650"
+  ],
+  [
+   "SLATE_0",
+   "#3E4F51"
+  ],
+  [
+   "SLATE_1",
+   "#56858A"
+  ],
+  [
+   "SLATE_2",
+   "#9CC0C2"
+  ],
+  [
+   "OAK_DK",
+   "#45291A"
+  ],
+  [
+   "WALL_G",
+   "#2B3633"
+  ],
+  [
+   "STAT_1",
+   "#19202C"
+  ],
+  [
+   "PLUM_3",
+   "#D98AA0"
+  ],
+  [
+   "CRT_0",
+   "#D2211A"
+  ],
+  [
+   "CRT_1",
+   "#FC3827"
+  ],
+  [
+   "CREAM",
+   "#F4E6C4"
+  ]
+ ]
+}
