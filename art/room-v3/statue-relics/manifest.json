@@ -6,10 +6,10 @@
    "zone": "window",
    "kind": "hotspot",
    "layer": 2,
-   "x": 384,
-   "y": 135,
-   "w": 86,
-   "h": 224,
+   "x": 260,
+   "y": 63,
+   "w": 54,
+   "h": 141,
    "variants": {
     "base": "art-v3/window/statue.base.png",
     "t1": "art-v3/window/statue.t1.png",
@@ -23,10 +23,10 @@
    },
    "label": "FORGE",
    "led": [
-    461,
-    355
+    311,
+    201
    ],
-   "contact": 357,
+   "contact": 202,
    "note": "10 ft obsidian figure, backlit alcove, gold plating by section (0/2/4/6/7), pedestal stone/marble/gilded + tier plaque"
   },
   {
@@ -34,10 +34,10 @@
    "zone": "window",
    "kind": "decor",
    "layer": 2,
-   "x": 418,
-   "y": 126,
-   "w": 17,
-   "h": 6,
+   "x": 281,
+   "y": 58,
+   "w": 11,
+   "h": 4,
    "variants": {
     "base": "art-v3/window/downlight-fixture.base.png"
    },
@@ -48,10 +48,10 @@
    "zone": "window",
    "kind": "overlay",
    "layer": 3,
-   "x": 357,
-   "y": 126,
-   "w": 140,
-   "h": 244,
+   "x": 243,
+   "y": 58,
+   "w": 87,
+   "h": 153,
    "variants": {
     "base": "art-v3/window/statue-downlight.base.png"
    },
@@ -70,10 +70,10 @@
    "zone": "window",
    "kind": "overlay",
    "layer": 6,
-   "x": 180,
-   "y": 145,
-   "w": 241,
-   "h": 456,
+   "x": 132,
+   "y": 70,
+   "w": 151,
+   "h": 285,
    "variants": {
     "base": "art-v3/window/statue-closeup.base.png",
     "t1": "art-v3/window/statue-closeup.t1.png",
@@ -89,10 +89,10 @@
    "zone": "window",
    "kind": "hotspot",
    "layer": 2,
-   "x": 514,
-   "y": 134,
-   "w": 41,
-   "h": 46,
+   "x": 341,
+   "y": 65,
+   "w": 26,
+   "h": 27,
    "variants": {
     "base": "art-v3/window/relic.base.png",
     "active": "art-v3/window/relic.active.png",
@@ -104,8 +104,8 @@
    },
    "label": "RELIC",
    "led": [
-    554,
-    177
+    363,
+    89
    ],
    "note": "arched relic niche above the window (base: empty with a pixel plus; active: forged iron medal)"
   },
@@ -114,10 +114,10 @@
    "zone": "kitchen",
    "kind": "hotspot",
    "layer": 3,
-   "x": 97,
-   "y": 236,
-   "w": 21,
-   "h": 31,
+   "x": 82,
+   "y": 129,
+   "w": 11,
+   "h": 17,
    "variants": {
     "base": "art-v3/kitchen/relic.base.png",
     "active": "art-v3/kitchen/relic.active.png",
@@ -129,8 +129,8 @@
    },
    "label": "RELIC",
    "led": [
-    113,
-    262
+    92,
+    142
    ],
    "note": "left relic wall mount beside the door"
   },
@@ -139,10 +139,10 @@
    "zone": "gym",
    "kind": "hotspot",
    "layer": 3,
-   "x": 802,
-   "y": 234,
-   "w": 21,
-   "h": 31,
+   "x": 522,
+   "y": 128,
+   "w": 11,
+   "h": 17,
    "variants": {
     "base": "art-v3/gym/relic.base.png",
     "active": "art-v3/gym/relic.active.png",
@@ -154,8 +154,8 @@
    },
    "label": "RELIC",
    "led": [
-    817,
-    260
+    530,
+    141
    ],
    "note": "right relic bracket by the gym"
   }

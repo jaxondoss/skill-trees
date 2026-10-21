@@ -6,10 +6,10 @@
    "zone": "computer",
    "kind": "decor",
    "layer": 3,
-   "x": 685,
-   "y": 304,
-   "w": 122,
-   "h": 65,
+   "x": 448,
+   "y": 169,
+   "w": 77,
+   "h": 41,
    "variants": {
     "base": "art-v3/computer/desk.base.png",
     "t1": "art-v3/computer/desk.t1.png",
@@ -23,10 +23,10 @@
    "zone": "computer",
    "kind": "hotspot",
    "layer": 3,
-   "x": 711,
-   "y": 258,
-   "w": 83,
-   "h": 110,
+   "x": 464,
+   "y": 140,
+   "w": 53,
+   "h": 70,
    "variants": {
     "s0": "art-v3/computer/ai.s0.png",
     "s1": "art-v3/computer/ai.s1.png",
@@ -38,8 +38,8 @@
    },
    "label": "AI BUILDING",
    "led": [
-    791,
-    365
+    514,
+    207
    ],
    "note": "tower + two monitors (s2 third monitor)"
   },
@@ -48,10 +48,10 @@
    "zone": "computer",
    "kind": "hotspot",
    "layer": 3,
-   "x": 736,
-   "y": 194,
-   "w": 59,
-   "h": 63,
+   "x": 480,
+   "y": 100,
+   "w": 37,
+   "h": 40,
    "variants": {
     "s0": "art-v3/computer/board.s0.png",
     "s1": "art-v3/computer/board.s1.png",
@@ -63,8 +63,8 @@
    },
    "label": "DROPSHIPPING",
    "led": [
-    792,
-    253
+    514,
+    137
    ],
    "note": "product whiteboard (flow boxes, sales line)"
   },
@@ -73,10 +73,10 @@
    "zone": "computer",
    "kind": "hotspot",
    "layer": 3,
-   "x": 785,
-   "y": 257,
-   "w": 8,
-   "h": 11,
+   "x": 511,
+   "y": 140,
+   "w": 5,
+   "h": 7,
    "variants": {
     "base": "art-v3/computer/focus.base.png"
    },
@@ -85,8 +85,8 @@
    },
    "label": "FOCUS",
    "led": [
-    792,
-    265
+    515,
+    146
    ],
    "note": "sticky note: today's focus line"
   },
@@ -95,10 +95,10 @@
    "zone": "computer",
    "kind": "decor",
    "layer": 3,
-   "x": 748,
-   "y": 279,
-   "w": 30,
-   "h": 34,
+   "x": 488,
+   "y": 153,
+   "w": 19,
+   "h": 22,
    "variants": {
     "base": "art-v3/computer/money.base.png",
     "g0": "art-v3/computer/money.g0.png",
@@ -113,10 +113,10 @@
    "zone": "computer",
    "kind": "decor",
    "layer": 3,
-   "x": 697,
-   "y": 279,
-   "w": 43,
-   "h": 88,
+   "x": 455,
+   "y": 153,
+   "w": 28,
+   "h": 56,
    "variants": {
     "base": "art-v3/computer/chair.base.png",
     "t1": "art-v3/computer/chair.t1.png",
@@ -130,10 +130,10 @@
    "zone": "computer",
    "kind": "decor",
    "layer": 3,
-   "x": 719,
-   "y": 285,
-   "w": 76,
-   "h": 28,
+   "x": 469,
+   "y": 157,
+   "w": 48,
+   "h": 18,
    "variants": {
     "base": "art-v3/computer/speakers.base.png"
    },
@@ -144,10 +144,10 @@
    "zone": "computer",
    "kind": "decor",
    "layer": 2,
-   "x": 730,
-   "y": 288,
-   "w": 20,
-   "h": 19,
+   "x": 476,
+   "y": 159,
+   "w": 13,
+   "h": 12,
    "variants": {
     "base": "art-v3/computer/router.base.png"
    },
@@ -158,10 +158,10 @@
    "zone": "computer",
    "kind": "decor",
    "layer": 3,
-   "x": 727,
-   "y": 309,
-   "w": 71,
-   "h": 56,
+   "x": 474,
+   "y": 172,
+   "w": 45,
+   "h": 36,
    "variants": {
     "base": "art-v3/computer/cables.base.png",
     "t1": "art-v3/computer/cables.t1.png",
@@ -174,10 +174,10 @@
    "zone": "computer",
    "kind": "decor",
    "layer": 4,
-   "x": 666,
-   "y": 347,
-   "w": 41,
-   "h": 46,
+   "x": 436,
+   "y": 196,
+   "w": 26,
+   "h": 29,
    "variants": {
     "base": "art-v3/computer/boxes.base.png"
    },
@@ -188,10 +188,10 @@
    "zone": "computer",
    "kind": "decor",
    "layer": 3,
-   "x": 736,
-   "y": 262,
-   "w": 68,
-   "h": 4,
+   "x": 480,
+   "y": 143,
+   "w": 43,
+   "h": 3,
    "variants": {
     "base": "art-v3/computer/led.base.png"
    },
@@ -202,10 +202,10 @@
    "zone": "computer",
    "kind": "decor",
    "layer": 2,
-   "x": 731,
-   "y": 263,
-   "w": 13,
-   "h": 15,
+   "x": 477,
+   "y": 144,
+   "w": 8,
+   "h": 9,
    "variants": {
     "base": "art-v3/computer/headset.base.png"
    },
@@ -216,10 +216,10 @@
    "zone": "computer",
    "kind": "decor",
    "layer": 3,
-   "x": 737,
-   "y": 178,
-   "w": 48,
-   "h": 13,
+   "x": 481,
+   "y": 90,
+   "w": 30,
+   "h": 9,
    "variants": {
     "base": "art-v3/computer/shelf.base.png"
    },
@@ -230,10 +230,10 @@
    "zone": "computer",
    "kind": "decor",
    "layer": 3,
-   "x": 704,
-   "y": 299,
-   "w": 5,
-   "h": 7,
+   "x": 460,
+   "y": 166,
+   "w": 3,
+   "h": 5,
    "variants": {
     "base": "art-v3/computer/can.base.png"
    },
@@ -244,10 +244,10 @@
    "zone": "computer",
    "kind": "overlay",
    "layer": 3,
-   "x": 688,
-   "y": 270,
-   "w": 77,
-   "h": 91,
+   "x": 469,
+   "y": 147,
+   "w": 29,
+   "h": 21,
    "variants": {
     "base": "art-v3/computer/on.base.png"
    },
@@ -258,10 +258,10 @@
    "zone": "gym",
    "kind": "hotspot",
    "layer": 5,
-   "x": 858,
-   "y": 210,
-   "w": 84,
-   "h": 136,
+   "x": 557,
+   "y": 111,
+   "w": 52,
+   "h": 85,
    "variants": {
     "s0": "art-v3/gym/bike.s0.png",
     "s1": "art-v3/gym/bike.s1.png",
@@ -274,8 +274,8 @@
    },
    "label": "TRIATHLON",
    "led": [
-    937,
-    342
+    605,
+    192
    ],
    "note": "road bike on wall hooks, tarp half draped; emblem below; awake = tarp off"
   },
@@ -284,10 +284,10 @@
    "zone": "gym",
    "kind": "hotspot",
    "layer": 4,
-   "x": 818,
-   "y": 244,
-   "w": 46,
-   "h": 80,
+   "x": 531,
+   "y": 132,
+   "w": 29,
+   "h": 50,
    "variants": {
     "s0": "art-v3/gym/running.s0.png",
     "s1": "art-v3/gym/running.s1.png",
@@ -299,8 +299,8 @@
    },
    "label": "RUNNING",
    "led": [
-    860,
-    310
+    557,
+    172
    ],
    "note": "mileage poster, race bib, running shoes on a hook"
   },
@@ -309,10 +309,10 @@
    "zone": "gym",
    "kind": "decor",
    "layer": 4,
-   "x": 824,
-   "y": 200,
-   "w": 40,
-   "h": 35,
+   "x": 535,
+   "y": 104,
+   "w": 25,
+   "h": 22,
    "variants": {
     "base": "art-v3/gym/medals.base.png",
     "g0": "art-v3/gym/medals.g0.png",
@@ -327,17 +327,17 @@
    "zone": "gym",
    "kind": "decor",
    "layer": 5,
-   "x": 703,
-   "y": 450,
-   "w": 256,
-   "h": 53,
+   "x": 443,
+   "y": 244,
+   "w": 135,
+   "h": 26,
    "variants": {
     "base": "art-v3/gym/tiles.base.png",
     "t1": "art-v3/gym/tiles.t1.png",
     "t3": "art-v3/gym/tiles.t3.png",
     "t5": "art-v3/gym/tiles.t5.png"
    },
-   "contact": 450,
+   "contact": 244,
    "note": "t1 towel, t3 rubber floor tiles, t5 terracotta tiles"
   },
   {
@@ -345,10 +345,10 @@
    "zone": "gym",
    "kind": "hotspot",
    "layer": 5,
-   "x": 741,
-   "y": 382,
-   "w": 136,
-   "h": 106,
+   "x": 462,
+   "y": 205,
+   "w": 75,
+   "h": 58,
    "variants": {
     "s0": "art-v3/gym/strength.s0.png",
     "s1": "art-v3/gym/strength.s1.png",
@@ -360,8 +360,8 @@
    },
    "label": "STRENGTH",
    "led": [
-    849,
-    482
+    525,
+    260
    ],
    "note": "plate tree + barbell (s2 chalk bucket)"
   },
@@ -370,10 +370,10 @@
    "zone": "gym",
    "kind": "decor",
    "layer": 5,
-   "x": 854,
-   "y": 402,
-   "w": 33,
-   "h": 25,
+   "x": 553,
+   "y": 230,
+   "w": 23,
+   "h": 16,
    "variants": {
     "base": "art-v3/gym/kettlebell.base.png"
    },
@@ -384,10 +384,10 @@
    "zone": "gym",
    "kind": "decor",
    "layer": 5,
-   "x": 866,
-   "y": 413,
-   "w": 63,
-   "h": 32,
+   "x": 561,
+   "y": 237,
+   "w": 40,
+   "h": 21,
    "variants": {
     "base": "art-v3/gym/bag.base.png"
    },
@@ -398,10 +398,10 @@
    "zone": "gym",
    "kind": "decor",
    "layer": 5,
-   "x": 773,
-   "y": 403,
-   "w": 57,
-   "h": 10,
+   "x": 503,
+   "y": 231,
+   "w": 36,
+   "h": 7,
    "variants": {
     "base": "art-v3/gym/roller.base.png"
    },
@@ -412,10 +412,10 @@
    "zone": "gym",
    "kind": "decor",
    "layer": 5,
-   "x": 832,
-   "y": 438,
-   "w": 9,
-   "h": 23,
+   "x": 513,
+   "y": 235,
+   "w": 6,
+   "h": 15,
    "variants": {
     "base": "art-v3/gym/bottle.base.png"
    },
@@ -426,10 +426,10 @@
    "zone": "gym",
    "kind": "decor",
    "layer": 5,
-   "x": 947,
-   "y": 232,
-   "w": 10,
-   "h": 61,
+   "x": 612,
+   "y": 124,
+   "w": 6,
+   "h": 39,
    "variants": {
     "base": "art-v3/gym/rope.base.png"
    },
@@ -440,10 +440,10 @@
    "zone": "gym",
    "kind": "decor",
    "layer": 4,
-   "x": 899,
-   "y": 168,
-   "w": 39,
-   "h": 18,
+   "x": 582,
+   "y": 84,
+   "w": 24,
+   "h": 11,
    "variants": {
     "base": "art-v3/gym/timer.base.png"
    },
@@ -454,10 +454,10 @@
    "zone": "gym",
    "kind": "decor",
    "layer": 4,
-   "x": 810,
-   "y": 174,
-   "w": 54,
-   "h": 16,
+   "x": 526,
+   "y": 88,
+   "w": 34,
+   "h": 10,
    "variants": {
     "base": "art-v3/gym/trophies.base.png",
     "t1": "art-v3/gym/trophies.t1.png",
@@ -471,10 +471,10 @@
    "zone": "gym",
    "kind": "decor",
    "layer": 4,
-   "x": 860,
-   "y": 349,
-   "w": 9,
-   "h": 34,
+   "x": 558,
+   "y": 197,
+   "w": 6,
+   "h": 22,
    "variants": {
     "base": "art-v3/gym/mat.base.png"
    },
@@ -485,10 +485,10 @@
    "zone": "gym",
    "kind": "decor",
    "layer": 4,
-   "x": 892,
-   "y": 157,
-   "w": 11,
-   "h": 14,
+   "x": 577,
+   "y": 77,
+   "w": 8,
+   "h": 9,
    "variants": {
     "base": "art-v3/gym/light.base.png",
     "night": "art-v3/gym/light.night.png"
@@ -500,14 +500,14 @@
    "zone": "gym",
    "kind": "decor",
    "layer": 5,
-   "x": 752,
-   "y": 454,
-   "w": 55,
-   "h": 5,
+   "x": 470,
+   "y": 246,
+   "w": 30,
+   "h": 3,
    "variants": {
     "base": "art-v3/gym/chalk.base.png"
    },
-   "contact": 454,
+   "contact": 246,
    "note": "chalk dust on the floor"
   },
   {
@@ -515,10 +515,10 @@
    "zone": "gym",
    "kind": "overlay",
    "layer": 4,
-   "x": 840,
-   "y": 160,
-   "w": 97,
-   "h": 93,
+   "x": 577,
+   "y": 79,
+   "w": 8,
+   "h": 7,
    "variants": {
     "base": "art-v3/gym/on.base.png"
    },

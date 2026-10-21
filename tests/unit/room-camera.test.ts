@@ -70,7 +70,7 @@ describe("mode rule", () => {
     const laptop = view(1440, 702, 2);
     expect(C.shouldRescale(laptop, laptop.Wd, laptop.Hd + 10)).toBe(true);
   });
-  it("frames the room 1.3x closer than the integer view, never cropping the core", () => {
+  it("frames the room at a whole-number zoom up to 1.3x closer, never cropping the core", () => {
     for (const [w, h, dpr] of [
       [1440, 702, 2],
       [1440, 900, 2],
@@ -79,6 +79,7 @@ describe("mode rule", () => {
       [2560, 1440, 1],
     ]) {
       const v = view(w!, h!, dpr!);
+      expect(Number.isInteger(v.z0)).toBe(true);
       expect(v.z0).toBeGreaterThanOrEqual(v.s);
       expect(v.z0).toBeLessThanOrEqual(1.3 * v.s + 1e-9);
       const r = C.visibleRect(C.roomCamera(v), v);
@@ -88,7 +89,7 @@ describe("mode rule", () => {
       expect(r.y + r.h).toBeGreaterThanOrEqual(270 - 1 / v.z0);
     }
     const laptop = view(1440, 702, 2);
-    expect(laptop.z0).toBeCloseTo(4.5); // core width bound (1.3 * 4 = 5.2 would crop it)
+    expect(laptop.z0).toBe(4); // whole number: 4.5 (core width bound) rounds down to 4
     expect(view(390, 844, 3).z0).toBe(9); // pan mode keeps s
   });
   it("puts the horizon near 42% of the visible window and keeps the core visible", () => {
@@ -109,10 +110,10 @@ describe("mode rule", () => {
       expect(r.x).toBeLessThanOrEqual(0.5);
       expect(r.x + r.w).toBeGreaterThanOrEqual(959.5);
       expect(C.FW_PHONE).toBe(132);
-      const laptop = C.viewFor(2880, 1404, 2); // s 2 (1404/540), so 1.3x closer applies: z0 2.6
+      const laptop = C.viewFor(2880, 1404, 2); // s 2 (1404/540); 1.3x closer is 2.6, rounded down to 2
       expect(laptop.mode).toBe("room");
       expect(laptop.s).toBe(2);
-      expect(laptop.z0).toBeCloseTo(2.6);
+      expect(laptop.z0).toBe(2);
       expect(C.zoneAtX(1100, zones).id).toBe("gym");
     } finally {
       C.configure({ core: { w: 640, h: 270 }, art: { x: -80, y: -96, w: 800, h: 480 }, horizon: 121 });
@@ -237,7 +238,8 @@ describe("dolly", () => {
 
   it("bounds the tear between adjacent floor bands (on-screen points)", () => {
     // The review estimated about 5 px near the pivot; with the kitchen and gym pivots far off-screen the
-    // worst on-screen case is about 11.7 world px. Shell bands need at least 12 px of overdraw.
+    // worst on-screen case is about 13 world px (whole-number default zoom). Shell bands overlap 1.6 ft,
+    // at least 15 px along the side walls at the band edges.
     const v = devices[0];
     const room = C.roomCamera(v);
     for (const z of zones) {
@@ -249,7 +251,7 @@ describe("dolly", () => {
           for (let x = -40; x <= 680; x += 8) {
             const X = x * a.z + a.tx;
             if (X < 0 || X > v.Wd) continue;
-            expect(Math.abs(X - (x * b.z + b.tx)) / a.z).toBeLessThanOrEqual(12);
+            expect(Math.abs(X - (x * b.z + b.tx)) / a.z).toBeLessThanOrEqual(13.5);
           }
         }
       }

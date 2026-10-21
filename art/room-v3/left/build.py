@@ -13,7 +13,7 @@ from room import *  # noqa: E402,F401,F403
 L = "L"
 CNT = (30.3, 34.8, 1.8)        # counter z0, z1, depth
 DOOR = (36.4, 38.6)
-TABLE = (-13.2, -10.4, 22.4, 24.6, 2.6)
+TABLE = (-13.2, -10.4, 25.9, 28.1, 2.6)
 BED = (39.8, 44.6, 3.0)        # z0 (foot), z1 (head), width out of the wall
 NS = (44.8, 46.2, 1.3)         # nightstand
 
@@ -124,7 +124,7 @@ def table(cv, v):
 
 def fruit_basket(cv, v):
     st = int(v[1])
-    x, y = P(-11.9, TABLE[4], 23.3)
+    x, y = P(-11.9, TABLE[4], 26.8)
     cv.ell(x - 15, y - 8, x + 15, y + 3, OAK_0)
     cv.ell(x - 13, y - 9, x + 13, y - 3, OAK_DK)
     for k in range(-12, 13, 4):
@@ -144,7 +144,7 @@ def fruit_basket(cv, v):
 
 def water_jug(cv, v):
     g = int(v[1]) if v.startswith("g") else 2
-    x, y = P(-10.95, TABLE[4], 23.1)
+    x, y = P(-10.95, TABLE[4], 26.6)
     cv.rect(x - 7, y - 26, x + 7, y, SLATE_0)
     cv.rect(x - 5, y - 31, x + 5, y - 26, SLATE_0)
     cv.rect(x - 2, y - 35, x + 2, y - 31, SLATE_2)
@@ -158,7 +158,7 @@ def water_jug(cv, v):
 
 
 def stool(cv, v):
-    X0, X1, Z0 = -9.8, -9.0, 22.0
+    X0, X1, Z0 = -9.8, -9.0, 25.5
     shadow(cv, X0, X1, Z0 - 0.2, Z0 + 0.8, 0.5)
     box(cv, X0, X1, 2.0, 2.2, Z0, Z0 + 0.8, OAK_0, OAK_DK, BROWN_0)
     for X in (X0 + 0.08, X1 - 0.15):

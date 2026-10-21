@@ -51,14 +51,13 @@ def figure_masks(cx, feet, u):
         d = ImageDraw.Draw(im)
         if kind == "ell":
             x0, y0, x1, y1 = geo
-            d.ellipse([round(x0 - AX), round(y0 - AY), round(x1 - AX), round(y1 - AY)], fill=1)
+            d.ellipse([*Canvas.q(x0, y0), *Canvas.q(x1, y1)], fill=1)
         else:
-            d.polygon([(round(x - AX), round(y - AY)) for x, y in geo], fill=1)
+            d.polygon([Canvas.q(x, y) for x, y in geo], fill=1)
         masks[name] = masks.get(name, np.zeros((AH, AW), bool)) | np.array(im, bool)
-    yy = np.arange(AH)[:, None] + AY
     split = Y(5.0)
-    masks["chest"] = masks["torso"] & (yy < split)
-    masks["abdomen"] = masks["torso"] & (yy >= split)
+    masks["chest"] = masks["torso"] & (WY < split)
+    masks["abdomen"] = masks["torso"] & (WY >= split)
     del masks["torso"]
     return masks, Y
 
@@ -69,36 +68,29 @@ def paint_figure(cv, cx, feet, u, tier, top_lit=False, halo=True):
     for v in masks.values():
         m |= v
     a = cv.arr()
-    xx = np.arange(AW)[None, :] + AX
-    if halo:  # backlight: a warm, uneven halo hugging the silhouette so it never merges with the wall
-        near = np.zeros_like(m)
-        for r_, col, dens in ((7, TERRA_0, 0.55), (4, TERRA_1, 0.6), (2, RIM, 0.75)):
+    xx = WX
+    if halo:  # backlight: a warm 2-step halo hugging the silhouette so it never merges with the wall
+        for r_, col in ((3, TERRA_0), (1, TERRA_1)):
             ring = np.zeros_like(m)
             for dy in range(-r_, r_ + 1, 1):
                 for dx in range(-r_, r_ + 1, 1):
                     if dx * dx + dy * dy <= r_ * r_:
                         ring |= np.roll(np.roll(m, dy, 0), dx, 1)
-            sel = ring & ~m & (BAY < dens) & (a != T)
-            a[sel] = col
-            near |= ring
+            a[ring & ~m & (a != T)] = col
     plated = set(SECTIONS[:PLATED[tier]])
     gold = np.zeros_like(m)
     for name, mm in masks.items():
-        ys, xs = np.nonzero(mm)
-        cxp = xs.mean() + AX if len(xs) else cx
+        cxp = float(WX[mm].mean()) if mm.any() else cx
         relp = xx - cxp
-        if name in plated:
+        if name in plated:  # solid plating: shadow side, body, one highlight band toward the window
             gold |= mm
             a[mm] = GOLD
-            a[mm & (relp < -2)] = GOLD_DK
-            a[mm & (relp < -2) & (relp > -5) & (BAY < 0.5)] = GOLD
-            a[mm & (relp > 2)] = AMBER
-            a[mm & (relp > u * 0.18) & (BAY < 0.35)] = SUN if name in ("chest", "head") else GOLD
+            a[mm & (relp < -u * 0.12)] = GOLD_DK
+            a[mm & (relp > u * 0.16)] = SUN if name in ("chest", "head") else AMBER
         else:
             a[mm] = INK
-            a[mm & (relp > 1)] = SLATE_0
-            a[mm & (relp > 1) & (BAY < 0.25)] = INK
-            a[mm & (relp < -3)] = VOID
+            a[mm & (relp > u * 0.12)] = SLATE_0
+            a[mm & (relp < -u * 0.16)] = VOID
     for name, mm in masks.items():  # seams between sections
         seam = mm & ~np.roll(mm, 1, 0) & np.roll(m, 1, 0)
         a[seam] = GOLD_DK if name in plated else VOID
@@ -134,7 +126,7 @@ def paint_figure(cv, cx, feet, u, tier, top_lit=False, halo=True):
     if top_lit:
         a[top_edge] = SUN
         a[np.roll(top_edge, 1, 0) & m & gold] = SUN
-        a[np.roll(top_edge, 1, 0) & m & ~gold & (BAY < 0.5)] = SLATE_1
+        a[np.roll(top_edge, 1, 0) & m & ~gold] = SLATE_1
     cv.set(a)
     return m
 
@@ -153,9 +145,8 @@ def alcove(cv):
     cxw = (x0 + x1) / 2
     ins = a == BROWN_0
     d = np.sqrt(((WX - cxw) / (r * 1.1)) ** 2 + ((WY - (y0 + y1) * 0.55) / ((y1 - y0) * 0.65)) ** 2)
-    a[ins & (d < 0.95) & (BAY < 0.5)] = TERRA_0
-    a[ins & (d < 0.7) & (BAY < 0.6)] = TERRA_1
-    a[ins & (d < 0.45) & (BAY < 0.5)] = TERRA_2
+    a[ins & (d < 0.9)] = TERRA_0  # two flat steps
+    a[ins & (d < 0.5)] = TERRA_1
     cv.set(a)
     cv.line(x0 - 2, y1, x1 + 2, y1, GLOW)  # hidden LED strip at the alcove floor
 
@@ -176,15 +167,13 @@ def pedestal(cv, tier):
     cv.rect(px0, py1 - 3, px1, py1, dn(face))
     cv.rect(px0, py0 + 2, px1, py0 + 3, dn(face) if tier < 5 else GOLD_DK)
     if tier <= 2:
-        for k in range(16):
-            cv.px(px0 + 3 + (k * 37) % int(px1 - px0 - 6), py0 + 6 + (k * 13) % int(py1 - py0 - 10), BROWN_2)
+        pass  # plain stone
     elif tier <= 4:
         pts = [(px0 + 4, py0 + 6), (px0 + 14, py0 + 12), (px0 + 22, py0 + 9), (px0 + 30, py0 + 18)]
         cv.lines(pts, SLATE_1)
         cv.lines([(px1 - 6, py0 + 5), (px1 - 14, py0 + 14), (px1 - 10, py1 - 5)], SLATE_1)
     else:
-        for k in range(0, int(px1 - px0), 6):
-            cv.px(px0 + k, py0 + 5, SUN)
+        cv.line(px0, py0 + 5, px1, py0 + 5, SUN)
     name = TIER_NAME[tier]
     tw = text_w(name)
     qx = round((px0 + px1) / 2 - tw / 2) - 3
@@ -213,7 +202,7 @@ def closeup_paint(cv, v):
     u = 2 * 10.0 * (F / ZS) / 8.0
     cv.rect(cx - 120, feet - 8 * u - 40, cx + 120, feet + 40, BROWN_0)  # backdrop panel
     a = cv.arr()
-    sel = (a == BROWN_0) & (np.sqrt(((WX - cx) / 110) ** 2 + ((WY - (feet - 4 * u)) / 230) ** 2) < 0.8) & (BAY < 0.5)
+    sel = (a == BROWN_0) & (np.sqrt(((WX - cx) / 110) ** 2 + ((WY - (feet - 4 * u)) / 230) ** 2) < 0.8)
     a[sel] = TERRA_0
     cv.set(a)
     cv.rect(cx - 80, feet, cx + 80, feet + 40, BROWN_1 if tier <= 2 else SLATE_2 if tier <= 4 else GOLD)
@@ -256,24 +245,23 @@ def downlight(cv, v, motes_seed=None):
     a = cv.arr()
     rel = WY - (y + 6)
     cone = (rel > 0) & (WY < fy) & (np.abs(WX - x) < 7 + rel * 0.25)
-    core = cone & (np.abs(WX - x) < 3 + rel * 0.13)
-    sel = cone & ~SMASK & (BAY < 0.07)
-    a[sel] = GLOW
-    a[core & ~SMASK & (BAY < 0.12) & (BAY >= 0.07)] = CREAM
-    # light lands on the statue: top edges go white-gold
+    # the beam reads by its two edge lines (1 px, unbroken) instead of a speckle fill
+    edge = cone & ~(np.roll(cone, 1, 1) & np.roll(cone, -1, 1)) & ~SMASK & (rel > 10)
+    a[edge] = AMBER
+    # light lands on the statue: top edges and the next row go white-gold
     top = SMASK & ~np.roll(SMASK, 1, 0)
     a[top & cone] = SUN
-    a[np.roll(top, 1, 0) & SMASK & cone & (BAY < 0.5)] = SUN
-    # pool on the floor in front of the pedestal
+    a[np.roll(top, 1, 0) & SMASK & cone] = GOLD
+    # pool on the floor in front of the pedestal: two flat steps
     pd = np.sqrt(((WX - x) / 70) ** 2 + ((WY - (fy + 2)) / 9) ** 2)
-    a[(pd < 1) & (BAY < 0.3) & ~SMASK] = AMBER
-    a[(pd < 0.6) & (BAY < 0.3) & ~SMASK] = GOLD
+    a[(pd < 1) & ~SMASK] = AMBER
+    a[(pd < 0.55) & ~SMASK] = GOLD
     cv.set(a)
     r = rng(77 if motes_seed is None else motes_seed)
-    for k in range(16):
+    for k in range(5):  # a few dust motes (2x1 px flecks)
         yy = y + 16 + r.uniform(0, fy - y - 24)
-        xx = x + r.uniform(-1, 1) * (5 + (yy - y) * 0.22)
-        cv.px(xx, yy, CREAM if k % 3 else GLOW)
+        xx = x + r.uniform(-1, 1) * (3 + (yy - y) * 0.15)
+        cv.rect(xx, yy, xx + 1.6, yy, CREAM)
 
 
 # ------------------------------------------------------------------ relics
@@ -288,18 +276,9 @@ def medal(cv, cx, cy, state="iron", s=1.0):
     cv.disc(cx, cy + 2, rr + 1, ring)
     cv.disc(cx, cy + 2, rr, body)
     cv.disc(cx - 1, cy + 1, max(1, rr - 3), hi if state != "iron" else BROWN_2)
-    cv.px(cx - rr // 2, cy - rr // 2 + 2, SUN if state != "iron" else ORANGE)
-    # swim / bike / run marks (original, 3 px glyphs)
-    for dx, g in ((-4, ["010", "101", "000"]), (-1, ["101", "010", "101"]), (2, ["010", "110", "101"])):
-        for j, row in enumerate(g):
-            for i, b in enumerate(row):
-                if b == "1":
-                    cv.px(cx + dx + i, cy + 1 + j, glyph)
+    cv.line(cx - rr * 0.4, cy + 4, cx + rr * 0.4, cy + 4, glyph)  # one bold mark
     if state == "iron":  # ember edge on the lower rim
-        for t in np.linspace(0.2, math.pi - 0.2, 9):
-            cv.px(cx + math.cos(t) * (rr + 1), cy + 2 + math.sin(t) * (rr + 1), RIM if int(t * 7) % 2 else ORANGE)
-    for (dx, dy, c) in ((-rr - 3, -3, GLOW), (rr + 3, -6, ORANGE), (-rr, -rr - 6, RIM), (rr - 1, -rr - 9, GLOW), (1, -rr * 2 - 6, ORANGE)):
-        cv.px(cx + dx, cy + dy, c)
+        cv.line(cx - rr * 0.6, cy + rr + 2, cx + rr * 0.6, cy + rr + 2, RIM)
 
 
 def plus(cv, x, y, c=OAK_2):

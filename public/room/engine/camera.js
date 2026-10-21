@@ -13,8 +13,8 @@
  * A camera at rest is {cx, cy, z}: the world point at the centre of the canvas and the zoom.
  * Its integer origin is ox = round(cx*z - Wd/2), oy = round(cy*z - Hd/2), and a world point (x, y)
  * on layer L with depth offset o_L (non-zero only while the phone pan moves) lands on device
- * ((x + o_L)*z - ox, y*z - oy). The default room zoom z0 may be fractional (1.3x closer than s);
- * zone zooms are integers. There is no mouse-look parallax.
+ * ((x + o_L)*z - ox, y*z - oy). The default room zoom z0 and the zone zooms are whole numbers, so
+ * every art pixel covers the same number of device pixels at rest. There is no mouse-look parallax.
  * Every transform here is returned as {z, tx, ty}: device X = x*z + tx, Y = y*z + ty.
  */
 (function () {
@@ -109,12 +109,13 @@
   }
 
   /**
-   * Default room framing z0: CLOSER (1.3x) nearer than the integer full view s, but never so close
-   * that the core no longer fits. Pan mode (phones) keeps s. Adds z0, Wv0, Hv0 (window at z0).
+   * Default room framing z0: up to CLOSER (1.3x) nearer than the integer full view s, rounded down to a
+   * whole number (even pixels) and never so close that the core no longer fits. Pan mode (phones) keeps s.
+   * Adds z0, Wv0, Hv0 (window at z0).
    */
   function withDefaultZoom(v) {
     var z0 = v.s;
-    if (v.mode === 'room') z0 = Math.max(v.s, Math.min(CLOSER * v.s, v.Wd / CORE_W, v.Hd / CORE_H));
+    if (v.mode === 'room') z0 = Math.max(v.s, Math.floor(Math.min(CLOSER * v.s, v.Wd / CORE_W, v.Hd / CORE_H) + 1e-9));
     v.z0 = z0;
     v.Wv0 = v.Wd / z0;
     v.Hv0 = v.Hd / z0;

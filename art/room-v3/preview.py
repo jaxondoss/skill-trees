@@ -44,7 +44,7 @@ def main():
         items += json.loads(mf.read_text())["items"]
     order = {id(it): k for k, it in enumerate(items)}
     items.sort(key=lambda it: (it["layer"], it.get("contact", it["y"] + it.get("h", 0)) if it["kind"] not in ("shell",) else -1, order[id(it)]))
-    canvas = Image.new("RGBA", (1200, 720), (12, 10, 12, 255))
+    canvas = Image.new("RGBA", (800, 480), (12, 10, 12, 255))  # art frame x -80..720, y -96..384
     for it in items:
         p = pick(it, a.tier, a.stage, a.night, a.active)
         if it["kind"] == "overlay" and it["id"] in a.overlay:
@@ -52,9 +52,9 @@ def main():
         if not p:
             continue
         im = Image.open(PROTO / p).convert("RGBA")
-        canvas.alpha_composite(im, (it["x"] + 120, it["y"] + 90))
+        canvas.alpha_composite(im, (it["x"] + 80, it["y"] + 96))
     if not a.full:
-        canvas = canvas.crop((120, 90, 1080, 630))
+        canvas = canvas.crop((80, 96, 720, 366))
     canvas = canvas.resize((canvas.width * a.scale, canvas.height * a.scale), Image.NEAREST)
     canvas.save(a.out)
     print(a.out)

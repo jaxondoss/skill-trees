@@ -13,7 +13,7 @@ from room import *  # noqa: E402,F401,F403
 R = "R"
 CD = (41.8, 46.2, 2.4, 2.7)  # computer desk z0, z1, depth, height
 BIKE = (34.6, 38.3, 0.6)
-RACK = (7.6, 9.8, 23.0, 24.2)
+RACK = (7.6, 9.8, 26.5, 27.7)
 
 
 # ------------------------------------------------------------------ computer (zone 6)
@@ -235,11 +235,12 @@ def bike(cv, v):
 
     r1 = 1.1
     for zc in (bz0 + 1.15, bz1 - 1.15):
-        pts = [B(zc + r1 * math.cos(t), 4.9 + r1 * math.sin(t)) for t in np.linspace(0, 2 * math.pi, 48)]
-        cv.lines(pts, INK, 3)
-        cv.lines(pts, SLATE_0 if not awake else SLATE_1, 1)
+        ring = lambda rr: [B(zc + rr * math.cos(t), 4.9 + rr * math.sin(t)) for t in np.linspace(0, 2 * math.pi, 48)]  # noqa: E731
+        cv.poly(ring(r1), INK)  # solid tyre: filled ring (outer INK, inner rim, open centre)
+        cv.poly(ring(r1 - 0.1), SLATE_0 if not awake else SLATE_1)
+        cv.poly(ring(r1 - 0.2), T)
         c = B(zc, 4.9)
-        for t in np.linspace(0, math.pi, 7):
+        for t in (0.3, 0.3 + math.pi / 2):  # two bold spokes (no fine wire mesh)
             e = B(zc + r1 * math.cos(t), 4.9 + r1 * math.sin(t))
             e2 = B(zc - r1 * math.cos(t), 4.9 - r1 * math.sin(t))
             cv.line(*e, *e2, BROWN_1)
@@ -359,10 +360,10 @@ def rack(cv, v):
 
 def tiles(cv, v):
     if v == "t1":  # just a towel on the floor
-        fquad(cv, 8.2, 9.6, 25.0, 26.4, SLATE_1)
-        fquad(cv, 8.2, 9.6, 25.0, 25.3, CREAM)
+        fquad(cv, 8.2, 9.6, 28.5, 29.9, SLATE_1)
+        fquad(cv, 8.2, 9.6, 28.5, 28.8, CREAM)
         return
-    X0, X1, Z0, Z1 = 6.8, 11.8, 21.5, 26.5
+    X0, X1, Z0, Z1 = 6.8, 11.8, 25.0, 30.0
     fquad(cv, X0, X1, Z0, Z1, INK)
     n = 5
     for i in range(n):
@@ -401,7 +402,7 @@ def foam_roller(cv, v):
 
 
 def water_bottle(cv, v):
-    c = P(10.4, 0, 25.4)
+    c = P(10.4, 0, 28.9)
     cv.rect(c[0] - 4, c[1] - 18, c[0] + 4, c[1], SLATE_1)
     cv.rect(c[0] - 2, c[1] - 22, c[0] + 2, c[1] - 18, INK)
     cv.line(c[0] - 2, c[1] - 15, c[0] - 2, c[1] - 3, SLATE_2)
@@ -466,7 +467,7 @@ def gym_on(cv, v):
 
 def chalk_marks(cv, v):
     for k in range(5):
-        p = P(8.0 + k * 0.4, 0, 25.6 + (k % 2) * 0.4)
+        p = P(8.0 + k * 0.4, 0, 29.1 + (k % 2) * 0.4)
         cv.px(p[0], p[1], CREAM)
 
 

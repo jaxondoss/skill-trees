@@ -1,24 +1,24 @@
 {
- "_note": "World coordinates. The 960x540 core is x 0..960, y 0..540; the painted art spans x -120..1080, y -90..630 (1200x720, core centred, so laptops never letterbox). Keys 1-7 run left to right (also the arrow loop). focus = what a zone step-in frames (~1/3 of the room, 16:9, hotspots plus margin). stop = zone centre x for the phone pan; phoneStop is clamped for a 180 px wide portrait slice. territory = x range of the zone's hotspots.",
+ "_note": "World coordinates (art px). The 640x270 core is x 0..640, y 0..270; the painted art spans x -80..720, y -96..384 (800x480, the first room's frame). Keys 1-7 run left to right (also the arrow loop). focus = what a zone step-in frames (~1/3 of the room, 16:9, hotspots plus margin). stop = zone centre x for the phone pan; phoneStop is clamped for a 120 px wide portrait slice. territory = x range of the zone's hotspots.",
  "art": {
-  "x": -120,
-  "y": -90,
-  "w": 1200,
-  "h": 720
+  "x": -80,
+  "y": -96,
+  "w": 800,
+  "h": 480
  },
  "core": {
-  "w": 960,
-  "h": 540
+  "w": 640,
+  "h": 270
  },
- "horizon": 227,
+ "horizon": 121,
  "vp": [
-  480,
-  227
+  320,
+  121
  ],
  "camera": {
   "defaultZoom": 1.3,
-  "defaultZoomNote": "default view is 1.3x closer than the full core but still shows the whole room (crop the outer margin first); no mouse-look parallax; depth layers move only during the zoom dolly and the phone pan",
-  "horizonPct": 0.42
+  "defaultZoomNote": "default view is up to 1.3x closer than the full core, rounded down to a whole number so pixels stay even, and still shows the whole core; no mouse-look parallax; depth layers move only during the zoom dolly and the phone pan",
+  "horizonPct": 0.448
  },
  "zones": [
   {
@@ -26,13 +26,13 @@
    "n": 1,
    "name": "KITCHEN",
    "focus": [
-    -108,
-    200,
-    366,
-    206
+    -54,
+    103,
+    233,
+    131
    ],
-   "stop": 75,
-   "phoneStop": 90,
+   "stop": 62,
+   "phoneStop": 62,
    "hotspots": [
     "kitchen.gut",
     "kitchen.food",
@@ -42,8 +42,8 @@
     "kitchen.relic"
    ],
    "territory": {
-    "x0": 0,
-    "x1": 150
+    "x0": 10,
+    "x1": 114
    }
   },
   {
@@ -51,21 +51,21 @@
    "n": 2,
    "name": "BED",
    "focus": [
-    26,
-    240,
-    330,
-    186
+    29,
+    126,
+    220,
+    124
    ],
-   "stop": 191,
-   "phoneStop": 191,
+   "stop": 139,
+   "phoneStop": 139,
    "hotspots": [
     "bed.globe",
     "bed.bed",
     "bed.cushion"
    ],
    "territory": {
-    "x0": 119,
-    "x1": 263
+    "x0": 94,
+    "x1": 184
    }
   },
   {
@@ -73,21 +73,21 @@
    "n": 3,
    "name": "LIBRARY",
    "focus": [
-    107,
-    192,
-    400,
-    225
+    77,
+    94,
+    270,
+    152
    ],
-   "stop": 307,
-   "phoneStop": 307,
+   "stop": 212,
+   "phoneStop": 212,
    "hotspots": [
     "library.bookshelf",
     "library.archive",
     "library.chess"
    ],
    "territory": {
-    "x0": 253,
-    "x1": 361
+    "x0": 178,
+    "x1": 246
    }
   },
   {
@@ -95,13 +95,13 @@
    "n": 4,
    "name": "WINDOW",
    "focus": [
-    304,
-    134,
-    400,
-    225
+    200,
+    58,
+    270,
+    152
    ],
-   "stop": 504,
-   "phoneStop": 504,
+   "stop": 335,
+   "phoneStop": 335,
    "hotspots": [
     "window.today",
     "window.stats",
@@ -109,8 +109,8 @@
     "window.relic"
    ],
    "territory": {
-    "x0": 384,
-    "x1": 624
+    "x0": 260,
+    "x1": 410
    }
   },
   {
@@ -118,13 +118,13 @@
    "n": 5,
    "name": "STUDY DESK",
    "focus": [
-    502,
-    170,
-    330,
-    186
+    327,
+    82,
+    220,
+    124
    ],
-   "stop": 666,
-   "phoneStop": 666,
+   "stop": 437,
+   "phoneStop": 437,
    "hotspots": [
     "study.academics",
     "study.time",
@@ -132,8 +132,8 @@
     "study.journal"
    ],
    "territory": {
-    "x0": 636,
-    "x1": 697
+    "x0": 418,
+    "x1": 456
    }
   },
   {
@@ -141,21 +141,21 @@
    "n": 6,
    "name": "COMPUTER",
    "focus": [
-    572,
-    179,
-    363,
-    204
+    375,
+    90,
+    231,
+    130
    ],
-   "stop": 753,
-   "phoneStop": 753,
+   "stop": 490,
+   "phoneStop": 490,
    "hotspots": [
     "computer.ai",
     "computer.board",
     "computer.focus"
    ],
    "territory": {
-    "x0": 711,
-    "x1": 795
+    "x0": 464,
+    "x1": 517
    }
   },
   {
@@ -163,13 +163,13 @@
    "n": 7,
    "name": "GYM",
    "focus": [
-    642,
-    236,
     400,
-    225
+    111,
+    270,
+    152
    ],
-   "stop": 842,
-   "phoneStop": 842,
+   "stop": 536,
+   "phoneStop": 536,
    "hotspots": [
     "gym.bike",
     "gym.running",
@@ -177,72 +177,72 @@
     "gym.relic"
    ],
    "territory": {
-    "x0": 741,
-    "x1": 942
+    "x0": 462,
+    "x1": 609
    }
   }
  ],
  "shell": {
   "backWall": [
-   250,
-   133,
-   710,
-   350
+   176,
+   62,
+   464,
+   198
   ],
   "window": [
-   469,
-   183,
-   600,
-   298
+   313,
+   94,
+   395,
+   165
   ],
   "sill": [
-   459,
-   299,
-   610,
-   304
+   307,
+   166,
+   401,
+   169
   ],
   "leftWall": {
-   "backEdgeX": 250,
+   "backEdgeX": 176,
    "top": [
-    133,
+    62,
     0.15
    ],
    "bottom": [
-    350,
+    198,
     0.19375
    ],
-   "formula": "top y = 133 - 0.15 (250 - x); bottom y = 350 + 0.19375 (250 - x) (v1 raked flats x1.6)"
+   "formula": "top y = 62 - 0.15 (176 - x); bottom y = 198 + 0.19375 (176 - x) (the first room's raked flats)"
   },
-  "rightWall": "mirror of leftWall about x = 480",
-  "ceilingY": 133,
-  "floorBackY": 350,
+  "rightWall": "mirror of leftWall about x = 320",
+  "ceilingY": 62,
+  "floorBackY": 198,
   "projection": {
-   "F": 870.24,
+   "F": 543.9,
    "ZB": 48.0,
    "HALF": 12.7,
    "CEIL": 12.0,
    "EYE": 6.795,
    "K": 0.46606,
-   "note": "P(X, h, Z) = (480 + F X / Z, 227 + F (EYE - h) / Z); left wall X = -HALF - K (ZB - Z)"
+   "note": "P(X, h, Z) = (320 + F X / Z, 121 + F (EYE - h) / Z) in art px; left wall X = -HALF - K (ZB - Z)"
   }
  },
  "centre": {
   "statue": [
-   384,
-   135,
-   86,
-   224
+   260,
+   63,
+   54,
+   141
   ],
-  "statueContactY": 357,
+  "statueContactY": 202,
   "rug": [
-   325,
-   358,
-   141,
-   91
+   223,
+   203,
+   88,
+   57
   ],
   "downlight": [
-   426,
-   127
+   286,
+   58
   ],
   "sunbeam": "floor patch from the window toward the statue and the rug"
  },

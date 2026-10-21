@@ -229,7 +229,7 @@ def neon(cv, v):
         return
     cv.rect(x0, y0, x1, y1, INK)
     cv.rect(x0, y0, x1, y0, BROWN_1)
-    tx = round((x0 + x1) / 2 - (text_w("FORGE") * 2 + 1) / 2)
+    tx = round((x0 + x1) / 2 - text_w("FORGE"))
     ty = round((y0 + y1) / 2 - 5)
     # 2x neon letters with a red tube glow
     tmp = Canvas()
@@ -237,14 +237,15 @@ def neon(cv, v):
     a = tmp.arr()
     m = a != T
     ys, xs = np.nonzero(m)
+    p1 = 1 / S  # one art pixel in design units: letters are 2x2 art px blocks with a 1 px tube glow
     for y, x in zip(ys, xs):
-        wx, wy = x + AX, y + AY
+        wx, wy = to_du(x + AX, y + AY)
         gx, gy = tx + (wx - tx) * 2, ty + (wy - ty) * 2
-        cv.rect(gx - 1, gy - 1, gx + 2, gy + 2, CRT_0)
+        cv.rect(gx - p1, gy - p1, gx + 2 * p1, gy + 2 * p1, CRT_0)
     for y, x in zip(ys, xs):
-        wx, wy = x + AX, y + AY
+        wx, wy = to_du(x + AX, y + AY)
         gx, gy = tx + (wx - tx) * 2, ty + (wy - ty) * 2
-        cv.rect(gx, gy, gx + 1, gy + 1, CRT_1)
+        cv.rect(gx, gy, gx + p1, gy + p1, CRT_1)
         cv.px(gx, gy, GLOW)
 
 

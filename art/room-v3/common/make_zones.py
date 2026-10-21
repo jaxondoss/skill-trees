@@ -4,7 +4,7 @@ the hotspots in the part manifests. Run after the part builds: python3 art/room-
 import json
 from pathlib import Path
 
-from room import (AH, AW, AX, AY, BACK, CEIL, CORE_H, CORE_W, F, HALF, K, P, VX, VY, WIN_RECT, ZB, EYE, WP)
+from room import (AH, AW, AX, AY, BACK_ART, CEIL, CORE_H, CORE_W, EYE, F, HALF, K, OX, OY, P, S, WIN_RECT, ZB, art_rect, to_art)
 
 V3 = Path(__file__).resolve().parents[1]
 ZONES = [("kitchen", "KITCHEN"), ("bed", "BED"), ("library", "LIBRARY"), ("window", "WINDOW"), ("study", "STUDY DESK"),
@@ -25,41 +25,43 @@ def main():
                  else (i["x"], i["y"], i["x"] + i["w"], i["y"] + i["h"]) for i in hs]
         x0 = min(b[0] for b in boxes); y0 = min(b[1] for b in boxes)
         x1 = max(b[2] for b in boxes); y1 = max(b[3] for b in boxes)
-        w = min(400, max(330, (x1 - x0) + 36, ((y1 - y0) + 30) * 16 / 9))  # ~1/3 of the room
+        w = min(270, max(220, (x1 - x0) + 24, ((y1 - y0) + 20) * 16 / 9))  # ~1/3 of the 640 core
         h = w * 9 / 16
         cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
         fx = min(max(cx - w / 2, AX), AX + AW - w)
         fy = min(max(cy - h / 2, AY), AY + AH - h)
         zones.append({"id": zid, "n": n, "name": name, "focus": [round(fx), round(fy), round(w), round(h)],
-                      "stop": round(cx), "phoneStop": round(min(max(cx, 90), CORE_W - 90)),
+                      "stop": round(cx), "phoneStop": round(min(max(cx, 60), CORE_W - 60)),
                       "hotspots": [i["id"] for i in hs], "territory": {"x0": round(x0), "x1": round(x1)}})
     statue = next(i for i in items if i["id"] == "window.statue")
     rug = next(i for i in items if i["id"] == "window.rug")
+    WIN = art_rect(WIN_RECT)
+    dl = to_art(*P(-2.8, CEIL, 45.2))
     out = {
-        "_note": "World coordinates. The 960x540 core is x 0..960, y 0..540; the painted art spans x -120..1080, y -90..630 "
-                 "(1200x720, core centred, so laptops never letterbox). Keys 1-7 run left to right (also the arrow loop). "
+        "_note": "World coordinates (art px). The 640x270 core is x 0..640, y 0..270; the painted art spans x -80..720, "
+                 "y -96..384 (800x480, the first room's frame). Keys 1-7 run left to right (also the arrow loop). "
                  "focus = what a zone step-in frames (~1/3 of the room, 16:9, hotspots plus margin). stop = zone centre x for "
-                 "the phone pan; phoneStop is clamped for a 180 px wide portrait slice. territory = x range of the zone's hotspots.",
+                 "the phone pan; phoneStop is clamped for a 120 px wide portrait slice. territory = x range of the zone's hotspots.",
         "art": {"x": AX, "y": AY, "w": AW, "h": AH},
         "core": {"w": CORE_W, "h": CORE_H},
-        "horizon": round(VY),
-        "vp": [round(VX), round(VY)],
-        "camera": {"defaultZoom": 1.3, "defaultZoomNote": "default view is 1.3x closer than the full core but still shows "
-                   "the whole room (crop the outer margin first); no mouse-look parallax; depth layers move only during the "
-                   "zoom dolly and the phone pan", "horizonPct": round(VY / CORE_H, 3)},
+        "horizon": round(OY),
+        "vp": [round(OX), round(OY)],
+        "camera": {"defaultZoom": 1.3, "defaultZoomNote": "default view is up to 1.3x closer than the full core, rounded "
+                   "down to a whole number so pixels stay even, and still shows the whole core; no mouse-look parallax; depth "
+                   "layers move only during the zoom dolly and the phone pan", "horizonPct": round(OY / CORE_H, 3)},
         "zones": zones,
         "shell": {
-            "backWall": list(BACK), "window": list(WIN_RECT), "sill": [WIN_RECT[0] - 10, WIN_RECT[3] + 1, WIN_RECT[2] + 10, WIN_RECT[3] + 6],
-            "leftWall": {"backEdgeX": BACK[0], "top": [BACK[1], 0.15], "bottom": [BACK[3], 0.19375],
-                         "formula": "top y = 133 - 0.15 (250 - x); bottom y = 350 + 0.19375 (250 - x) (v1 raked flats x1.6)"},
-            "rightWall": "mirror of leftWall about x = 480",
-            "ceilingY": BACK[1], "floorBackY": BACK[3],
-            "projection": {"F": round(F, 2), "ZB": ZB, "HALF": HALF, "CEIL": CEIL, "EYE": EYE, "K": round(K, 5),
-                           "note": "P(X, h, Z) = (480 + F X / Z, 227 + F (EYE - h) / Z); left wall X = -HALF - K (ZB - Z)"},
+            "backWall": list(BACK_ART), "window": list(WIN), "sill": [WIN[0] - 6, WIN[3] + 1, WIN[2] + 6, WIN[3] + 4],
+            "leftWall": {"backEdgeX": BACK_ART[0], "top": [BACK_ART[1], 0.15], "bottom": [BACK_ART[3], 0.19375],
+                         "formula": "top y = 62 - 0.15 (176 - x); bottom y = 198 + 0.19375 (176 - x) (the first room's raked flats)"},
+            "rightWall": "mirror of leftWall about x = 320",
+            "ceilingY": BACK_ART[1], "floorBackY": BACK_ART[3],
+            "projection": {"F": round(F * S, 2), "ZB": ZB, "HALF": HALF, "CEIL": CEIL, "EYE": EYE, "K": round(K, 5),
+                           "note": "P(X, h, Z) = (320 + F X / Z, 121 + F (EYE - h) / Z) in art px; left wall X = -HALF - K (ZB - Z)"},
         },
         "centre": {"statue": [statue["x"], statue["y"], statue["w"], statue["h"]], "statueContactY": statue.get("contact"),
                    "rug": [rug["x"], rug["y"], rug["w"], rug["h"]],
-                   "downlight": [round(P(-2.8, CEIL, 45.2)[0]), round(P(-2.8, CEIL, 45.2)[1])],
+                   "downlight": [round(dl[0]), round(dl[1])],
                    "sunbeam": "floor patch from the window toward the statue and the rug"},
         "relics": {"relic-left": "kitchen.relic", "relic-window": "window.relic", "relic-right": "gym.relic"},
         "layers": {

@@ -6,17 +6,22 @@ statue-relics) has art/room-v3/<part>/build.py which paints objects with this ki
 emit(); finish(part) writes art/room-v3/<part>/manifest.json. art/room-v3/merge.py bundles everything into
 docs/redesign/room-prototype/art-v3.js.
 
-WORLD coordinates: the 960x540 core is x 0..960, y 0..540; the painted art spans x -120..1080, y -90..630
-(1200x720, core centred) so wide screens never letterbox. Horizon y 227 (42%), vanishing point (480, 227).
+OUTPUT FRAME (the first room's): the 640x270 core is x 0..640, y 0..270; the painted art spans x -80..720,
+y -96..384 (800x480). Horizon y 121, vanishing point (320, 121). The side walls are v1's raked flats:
+  left wall top    y = 62 - 0.15    * (176 - x)      (back corner x 176)
+  left wall bottom y = 198 + 0.19375 * (176 - x)
+  right wall mirrors about x = 320; back wall x 176..464, y 62..198.
 
-GEOMETRY (the original v1 idea, scaled 1.6x about the vanishing point): the side walls are raked flats that
-get BIGGER toward the viewer and open the room wide. In screen terms (world px):
-  left wall top    y = 133 - 0.15    * (250 - x)      (back corner x 250)
-  left wall bottom y = 350 + 0.19375 * (250 - x)
-  right wall mirrors about x = 480; back wall x 250..710, y 133..350.
-These are exactly v1's  top = 62 - 0.15(176 - x), bottom = 198 + 0.19375(176 - x)  scaled 1.6x.
-Internally objects are placed in feet with a one-point projection P(X, h, Z) whose side walls splay outward
-(X = -HALF - K (ZB - Z)); the constants below reproduce the formulas above exactly.
+DESIGN UNITS: the build scripts place objects in feet with a one-point projection P(X, h, Z) (side walls splay
+outward, X = -HALF - K (ZB - Z)) and add small offsets in design units (du). P returns du, a finer grid
+centred on (480, 227); 1 du = 0.625 art px (art = (320, 121) + 0.625 (du - (480, 227))). Canvas rasterises
+every shape natively at art resolution (shapes are redrawn, never resampled); text glyphs, single pixels and
+1 px lines stay one art pixel, so small details come out chunky. Manifests and zones.json are in art px.
+
+STYLE RULES (the first room's look): flat colour clusters, 2-4 tones per material, no Bayer dither on walls,
+floor or objects (dither only for the sky and soft light pools, at most 2-step bands); each object is lit by
+one flat light step, gets a dark 1 px outline and one light edge toward the window. merge.py rejects sprites
+with too many isolated pixels or 2x2 checkerboards (grain check).
 """
 from __future__ import annotations
 
@@ -49,9 +54,20 @@ C = type("C", (), dict(I))  # C.OAK_1 -> index
 globals().update(I)  # VOID, INK, OAK_0 ... as module-level ints (from room import *)
 
 # ------------------------------------------------------------------ frame + projection
-AX, AY, AW, AH = -120, -90, 1200, 720  # art frame (world)
-CORE_W, CORE_H = 960, 540
-VX, VY = 480.0, 227.0
+AX, AY, AW, AH = -80, -96, 800, 480  # art frame (art px)
+CORE_W, CORE_H = 640, 270  # core (art px)
+DCORE_W, DCORE_H = 960, 540  # the core in design units (light field)
+VX, VY = 480.0, 227.0  # vanishing point in design units
+OX, OY = 320.0, 121.0  # vanishing point in art px
+S = 0.625  # art px per design unit
+
+
+def to_art(x, y):
+    return OX + (x - VX) * S, OY + (y - VY) * S
+
+
+def to_du(x, y):
+    return VX + (x - OX) / S, VY + (y - OY) / S
 ZB, HALF, CEIL, EYE = 48.0, 12.7, 12.0, 6.795
 F = 18.13 * ZB  # back wall: 18.13 px per foot
 K = (EYE / 0.19375 - HALF) / ZB  # side-wall splay; reproduces the v1 slopes
@@ -82,7 +98,15 @@ def wall_z(side, x):
     return a / (r - K) if side == "L" else -a / (r + K)
 
 
-BACK = (round(P(-HALF, 0, ZB)[0]), round(P(0, CEIL, ZB)[1]), round(P(HALF, 0, ZB)[0]), round(P(0, 0, ZB)[1]))
+BACK = (round(P(-HALF, 0, ZB)[0]), round(P(0, CEIL, ZB)[1]), round(P(HALF, 0, ZB)[0]), round(P(0, 0, ZB)[1]))  # du
+
+
+def art_rect(r):
+    (x0, y0), (x1, y1) = to_art(r[0], r[1]), to_art(r[2], r[3])
+    return round(x0), round(y0), round(x1), round(y1)
+
+
+BACK_ART = art_rect(BACK)
 
 # ------------------------------------------------------------------ light ramps
 LIGHTER = dict(VOID="INK", INK="BROWN_0", BROWN_0="BROWN_2", BROWN_1="BROWN_2", BROWN_2="OAK_0", OAK_DK="OAK_0",
@@ -117,11 +141,18 @@ def dn(c, k=1):
 
 
 BAYER = (np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]) + 0.5) / 16
-# world-anchored Bayer (the engine anchors its LUT dissolves to world coordinates too)
+# art-anchored Bayer (only for the sky and soft light pools); WX/WY = design-unit position of each art pixel
 _yy, _xx = np.mgrid[0:AH, 0:AW]
-WX = (_xx + AX).astype(np.float32)
-WY = (_yy + AY).astype(np.float32)
+WX = (VX + (_xx + AX - OX) / S).astype(np.float32)
+WY = (VY + (_yy + AY - OY) / S).astype(np.float32)
 BAY = BAYER[(_yy + AY) % 4, (_xx + AX) % 4]
+AXG = (_xx + AX).astype(np.float32)  # art px grids
+AYG = (_yy + AY).astype(np.float32)
+
+
+def A(x, y):
+    """Author in art px: returns design units for an art-px point (frame crops, edge-anchored pieces)."""
+    return to_du(x, y)
 
 
 def rng(seed):
@@ -143,7 +174,8 @@ FONT = {
 
 
 def text_w(s):
-    return sum(len(FONT[ch][0]) + 1 for ch in s) - 1
+    """Width of a label in design units (glyphs are drawn one art pixel per glyph pixel)."""
+    return (sum(len(FONT[ch][0]) + 1 for ch in s) - 1) / 0.625
 
 
 class Canvas:
@@ -153,7 +185,7 @@ class Canvas:
 
     @staticmethod
     def q(x, y):
-        return (round(x - AX), round(y - AY))
+        return (round(OX + (x - VX) * S - AX), round(OY + (y - VY) * S - AY))
 
     def rect(self, x0, y0, x1, y1, c):
         x0, x1 = sorted((x0, x1)); y0, y1 = sorted((y0, y1))
@@ -163,10 +195,10 @@ class Canvas:
         self.d.polygon([self.q(x, y) for x, y in pts], fill=c)
 
     def line(self, x0, y0, x1, y1, c, w=1):
-        self.d.line([*self.q(x0, y0), *self.q(x1, y1)], fill=c, width=w)
+        self.d.line([*self.q(x0, y0), *self.q(x1, y1)], fill=c, width=max(1, round(w * S)))
 
     def lines(self, pts, c, w=1):
-        self.d.line([self.q(x, y) for x, y in pts], fill=c, width=w)
+        self.d.line([self.q(x, y) for x, y in pts], fill=c, width=max(1, round(w * S)))
 
     def px(self, x, y, c):
         x, y = self.q(x, y)
@@ -181,21 +213,24 @@ class Canvas:
             self.d.ellipse([*self.q(x0, y0), *self.q(x1, y1)], fill=c)
 
     def disc(self, cx, cy, r, c):
-        cx, cy = round(cx), round(cy)
-        for y in range(-r, r + 1):
-            w = int(math.sqrt(max(0, r * r - y * y + r * 0.8)))
-            self.line(cx - w, cy + y, cx + w, cy + y, c)
+        """Filled disc; r in design units (drawn natively at art resolution, at least 1 px)."""
+        px_, py_ = self.q(cx, cy)
+        rr = max(1, round(r * S))
+        for y in range(-rr, rr + 1):
+            w = int(math.sqrt(max(0, rr * rr - y * y + rr * 0.8)))
+            self.d.line([(px_ - w, py_ + y), (px_ + w, py_ + y)], fill=c)
 
     def text(self, x, y, s, c):
-        x, y = round(x), round(y)
+        """Pixel font at native art size (one glyph pixel = one art pixel). Returns the end x in du."""
+        px_, py_ = self.q(x, y)
         for ch in s:
             rows = FONT.get(ch, FONT[" "])
             for j, row in enumerate(rows):
                 for i, b in enumerate(row):
-                    if b == "1":
-                        self.px(x + i, y + j, c)
-            x += len(rows[0]) + 1
-        return x
+                    if b == "1" and 0 <= px_ + i < AW and 0 <= py_ + j < AH:
+                        self.im.putpixel((px_ + i, py_ + j), c)
+            px_ += len(rows[0]) + 1
+        return x + (text_w(s) + 1) / S
 
     def arr(self):
         return np.array(self.im)
@@ -204,11 +239,12 @@ class Canvas:
         self.im = Image.fromarray(a.astype(np.uint8))
         self.d = ImageDraw.Draw(self.im)
 
-    def dither(self, pts, c, density=0.5):
-        """Fill a polygon with a world-anchored Bayer pattern (opaque pixels only where BAY < density)."""
+    def dither(self, pts, c, density=0.5, soft=False):
+        """Shadow/tint polygon. Style rule: flat fill (no checkerboard) when density >= 0.35, nothing below.
+        soft=True keeps a real Bayer pattern (sky and light pools only)."""
         m = Image.new("1", (AW, AH), 0)
         ImageDraw.Draw(m).polygon([self.q(x, y) for x, y in pts], fill=1)
-        mm = np.array(m, bool) & (BAY < density)
+        mm = np.array(m, bool) & ((BAY < density) if soft else np.bool_(density >= 0.35))
         a = self.arr()
         a[mm] = c
         self.set(a)
@@ -312,12 +348,13 @@ def light_field(night=False):
     L -= 0.55
     L -= np.clip((210 - WY) / 300, 0, 1) * 0.6  # ceiling falls off
     # vignette: outer 15% of the core gently, the bleed strongly
-    vx = np.clip(np.maximum(144 - WX, WX - (CORE_W - 144)) / 144, 0, 1)
-    vy = np.clip(np.maximum(81 - WY, WY - (CORE_H - 81)) / 81, 0, 1)
-    L -= np.maximum(vx, vy) * 0.75
-    bx = np.clip(np.maximum(-WX, WX - CORE_W) / 120, 0, 1)
-    by = np.clip(np.maximum(-WY, WY - CORE_H) / 90, 0, 1)
-    L -= np.maximum(bx, by) * 1.2
+    # vignette in art px: outer band of the core gently, the bleed strongly
+    vx = np.clip(np.maximum(90 - AXG, AXG - (CORE_W - 90)) / 90, 0, 1)
+    vy = np.clip(np.maximum(40 - AYG, AYG - (CORE_H - 40)) / 40, 0, 1)
+    L -= np.minimum(np.hypot(vx, vy), 1) * 0.75  # rounded corners, so the light bands never form a box
+    bx = np.clip(np.maximum(-AXG, AXG - CORE_W) / 80, 0, 1)
+    by = np.clip(np.maximum(-AYG, AYG - CORE_H) / 110, 0, 1)
+    L -= np.minimum(np.hypot(bx, by), 1) * 1.2
     wx0, wy0, wx1, wy1 = WIN_RECT
     cxw, cyw = (wx0 + wx1) / 2, (wy0 + wy1) / 2
     if not night:
@@ -359,12 +396,22 @@ def _init_lights():
 _init_lights()
 
 
-def apply_light(a, night=False, extra=None):
+def apply_light(a, night=False, extra=None, flat=False):
+    """Light an index image. Default: flat bands (round the light field, no dither). flat=True: one light
+    step for the whole sprite (the median over its pixels), so objects read as flat colour clusters; an
+    extra (glow) field still adds its own rounded bands on top."""
     L = light_field(night)
-    if extra is not None:
-        L = L + extra
     m = a != T
-    steps = np.clip(np.floor(L + BAY), -3, 3).astype(np.int32)
+    if flat and m.any():
+        base = float(np.median(L[m]))
+        steps = np.full(a.shape, int(np.clip(np.floor(base + 0.5), -2, 2)), np.int32)
+        if extra is not None:
+            steps = steps + np.floor(extra + 0.5).astype(np.int32)
+        steps = np.clip(steps, -3, 3)
+    else:
+        if extra is not None:
+            L = L + extra
+        steps = np.clip(np.floor(L + 0.5), -3, 3).astype(np.int32)
     out = a.copy()
     for k in range(3):
         u = m & (steps > k)
@@ -375,18 +422,19 @@ def apply_light(a, night=False, extra=None):
 
 
 def rimlight(a, side):
-    """1 px window-facing rim (one step lighter) and a shadow-side edge (one step darker)."""
+    """The first room's edge treatment: one light edge toward the window (and the top), a dark 1 px outline
+    (two steps darker) on every other outer edge."""
     m = a != T
     out = a.copy()
-    if side == "top":
-        e = m & ~np.roll(m, 1, 0)
-        out[e] = UP[a[e]]
-        return out
-    lit = m & ~np.roll(m, -1, 1) if side == "right" else m & ~np.roll(m, 1, 1)
-    shade = m & ~np.roll(m, 1, 1) if side == "right" else m & ~np.roll(m, -1, 1)
     top = m & ~np.roll(m, 1, 0)
-    out[shade] = DN[a[shade]]
-    out[top | lit] = UP[a[top | lit]]
+    bot = m & ~np.roll(m, -1, 0)
+    lft = m & ~np.roll(m, 1, 1)
+    rgt = m & ~np.roll(m, -1, 1)
+    lit = top | (rgt if side == "right" else lft if side == "left" else np.zeros_like(m))
+    edge = top | bot | lft | rgt
+    dark = edge & ~lit
+    out[dark] = DN[DN[a[dark]]]
+    out[lit] = UP[a[lit]]
     return out
 
 
@@ -456,12 +504,12 @@ def emit(id, *, zone, kind, layer, paint, variants=("base",), target=None, label
         a = cv.arr()
         if (a != T).any():
             ys, xs = np.nonzero(a != T)
-            sd = side_of(xs.min() + AX, xs.max() + AX)
-            if rim:
-                a = rimlight(a, sd)
+            sd = side_of(*to_du(xs.min() + AX, 0)[:1], *to_du(xs.max() + AX, 0)[:1])
             if light:
                 ex = extra(v) if extra else None
-                a = apply_light(a, night=(v == "night"), extra=ex)
+                a = apply_light(a, night=(v == "night"), extra=ex, flat=(contact != "top"))
+            if rim:
+                a = rimlight(a, sd)
         arrs[v] = a
     union = np.zeros((AH, AW), bool)
     for a in arrs.values():
@@ -478,8 +526,15 @@ def emit(id, *, zone, kind, layer, paint, variants=("base",), target=None, label
     var.setdefault("base", paths[variants[0]])
     an = {"frames": [paths[f"f{i}"] for i in range(len(anim["frames"]))], "fps": anim["fps"]} if anim else None
     wx, wy = int(x0 + AX), int(y0 + AY)
+    # led / hit / contact arrive in design units; manifests are in art px
+    if led is not None:
+        led = tuple(round(v) for v in to_art(*led))
+    if hit is not None:
+        hit = art_rect(hit)
     if contact == "top":  # flat floor pieces (rugs, mats) sort behind whatever stands on them
         contact = wy
+    elif contact is not None:
+        contact = round(to_art(0, contact)[1])
     if kind == "hotspot":
         assert target and label, id
         if led is None:
