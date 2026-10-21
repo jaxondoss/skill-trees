@@ -1,0 +1,2559 @@
+{
+ "part": "room-r3",
+ "items": [
+  {
+   "id": "shell.sky",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 0,
+   "x": 264,
+   "y": 56,
+   "w": 155,
+   "h": 91,
+   "variants": {
+    "base": "art-r3/shell/sky.base.png",
+    "night": "art-r3/shell/sky.night.png"
+   }
+  },
+  {
+   "id": "shell.outside",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 1,
+   "x": 264,
+   "y": 56,
+   "w": 155,
+   "h": 91,
+   "variants": {
+    "base": "art-r3/shell/outside.base.png",
+    "night": "art-r3/shell/outside.night.png"
+   }
+  },
+  {
+   "id": "shell.window",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 252,
+   "y": 48,
+   "w": 181,
+   "h": 108,
+   "variants": {
+    "base": "art-r3/shell/window.base.png",
+    "night": "art-r3/shell/window.night.png"
+   }
+  },
+  {
+   "id": "shell.l2",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 91,
+   "y": 28,
+   "w": 459,
+   "h": 176,
+   "variants": {
+    "base": "art-r3/shell/l2.base.png",
+    "night": "art-r3/shell/l2.night.png"
+   }
+  },
+  {
+   "id": "shell.l3",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": -80,
+   "y": -96,
+   "w": 800,
+   "h": 124,
+   "variants": {
+    "base": "art-r3/shell/l3.base.png",
+    "night": "art-r3/shell/l3.night.png"
+   }
+  },
+  {
+   "id": "shell.l4",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": -80,
+   "y": -37,
+   "w": 800,
+   "h": 306,
+   "variants": {
+    "base": "art-r3/shell/l4.base.png",
+    "night": "art-r3/shell/l4.night.png"
+   }
+  },
+  {
+   "id": "shell.l5",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": -80,
+   "y": 204,
+   "w": 800,
+   "h": 180,
+   "variants": {
+    "base": "art-r3/shell/l5.base.png",
+    "night": "art-r3/shell/l5.night.png"
+   }
+  },
+  {
+   "id": "window.skylight",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 258,
+   "y": 2,
+   "w": 125,
+   "h": 12,
+   "variants": {
+    "base": "art-r3/window/skylight.base.png",
+    "night": "art-r3/window/skylight.night.png"
+   },
+   "note": "skylight (sunset sky, night: dark)"
+  },
+  {
+   "id": "window.cables-ceiling",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 20,
+   "y": -4,
+   "w": 601,
+   "h": 29,
+   "variants": {
+    "base": "art-r3/window/cables-ceiling.base.png"
+   },
+   "note": "conduit and cables across the ceiling"
+  },
+  {
+   "id": "kitchen.pendant",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 23,
+   "y": 78,
+   "w": 9,
+   "h": 10,
+   "variants": {
+    "base": "art-r3/kitchen/pendant.base.png",
+    "night": "art-r3/kitchen/pendant.night.png",
+    "t1": "art-r3/kitchen/pendant.t1.png",
+    "t3": "art-r3/kitchen/pendant.t3.png",
+    "t5": "art-r3/kitchen/pendant.t5.png"
+   },
+   "note": "door lamp above the door (t1 bare bulb, t3 dome, t5 brass); gives the door its own pool"
+  },
+  {
+   "id": "library.pendant",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 112,
+   "y": -6,
+   "w": 13,
+   "h": 57,
+   "variants": {
+    "base": "art-r3/library/pendant.base.png",
+    "night": "art-r3/library/pendant.night.png",
+    "t1": "art-r3/library/pendant.t1.png",
+    "t3": "art-r3/library/pendant.t3.png",
+    "t5": "art-r3/library/pendant.t5.png"
+   },
+   "note": "library pendant (t1 bare bulb, t3 dome, t5 brass)"
+  },
+  {
+   "id": "study.pendant",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 480,
+   "y": -6,
+   "w": 13,
+   "h": 55,
+   "variants": {
+    "base": "art-r3/study/pendant.base.png",
+    "night": "art-r3/study/pendant.night.png",
+    "t1": "art-r3/study/pendant.t1.png",
+    "t3": "art-r3/study/pendant.t3.png",
+    "t5": "art-r3/study/pendant.t5.png"
+   },
+   "note": "study pendant (t1 bare bulb, t3 red dome, t5 brass)"
+  },
+  {
+   "id": "bed.stringlights",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 52,
+   "y": 46,
+   "w": 39,
+   "h": 34,
+   "variants": {
+    "base": "art-r3/bed/stringlights.base.png",
+    "night": "art-r3/bed/stringlights.night.png",
+    "t1": "art-r3/bed/stringlights.t1.png",
+    "t2": "art-r3/bed/stringlights.t2.png",
+    "t5": "art-r3/bed/stringlights.t5.png"
+   },
+   "note": "string lights over the bed, 2x2 bulbs (t1 two bulbs)"
+  },
+  {
+   "id": "window.stringlights",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 254,
+   "y": 50,
+   "w": 179,
+   "h": 12,
+   "variants": {
+    "base": "art-r3/window/stringlights.base.png"
+   },
+   "note": "R3: string lights along the window rod"
+  },
+  {
+   "id": "library.stringlights",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 92,
+   "y": 31,
+   "w": 230,
+   "h": 10,
+   "variants": {
+    "base": "art-r3/library/stringlights.base.png"
+   },
+   "note": "R3: string lights, back wall left"
+  },
+  {
+   "id": "study.stringlights",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 360,
+   "y": 31,
+   "w": 189,
+   "h": 10,
+   "variants": {
+    "base": "art-r3/study/stringlights.base.png"
+   },
+   "note": "R3: string lights, back wall right"
+  },
+  {
+   "id": "kitchen.pothos",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 53,
+   "y": -4,
+   "w": 16,
+   "h": 64,
+   "variants": {
+    "base": "art-r3/kitchen/pothos.base.png"
+   },
+   "note": "hanging basket, left"
+  },
+  {
+   "id": "library.pothos",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 387,
+   "y": 0,
+   "w": 14,
+   "h": 59,
+   "variants": {
+    "base": "art-r3/library/pothos.base.png"
+   },
+   "note": "hanging basket over the CRTs"
+  },
+  {
+   "id": "study.pothos",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 566,
+   "y": -4,
+   "w": 14,
+   "h": 60,
+   "variants": {
+    "base": "art-r3/study/pothos.base.png"
+   },
+   "note": "hanging basket over the computer desk"
+  },
+  {
+   "id": "window.statue",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 192,
+   "y": 39,
+   "w": 63,
+   "h": 166,
+   "variants": {
+    "base": "art-r3/window/statue.base.png",
+    "t1": "art-r3/window/statue.t1.png",
+    "t2": "art-r3/window/statue.t2.png",
+    "t3": "art-r3/window/statue.t3.png",
+    "t4": "art-r3/window/statue.t4.png",
+    "t5": "art-r3/window/statue.t5.png"
+   },
+   "target": {
+    "feature": "overall"
+   },
+   "label": "FORGE",
+   "led": [
+    250,
+    184
+   ],
+   "hit": [
+    192,
+    39,
+    63,
+    166
+   ],
+   "plaque": [
+    197,
+    191,
+    52,
+    12
+   ],
+   "note": "obsidian figure, kintsugi cracks grow by tier (I seed at the chest .. V full network, flakes, eyes); pedestal and plaque by tier"
+  },
+  {
+   "id": "window.downlight-fixture",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 219,
+   "y": 21,
+   "w": 9,
+   "h": 7,
+   "variants": {
+    "base": "art-r3/window/downlight-fixture.base.png"
+   },
+   "note": "ceiling downlight above the statue"
+  },
+  {
+   "id": "library.sign",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 186,
+   "y": 29,
+   "w": 28,
+   "h": 11,
+   "variants": {
+    "base": "art-r3/library/sign.base.png",
+    "t1": "art-r3/library/sign.t1.png",
+    "t5": "art-r3/library/sign.t5.png"
+   },
+   "note": "FORGE plate left of the downlight (t1 paper card, t5 neon)"
+  },
+  {
+   "id": "window.relic",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 327,
+   "y": 31,
+   "w": 29,
+   "h": 25,
+   "variants": {
+    "base": "art-r3/window/relic.base.png",
+    "active": "art-r3/window/relic.active.png",
+    "hot": "art-r3/window/relic.hot.png",
+    "gold": "art-r3/window/relic.gold.png"
+   },
+   "target": {
+    "feature": "relic-window"
+   },
+   "label": "RELIC",
+   "led": [
+    352,
+    45
+   ],
+   "hit": [
+    327,
+    31,
+    29,
+    25
+   ],
+   "note": "arched niche above the window: empty / iron / hot / gold medal"
+  },
+  {
+   "id": "window.candles",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 272,
+   "y": 137,
+   "w": 46,
+   "h": 11,
+   "variants": {
+    "base": "art-r3/window/candles.base.png"
+   },
+   "note": "R3: streak candles on the sill"
+  },
+  {
+   "id": "window.sill-plant",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 326,
+   "y": 138,
+   "w": 10,
+   "h": 10,
+   "variants": {
+    "base": "art-r3/window/sill-plant.base.png"
+   },
+   "note": "sill plant (slate pot)"
+  },
+  {
+   "id": "window.sill-books",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 258,
+   "y": 139,
+   "w": 9,
+   "h": 9,
+   "variants": {
+    "base": "art-r3/window/sill-books.base.png"
+   },
+   "note": "sill plant (terracotta pot)"
+  },
+  {
+   "id": "window.sill-mug",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 402,
+   "y": 141,
+   "w": 9,
+   "h": 7,
+   "variants": {
+    "base": "art-r3/window/sill-mug.base.png"
+   },
+   "note": "mug on the sill"
+  },
+  {
+   "id": "window.vinyl",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 266,
+   "y": 176,
+   "w": 27,
+   "h": 29,
+   "variants": {
+    "base": "art-r3/window/vinyl.base.png"
+   },
+   "note": "record crate under the window"
+  },
+  {
+   "id": "window.radiator",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 314,
+   "y": 165,
+   "w": 45,
+   "h": 38,
+   "variants": {
+    "base": "art-r3/window/radiator.base.png"
+   },
+   "note": "R3: radiator with a boxed camera and books"
+  },
+  {
+   "id": "window.plant",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 295,
+   "y": 188,
+   "w": 15,
+   "h": 17,
+   "variants": {
+    "base": "art-r3/window/plant.base.png"
+   },
+   "note": "tall floor plant under the window"
+  },
+  {
+   "id": "window.plantwall",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 355,
+   "y": 190,
+   "w": 13,
+   "h": 15,
+   "variants": {
+    "base": "art-r3/window/plantwall.base.png",
+    "t1": "art-r3/window/plantwall.t1.png",
+    "t4": "art-r3/window/plantwall.t4.png"
+   },
+   "note": "small floor plant by the radiator (t1 sprout, t4 lush)"
+  },
+  {
+   "id": "window.amp",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 360,
+   "y": 178,
+   "w": 47,
+   "h": 27,
+   "variants": {
+    "base": "art-r3/window/amp.base.png"
+   },
+   "note": "amp and tape deck under the Today CRT"
+  },
+  {
+   "id": "window.today",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 364,
+   "y": 141,
+   "w": 41,
+   "h": 38,
+   "variants": {
+    "base": "art-r3/window/today.base.png"
+   },
+   "target": {
+    "feature": "today"
+   },
+   "label": "TODAY",
+   "led": [
+    399,
+    172
+   ],
+   "hit": [
+    364,
+    141,
+    41,
+    38
+   ],
+   "screen": [
+    367,
+    149,
+    31,
+    25
+   ],
+   "note": "big CRT (Today): idle dim amber; the engine blinks a cursor until the first log, then shows today's bar"
+  },
+  {
+   "id": "window.speaker",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 408,
+   "y": 180,
+   "w": 21,
+   "h": 25,
+   "variants": {
+    "base": "art-r3/window/speaker.base.png"
+   },
+   "note": "R3: speaker under the stats CRT"
+  },
+  {
+   "id": "window.stats",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 404,
+   "y": 150,
+   "w": 29,
+   "h": 31,
+   "variants": {
+    "base": "art-r3/window/stats.base.png"
+   },
+   "target": {
+    "feature": "stats"
+   },
+   "label": "STATS",
+   "led": [
+    425,
+    174
+   ],
+   "hit": [
+    404,
+    150,
+    29,
+    31
+   ],
+   "screen": [
+    407,
+    161,
+    20,
+    16
+   ],
+   "note": "small CRT, amber LCD: the engine alternates the overall score and the streak"
+  },
+  {
+   "id": "window.powerstrip",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 3,
+   "x": 372,
+   "y": 216,
+   "w": 35,
+   "h": 7,
+   "variants": {
+    "base": "art-r3/window/powerstrip.base.png"
+   },
+   "note": "records and a camera on the floor"
+  },
+  {
+   "id": "window.rug",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 156,
+   "y": 208,
+   "w": 137,
+   "h": 42,
+   "variants": {
+    "base": "art-r3/window/rug.base.png",
+    "t1": "art-r3/window/rug.t1.png",
+    "t3": "art-r3/window/rug.t3.png",
+    "t5": "art-r3/window/rug.t5.png"
+   },
+   "note": "rug in the sun patch (t1 worn mat, t3 rug, t5 gold border)"
+  },
+  {
+   "id": "window.cables-floor",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 80,
+   "y": 204,
+   "w": 441,
+   "h": 61,
+   "variants": {
+    "base": "art-r3/window/cables-floor.base.png"
+   },
+   "note": "cables across the floor"
+  },
+  {
+   "id": "centre.dog",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 4,
+   "x": 316,
+   "y": 221,
+   "w": 39,
+   "h": 18,
+   "variants": {
+    "base": "art-r3/centre/dog.base.png",
+    "alert": "art-r3/centre/dog.alert.png"
+   },
+   "note": "R3: the dog, asleep in the sun patch; alert = lying, head up (neglect)"
+  },
+  {
+   "id": "library.bookshelf",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 94,
+   "y": 62,
+   "w": 61,
+   "h": 143,
+   "variants": {
+    "s0": "art-r3/library/bookshelf.s0.png",
+    "s1": "art-r3/library/bookshelf.s1.png",
+    "s2": "art-r3/library/bookshelf.s2.png",
+    "base": "art-r3/library/bookshelf.base.png"
+   },
+   "target": {
+    "skill": "reading"
+   },
+   "label": "READING",
+   "led": [
+    139,
+    190
+   ],
+   "hit": [
+    94,
+    62,
+    61,
+    143
+   ],
+   "note": "9 ft bookcase with a clamp reading lamp (s0 sparse, s2 gold bookends)"
+  },
+  {
+   "id": "library.bookcase",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 96,
+   "y": 42,
+   "w": 39,
+   "h": 21,
+   "variants": {
+    "base": "art-r3/library/bookcase.base.png",
+    "t1": "art-r3/library/bookcase.t1.png",
+    "t4": "art-r3/library/bookcase.t4.png"
+   },
+   "note": "boxes stacked on the bookcase (t1 taped moving boxes, t4 record crate)"
+  },
+  {
+   "id": "library.shelf-plant",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 132,
+   "y": 52,
+   "w": 14,
+   "h": 51,
+   "variants": {
+    "base": "art-r3/library/shelf-plant.base.png"
+   },
+   "note": "trailing plant on the bookcase"
+  },
+  {
+   "id": "library.globe",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 119,
+   "y": 40,
+   "w": 9,
+   "h": 14,
+   "variants": {
+    "base": "art-r3/library/globe.base.png"
+   },
+   "note": "desk globe on the bookcase"
+  },
+  {
+   "id": "library.potions",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 149,
+   "y": 55,
+   "w": 37,
+   "h": 41,
+   "variants": {
+    "base": "art-r3/library/potions.base.png"
+   },
+   "note": "potion shelf: 15 skill bottles"
+  },
+  {
+   "id": "library.archive",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 148,
+   "y": 98,
+   "w": 39,
+   "h": 107,
+   "variants": {
+    "base": "art-r3/library/archive.base.png"
+   },
+   "target": {
+    "feature": "archive"
+   },
+   "label": "ARCHIVE",
+   "led": [
+    179,
+    196
+   ],
+   "hit": [
+    148,
+    98,
+    39,
+    107
+   ],
+   "note": "lit trophy case with gold relics"
+  },
+  {
+   "id": "library.snakeplant",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 185,
+   "y": 176,
+   "w": 7,
+   "h": 29,
+   "variants": {
+    "base": "art-r3/library/snakeplant.base.png"
+   },
+   "note": "R3: snake plant before the statue"
+  },
+  {
+   "id": "library.clock",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 161,
+   "y": 35,
+   "w": 13,
+   "h": 13,
+   "variants": {
+    "base": "art-r3/library/clock.base.png"
+   },
+   "note": "wall clock"
+  },
+  {
+   "id": "library.poster",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 152,
+   "y": 29,
+   "w": 31,
+   "h": 9,
+   "variants": {
+    "base": "art-r3/library/poster.base.png",
+    "t1": "art-r3/library/poster.t1.png",
+    "t3": "art-r3/library/poster.t3.png",
+    "t5": "art-r3/library/poster.t5.png"
+   },
+   "note": "framed print above the potions (t1 paper, t5 gold frame)"
+  },
+  {
+   "id": "library.armchair",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 3,
+   "x": 104,
+   "y": 178,
+   "w": 39,
+   "h": 43,
+   "variants": {
+    "base": "art-r3/library/armchair.base.png",
+    "t1": "art-r3/library/armchair.t1.png",
+    "t3": "art-r3/library/armchair.t3.png",
+    "t4": "art-r3/library/armchair.t4.png"
+   },
+   "note": "reading chair (t1 beanbag, t3 fabric, t4 leather)"
+  },
+  {
+   "id": "library.floorlamp",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 3,
+   "x": 146,
+   "y": 132,
+   "w": 13,
+   "h": 89,
+   "variants": {
+    "base": "art-r3/library/floorlamp.base.png"
+   },
+   "note": "R3: floor lamp (reading pool)"
+  },
+  {
+   "id": "library.chess",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 158,
+   "y": 198,
+   "w": 29,
+   "h": 27,
+   "variants": {
+    "s0": "art-r3/library/chess.s0.png",
+    "s1": "art-r3/library/chess.s1.png",
+    "s2": "art-r3/library/chess.s2.png",
+    "base": "art-r3/library/chess.base.png"
+   },
+   "target": {
+    "skill": "chess"
+   },
+   "label": "CHESS",
+   "led": [
+    182,
+    216
+   ],
+   "hit": [
+    158,
+    198,
+    29,
+    27
+   ],
+   "note": "chess table (s2 chess clock)"
+  },
+  {
+   "id": "library.stool",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 3,
+   "x": 118,
+   "y": 218,
+   "w": 15,
+   "h": 10,
+   "variants": {
+    "base": "art-r3/library/stool.base.png"
+   },
+   "note": "footstool"
+  },
+  {
+   "id": "library.books-floor",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 3,
+   "x": 158,
+   "y": 210,
+   "w": 11,
+   "h": 12,
+   "variants": {
+    "base": "art-r3/library/books-floor.base.png"
+   },
+   "note": "finished books stacked on the floor"
+  },
+  {
+   "id": "study.shelf",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 432,
+   "y": 44,
+   "w": 115,
+   "h": 34,
+   "variants": {
+    "base": "art-r3/study/shelf.base.png"
+   },
+   "note": "wall shelf with books, plants, boxes"
+  },
+  {
+   "id": "study.speaker",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 484,
+   "y": 42,
+   "w": 13,
+   "h": 12,
+   "variants": {
+    "base": "art-r3/study/speaker.base.png"
+   },
+   "note": "R3: small speaker on the shelf"
+  },
+  {
+   "id": "study.pennant",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 435,
+   "y": 60,
+   "w": 36,
+   "h": 21,
+   "variants": {
+    "base": "art-r3/study/pennant.base.png"
+   },
+   "note": "original green and sky-blue pennant (no crest)"
+  },
+  {
+   "id": "study.photo",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 476,
+   "y": 60,
+   "w": 23,
+   "h": 23,
+   "variants": {
+    "base": "art-r3/study/photo.base.png"
+   },
+   "note": "empty photo frame"
+  },
+  {
+   "id": "study.academics",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 432,
+   "y": 88,
+   "w": 51,
+   "h": 41,
+   "variants": {
+    "s0": "art-r3/study/academics.s0.png",
+    "s1": "art-r3/study/academics.s1.png",
+    "s2": "art-r3/study/academics.s2.png",
+    "alert": "art-r3/study/academics.alert.png",
+    "base": "art-r3/study/academics.base.png"
+   },
+   "target": {
+    "skill": "academics"
+   },
+   "label": "ACADEMICS",
+   "led": [
+    476,
+    122
+   ],
+   "hit": [
+    432,
+    88,
+    51,
+    41
+   ],
+   "note": "corkboard with the class schedule (alert: a red due note)"
+  },
+  {
+   "id": "study.time",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 486,
+   "y": 88,
+   "w": 27,
+   "h": 33,
+   "variants": {
+    "s0": "art-r3/study/time.s0.png",
+    "s1": "art-r3/study/time.s1.png",
+    "s2": "art-r3/study/time.s2.png",
+    "base": "art-r3/study/time.base.png"
+   },
+   "target": {
+    "skill": "time-blocking"
+   },
+   "label": "TIME BLOCKING",
+   "led": [
+    507,
+    115
+   ],
+   "hit": [
+    486,
+    88,
+    27,
+    33
+   ],
+   "note": "wall calendar (more blocks by stage)"
+  },
+  {
+   "id": "study.clock",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 516,
+   "y": 95,
+   "w": 21,
+   "h": 28,
+   "variants": {
+    "base": "art-r3/study/clock.base.png"
+   },
+   "note": "R3: wall clock and sticky notes"
+  },
+  {
+   "id": "study.desk",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 428,
+   "y": 167,
+   "w": 121,
+   "h": 38,
+   "variants": {
+    "base": "art-r3/study/desk.base.png",
+    "t1": "art-r3/study/desk.t1.png",
+    "t3": "art-r3/study/desk.t3.png",
+    "t5": "art-r3/study/desk.t5.png"
+   },
+   "note": "desk (t1 folding table, t5 gold pulls and LED)"
+  },
+  {
+   "id": "study.lamp",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 436,
+   "y": 149,
+   "w": 25,
+   "h": 18,
+   "variants": {
+    "base": "art-r3/study/lamp.base.png",
+    "night": "art-r3/study/lamp.night.png",
+    "t1": "art-r3/study/lamp.t1.png",
+    "t2": "art-r3/study/lamp.t2.png",
+    "t5": "art-r3/study/lamp.t5.png"
+   },
+   "note": "desk lamp (t1 clamp bulb, t5 brass; lit at night)"
+  },
+  {
+   "id": "study.courses",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 498,
+   "y": 151,
+   "w": 23,
+   "h": 16,
+   "variants": {
+    "base": "art-r3/study/courses.base.png"
+   },
+   "target": {
+    "feature": "courses"
+   },
+   "label": "COURSES",
+   "led": [
+    516,
+    159
+   ],
+   "hit": [
+    498,
+    151,
+    23,
+    16
+   ],
+   "note": "course books, one per class"
+  },
+  {
+   "id": "study.journal",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 462,
+   "y": 163,
+   "w": 19,
+   "h": 4,
+   "variants": {
+    "base": "art-r3/study/journal.base.png"
+   },
+   "target": {
+    "feature": "journal"
+   },
+   "label": "JOURNAL",
+   "led": [
+    476,
+    163
+   ],
+   "hit": [
+    462,
+    160,
+    19,
+    11
+   ],
+   "note": "planner"
+  },
+  {
+   "id": "study.mug",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 482,
+   "y": 155,
+   "w": 14,
+   "h": 12,
+   "variants": {
+    "base": "art-r3/study/mug.base.png"
+   },
+   "note": "pencil cup and mug"
+  },
+  {
+   "id": "study.headphones",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 447,
+   "y": 160,
+   "w": 13,
+   "h": 7,
+   "variants": {
+    "base": "art-r3/study/headphones.base.png"
+   },
+   "note": "headphones on the desk"
+  },
+  {
+   "id": "study.backpack",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 434,
+   "y": 181,
+   "w": 21,
+   "h": 30,
+   "variants": {
+    "base": "art-r3/study/backpack.base.png"
+   },
+   "note": "backpack (alert: a sheet sticking out)"
+  },
+  {
+   "id": "study.chair",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 468,
+   "y": 156,
+   "w": 37,
+   "h": 54,
+   "variants": {
+    "base": "art-r3/study/chair.base.png",
+    "t1": "art-r3/study/chair.t1.png",
+    "t3": "art-r3/study/chair.t3.png",
+    "t5": "art-r3/study/chair.t5.png"
+   },
+   "note": "desk chair with a jacket (t1 stool)"
+  },
+  {
+   "id": "study.bin",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 508,
+   "y": 194,
+   "w": 11,
+   "h": 17,
+   "variants": {
+    "base": "art-r3/study/bin.base.png"
+   },
+   "note": "waste bin"
+  },
+  {
+   "id": "study.plant",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 528,
+   "y": 190,
+   "w": 16,
+   "h": 21,
+   "variants": {
+    "base": "art-r3/study/plant.base.png"
+   },
+   "note": "R3: tall floor plant"
+  },
+  {
+   "id": "kitchen.microwave",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": -70,
+   "y": 69,
+   "w": 49,
+   "h": 197,
+   "variants": {
+    "base": "art-r3/kitchen/microwave.base.png"
+   },
+   "note": "fridge with the microwave on top (bleed)"
+  },
+  {
+   "id": "kitchen.table",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": -80,
+   "y": 35,
+   "w": 65,
+   "h": 25,
+   "variants": {
+    "base": "art-r3/kitchen/table.base.png",
+    "t1": "art-r3/kitchen/table.t1.png",
+    "t3": "art-r3/kitchen/table.t3.png",
+    "t5": "art-r3/kitchen/table.t5.png"
+   },
+   "note": "open shelf in the bleed (t1 bare, t5 plant)"
+  },
+  {
+   "id": "kitchen.hooks",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 4,
+   "y": 101,
+   "w": 9,
+   "h": 49,
+   "variants": {
+    "base": "art-r3/kitchen/hooks.base.png"
+   },
+   "note": "coat hook with a jacket"
+  },
+  {
+   "id": "kitchen.door",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 14,
+   "y": 93,
+   "w": 27,
+   "h": 141,
+   "variants": {
+    "s0": "art-r3/kitchen/door.s0.png",
+    "s1": "art-r3/kitchen/door.s1.png",
+    "s2": "art-r3/kitchen/door.s2.png",
+    "base": "art-r3/kitchen/door.base.png"
+   },
+   "target": {
+    "skill": "college-integration"
+   },
+   "label": "COLLEGE INTEGRATION",
+   "led": [
+    32,
+    204
+   ],
+   "hit": [
+    14,
+    93,
+    27,
+    141
+   ],
+   "note": "door with the event-flyer board (more flyers by stage)"
+  },
+  {
+   "id": "kitchen.clock",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 22,
+   "y": 52,
+   "w": 11,
+   "h": 11,
+   "variants": {
+    "base": "art-r3/kitchen/clock.base.png"
+   },
+   "note": "clock above the door"
+  },
+  {
+   "id": "kitchen.doormat",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 16,
+   "y": 232,
+   "w": 37,
+   "h": 16,
+   "variants": {
+    "base": "art-r3/kitchen/doormat.base.png",
+    "alert": "art-r3/kitchen/doormat.alert.png"
+   },
+   "target": {
+    "feature": "review"
+   },
+   "label": "REVIEW",
+   "led": [
+    44,
+    235
+   ],
+   "hit": [
+    16,
+    232,
+    37,
+    16
+   ],
+   "note": "doormat (alert: a letter)"
+  },
+  {
+   "id": "kitchen.shoes",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": 4,
+   "y": 243,
+   "w": 12,
+   "h": 7,
+   "variants": {
+    "base": "art-r3/kitchen/shoes.base.png",
+    "t1": "art-r3/kitchen/shoes.t1.png",
+    "t3": "art-r3/kitchen/shoes.t3.png"
+   },
+   "note": "shoes by the door"
+  },
+  {
+   "id": "kitchen.settings",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 43,
+   "y": 143,
+   "w": 8,
+   "h": 16,
+   "variants": {
+    "base": "art-r3/kitchen/settings.base.png"
+   },
+   "target": {
+    "feature": "settings"
+   },
+   "label": "SETTINGS",
+   "led": [
+    46,
+    155
+   ],
+   "hit": [
+    42,
+    143,
+    11,
+    16
+   ],
+   "note": "fuse box"
+  },
+  {
+   "id": "kitchen.switch",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 44,
+   "y": 124,
+   "w": 5,
+   "h": 10,
+   "variants": {
+    "base": "art-r3/kitchen/switch.base.png"
+   },
+   "note": "light switch"
+  },
+  {
+   "id": "kitchen.relic",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 43,
+   "y": 99,
+   "w": 11,
+   "h": 18,
+   "variants": {
+    "base": "art-r3/kitchen/relic.base.png",
+    "active": "art-r3/kitchen/relic.active.png",
+    "hot": "art-r3/kitchen/relic.hot.png",
+    "gold": "art-r3/kitchen/relic.gold.png"
+   },
+   "target": {
+    "feature": "relic-left"
+   },
+   "label": "RELIC",
+   "led": [
+    50,
+    114
+   ],
+   "hit": [
+    43,
+    99,
+    11,
+    18
+   ],
+   "note": "relic mount by the door"
+  },
+  {
+   "id": "kitchen.counter",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 50,
+   "y": 54,
+   "w": 33,
+   "h": 166,
+   "variants": {
+    "base": "art-r3/kitchen/counter.base.png",
+    "t1": "art-r3/kitchen/counter.t1.png",
+    "t3": "art-r3/kitchen/counter.t3.png",
+    "t5": "art-r3/kitchen/counter.t5.png"
+   },
+   "note": "counter, uppers with under-cabinet light (t1 no uppers)"
+  },
+  {
+   "id": "kitchen.spices",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 55,
+   "y": 48,
+   "w": 12,
+   "h": 8,
+   "variants": {
+    "base": "art-r3/kitchen/spices.base.png"
+   },
+   "note": "jars on the uppers"
+  },
+  {
+   "id": "kitchen.food",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 52,
+   "y": 154,
+   "w": 12,
+   "h": 11,
+   "variants": {
+    "s0": "art-r3/kitchen/food.s0.png",
+    "s1": "art-r3/kitchen/food.s1.png",
+    "s2": "art-r3/kitchen/food.s2.png",
+    "base": "art-r3/kitchen/food.base.png"
+   },
+   "target": {
+    "skill": "food"
+   },
+   "label": "FOOD",
+   "led": [
+    61,
+    162
+   ],
+   "hit": [
+    52,
+    154,
+    12,
+    11
+   ],
+   "note": "fruit basket on the counter"
+  },
+  {
+   "id": "kitchen.water",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 65,
+   "y": 148,
+   "w": 7,
+   "h": 15,
+   "variants": {
+    "base": "art-r3/kitchen/water.base.png",
+    "g0": "art-r3/kitchen/water.g0.png",
+    "g1": "art-r3/kitchen/water.g1.png",
+    "g2": "art-r3/kitchen/water.g2.png",
+    "g3": "art-r3/kitchen/water.g3.png"
+   },
+   "note": "water jug (fills g0..g3)"
+  },
+  {
+   "id": "kitchen.kettle",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 74,
+   "y": 153,
+   "w": 9,
+   "h": 8,
+   "variants": {
+    "base": "art-r3/kitchen/kettle.base.png"
+   },
+   "note": "kettle"
+  },
+  {
+   "id": "kitchen.board",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 70,
+   "y": 129,
+   "w": 8,
+   "h": 28,
+   "variants": {
+    "base": "art-r3/kitchen/board.base.png"
+   },
+   "note": "cutting board hanging on the backsplash"
+  },
+  {
+   "id": "kitchen.gut",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 5,
+   "x": 21,
+   "y": 194,
+   "w": 43,
+   "h": 47,
+   "variants": {
+    "s0": "art-r3/kitchen/gut.s0.png",
+    "s1": "art-r3/kitchen/gut.s1.png",
+    "s2": "art-r3/kitchen/gut.s2.png",
+    "base": "art-r3/kitchen/gut.base.png"
+   },
+   "target": {
+    "skill": "gut-health"
+   },
+   "label": "GUT HEALTH",
+   "led": [
+    46,
+    234
+   ],
+   "hit": [
+    21,
+    194,
+    43,
+    47
+   ],
+   "note": "big leafy plant by the counter"
+  },
+  {
+   "id": "bed.frame",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 58,
+   "y": 170,
+   "w": 49,
+   "h": 55,
+   "variants": {
+    "base": "art-r3/bed/frame.base.png",
+    "t1": "art-r3/bed/frame.t1.png",
+    "t2": "art-r3/bed/frame.t2.png",
+    "t5": "art-r3/bed/frame.t5.png"
+   },
+   "note": "bed frame and headboard (t1 pallets, t5 gilded)"
+  },
+  {
+   "id": "bed.bed",
+   "zone": "bed",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 60,
+   "y": 182,
+   "w": 45,
+   "h": 29,
+   "variants": {
+    "s0": "art-r3/bed/bed.s0.png",
+    "s1": "art-r3/bed/bed.s1.png",
+    "s2": "art-r3/bed/bed.s2.png",
+    "base": "art-r3/bed/bed.base.png"
+   },
+   "target": {
+    "skill": "sleep"
+   },
+   "label": "SLEEP",
+   "led": [
+    96,
+    204
+   ],
+   "hit": [
+    60,
+    182,
+    45,
+    29
+   ],
+   "note": "mattress, pillows and duvet"
+  },
+  {
+   "id": "bed.nightstand",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 52,
+   "y": 192,
+   "w": 11,
+   "h": 19,
+   "variants": {
+    "base": "art-r3/bed/nightstand.base.png"
+   },
+   "note": "crate nightstand"
+  },
+  {
+   "id": "kitchen.stool",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 46,
+   "y": 220,
+   "w": 13,
+   "h": 15,
+   "variants": {
+    "base": "art-r3/kitchen/stool.base.png"
+   },
+   "note": "step stool by the counter"
+  },
+  {
+   "id": "bed.shelf",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 70,
+   "y": 137,
+   "w": 21,
+   "h": 7,
+   "variants": {
+    "base": "art-r3/bed/shelf.base.png"
+   },
+   "note": "wall shelf above the bed head"
+  },
+  {
+   "id": "bed.globe",
+   "zone": "bed",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 72,
+   "y": 127,
+   "w": 9,
+   "h": 12,
+   "variants": {
+    "s0": "art-r3/bed/globe.s0.png",
+    "s1": "art-r3/bed/globe.s1.png",
+    "s2": "art-r3/bed/globe.s2.png",
+    "base": "art-r3/bed/globe.base.png"
+   },
+   "target": {
+    "skill": "visualization"
+   },
+   "label": "VISUALIZATION",
+   "led": [
+    78,
+    136
+   ],
+   "hit": [
+    71,
+    127,
+    11,
+    12
+   ],
+   "note": "plasma globe on the shelf"
+  },
+  {
+   "id": "bed.sconce",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 82,
+   "y": 130,
+   "w": 7,
+   "h": 8,
+   "variants": {
+    "base": "art-r3/bed/sconce.base.png",
+    "night": "art-r3/bed/sconce.night.png"
+   },
+   "note": "paper-star jar lamp"
+  },
+  {
+   "id": "bed.charger",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 70,
+   "y": 135,
+   "w": 3,
+   "h": 3,
+   "variants": {
+    "base": "art-r3/bed/charger.base.png"
+   },
+   "note": "phone on its charger"
+  },
+  {
+   "id": "bed.poster",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 72,
+   "y": 97,
+   "w": 15,
+   "h": 24,
+   "variants": {
+    "base": "art-r3/bed/poster.base.png",
+    "t1": "art-r3/bed/poster.t1.png",
+    "t3": "art-r3/bed/poster.t3.png",
+    "t5": "art-r3/bed/poster.t5.png"
+   },
+   "note": "small framed photo (the loud poster was cut)"
+  },
+  {
+   "id": "bed.runner",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 4,
+   "x": 56,
+   "y": 224,
+   "w": 47,
+   "h": 15,
+   "variants": {
+    "base": "art-r3/bed/runner.base.png",
+    "t3": "art-r3/bed/runner.t3.png"
+   },
+   "note": "bedside runner"
+  },
+  {
+   "id": "bed.cushion",
+   "zone": "bed",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 68,
+   "y": 220,
+   "w": 23,
+   "h": 17,
+   "variants": {
+    "s0": "art-r3/bed/cushion.s0.png",
+    "s1": "art-r3/bed/cushion.s1.png",
+    "s2": "art-r3/bed/cushion.s2.png",
+    "base": "art-r3/bed/cushion.base.png"
+   },
+   "target": {
+    "skill": "meditation"
+   },
+   "label": "MEDITATION",
+   "led": [
+    86,
+    231
+   ],
+   "hit": [
+    68,
+    220,
+    23,
+    17
+   ],
+   "note": "meditation cushion (s1 shawl, s2 candle)"
+  },
+  {
+   "id": "bed.slippers",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 4,
+   "x": 92,
+   "y": 234,
+   "w": 7,
+   "h": 6,
+   "variants": {
+    "base": "art-r3/bed/slippers.base.png"
+   },
+   "note": "slippers"
+  },
+  {
+   "id": "bed.hamper",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 4,
+   "x": 106,
+   "y": 216,
+   "w": 15,
+   "h": 15,
+   "variants": {
+    "base": "art-r3/bed/hamper.base.png",
+    "t1": "art-r3/bed/hamper.t1.png",
+    "t3": "art-r3/bed/hamper.t3.png",
+    "t5": "art-r3/bed/hamper.t5.png"
+   },
+   "note": "laundry (t1 pile, t3 hamper)"
+  },
+  {
+   "id": "computer.board",
+   "zone": "computer",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 556,
+   "y": 84,
+   "w": 27,
+   "h": 37,
+   "variants": {
+    "s0": "art-r3/computer/board.s0.png",
+    "s1": "art-r3/computer/board.s1.png",
+    "s2": "art-r3/computer/board.s2.png",
+    "base": "art-r3/computer/board.base.png"
+   },
+   "target": {
+    "skill": "dropshipping"
+   },
+   "label": "DROPSHIPPING",
+   "led": [
+    576,
+    118
+   ],
+   "hit": [
+    556,
+    84,
+    27,
+    37
+   ],
+   "note": "product whiteboard"
+  },
+  {
+   "id": "computer.shelf",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 554,
+   "y": 64,
+   "w": 27,
+   "h": 14,
+   "variants": {
+    "base": "art-r3/computer/shelf.base.png"
+   },
+   "note": "shelf above the whiteboard"
+  },
+  {
+   "id": "computer.router",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 576,
+   "y": 63,
+   "w": 5,
+   "h": 5,
+   "variants": {
+    "base": "art-r3/computer/router.base.png"
+   },
+   "note": "router on the shelf"
+  },
+  {
+   "id": "computer.desk",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 548,
+   "y": 163,
+   "w": 37,
+   "h": 53,
+   "variants": {
+    "base": "art-r3/computer/desk.base.png",
+    "t1": "art-r3/computer/desk.t1.png",
+    "t3": "art-r3/computer/desk.t3.png",
+    "t5": "art-r3/computer/desk.t5.png"
+   },
+   "note": "computer desk (t1 folding, t5 dark oak + gold edge)"
+  },
+  {
+   "id": "computer.led",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 549,
+   "y": 169,
+   "w": 35,
+   "h": 9,
+   "variants": {
+    "base": "art-r3/computer/led.base.png"
+   },
+   "note": "LED strip under the desk top"
+  },
+  {
+   "id": "computer.ai",
+   "zone": "computer",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 552,
+   "y": 136,
+   "w": 41,
+   "h": 81,
+   "variants": {
+    "s0": "art-r3/computer/ai.s0.png",
+    "s1": "art-r3/computer/ai.s1.png",
+    "s2": "art-r3/computer/ai.s2.png",
+    "base": "art-r3/computer/ai.base.png"
+   },
+   "target": {
+    "skill": "ai-building"
+   },
+   "label": "AI BUILDING",
+   "led": [
+    561,
+    209
+   ],
+   "hit": [
+    552,
+    136,
+    41,
+    81
+   ],
+   "note": "two monitors and the tower (s2 third monitor)"
+  },
+  {
+   "id": "computer.focus",
+   "zone": "computer",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 553,
+   "y": 137,
+   "w": 5,
+   "h": 5,
+   "variants": {
+    "base": "art-r3/computer/focus.base.png"
+   },
+   "target": {
+    "feature": "focus"
+   },
+   "label": "FOCUS",
+   "led": [
+    554,
+    137
+   ],
+   "hit": [
+    550,
+    134,
+    11,
+    11
+   ],
+   "note": "sticky note on the monitor"
+  },
+  {
+   "id": "computer.headset",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 564,
+   "y": 136,
+   "w": 6,
+   "h": 8,
+   "variants": {
+    "base": "art-r3/computer/headset.base.png"
+   },
+   "note": "headset on the monitor"
+  },
+  {
+   "id": "computer.speakers",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 554,
+   "y": 170,
+   "w": 24,
+   "h": 3,
+   "variants": {
+    "base": "art-r3/computer/speakers.base.png"
+   },
+   "note": "keyboard and mouse"
+  },
+  {
+   "id": "computer.can",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 549,
+   "y": 164,
+   "w": 3,
+   "h": 5,
+   "variants": {
+    "base": "art-r3/computer/can.base.png"
+   },
+   "note": "can"
+  },
+  {
+   "id": "computer.money",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 585,
+   "y": 178,
+   "w": 11,
+   "h": 37,
+   "variants": {
+    "base": "art-r3/computer/money.base.png",
+    "g0": "art-r3/computer/money.g0.png",
+    "g1": "art-r3/computer/money.g1.png",
+    "g2": "art-r3/computer/money.g2.png",
+    "g3": "art-r3/computer/money.g3.png"
+   },
+   "note": "money tree (grows g0..g3)"
+  },
+  {
+   "id": "computer.chair",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 4,
+   "x": 568,
+   "y": 184,
+   "w": 19,
+   "h": 38,
+   "variants": {
+    "base": "art-r3/computer/chair.base.png",
+    "t1": "art-r3/computer/chair.t1.png",
+    "t3": "art-r3/computer/chair.t3.png",
+    "t5": "art-r3/computer/chair.t5.png"
+   },
+   "note": "desk chair (t1 stool)"
+  },
+  {
+   "id": "computer.cables",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 426,
+   "y": 206,
+   "w": 143,
+   "h": 25,
+   "variants": {
+    "base": "art-r3/computer/cables.base.png",
+    "t1": "art-r3/computer/cables.t1.png",
+    "t3": "art-r3/computer/cables.t3.png"
+   },
+   "note": "cables (t1 tangled)"
+  },
+  {
+   "id": "computer.boxes",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 4,
+   "x": 532,
+   "y": 208,
+   "w": 17,
+   "h": 21,
+   "variants": {
+    "base": "art-r3/computer/boxes.base.png"
+   },
+   "note": "shipping boxes"
+  },
+  {
+   "id": "computer.mug",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 578,
+   "y": 164,
+   "w": 6,
+   "h": 8,
+   "variants": {
+    "base": "art-r3/computer/mug.base.png"
+   },
+   "note": "R3: mug on the desk"
+  },
+  {
+   "id": "gym.relic",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 588,
+   "y": 103,
+   "w": 13,
+   "h": 14,
+   "variants": {
+    "base": "art-r3/gym/relic.base.png",
+    "active": "art-r3/gym/relic.active.png",
+    "hot": "art-r3/gym/relic.hot.png",
+    "gold": "art-r3/gym/relic.gold.png"
+   },
+   "target": {
+    "feature": "relic-right"
+   },
+   "label": "RELIC",
+   "led": [
+    596,
+    114
+   ],
+   "hit": [
+    588,
+    103,
+    13,
+    14
+   ],
+   "note": "relic bracket"
+  },
+  {
+   "id": "gym.light",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 592,
+   "y": -20,
+   "w": 13,
+   "h": 73,
+   "variants": {
+    "base": "art-r3/gym/light.base.png",
+    "night": "art-r3/gym/light.night.png"
+   },
+   "note": "gym pendant (pool over rack, bike, shoes)"
+  },
+  {
+   "id": "gym.medals",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 604,
+   "y": 68,
+   "w": 29,
+   "h": 21,
+   "variants": {
+    "base": "art-r3/gym/medals.base.png",
+    "g0": "art-r3/gym/medals.g0.png",
+    "g1": "art-r3/gym/medals.g1.png",
+    "g2": "art-r3/gym/medals.g2.png",
+    "g3": "art-r3/gym/medals.g3.png"
+   },
+   "note": "medal wall (g0..g3)"
+  },
+  {
+   "id": "gym.trophies",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 596,
+   "y": 123,
+   "w": 29,
+   "h": 17,
+   "variants": {
+    "base": "art-r3/gym/trophies.base.png",
+    "t1": "art-r3/gym/trophies.t1.png",
+    "t3": "art-r3/gym/trophies.t3.png",
+    "t5": "art-r3/gym/trophies.t5.png"
+   },
+   "note": "race bib and finisher photo"
+  },
+  {
+   "id": "gym.timer",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 620,
+   "y": 14,
+   "w": 19,
+   "h": 48,
+   "variants": {
+    "base": "art-r3/gym/timer.base.png"
+   },
+   "note": "mileage chart poster"
+  },
+  {
+   "id": "gym.tiles",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 564,
+   "y": 232,
+   "w": 67,
+   "h": 15,
+   "variants": {
+    "base": "art-r3/gym/tiles.base.png",
+    "t1": "art-r3/gym/tiles.t1.png",
+    "t3": "art-r3/gym/tiles.t3.png",
+    "t5": "art-r3/gym/tiles.t5.png"
+   },
+   "note": "rubber floor tiles under the rack"
+  },
+  {
+   "id": "gym.strength",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 575,
+   "y": 118,
+   "w": 48,
+   "h": 121,
+   "variants": {
+    "s0": "art-r3/gym/strength.s0.png",
+    "s1": "art-r3/gym/strength.s1.png",
+    "s2": "art-r3/gym/strength.s2.png",
+    "base": "art-r3/gym/strength.base.png"
+   },
+   "target": {
+    "skill": "strength"
+   },
+   "label": "STRENGTH",
+   "led": [
+    606,
+    222
+   ],
+   "hit": [
+    575,
+    118,
+    48,
+    121
+   ],
+   "note": "weight rack (plates by stage)"
+  },
+  {
+   "id": "gym.rope",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 585,
+   "y": 124,
+   "w": 3,
+   "h": 35,
+   "variants": {
+    "base": "art-r3/gym/rope.base.png"
+   },
+   "note": "jump rope on the rack"
+  },
+  {
+   "id": "gym.mat",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 552,
+   "y": 204,
+   "w": 6,
+   "h": 27,
+   "variants": {
+    "base": "art-r3/gym/mat.base.png"
+   },
+   "note": "rolled mat against the wall"
+  },
+  {
+   "id": "gym.bike",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 5,
+   "x": 583,
+   "y": 196,
+   "w": 54,
+   "h": 46,
+   "variants": {
+    "s0": "art-r3/gym/bike.s0.png",
+    "s1": "art-r3/gym/bike.s1.png",
+    "s2": "art-r3/gym/bike.s2.png",
+    "awake": "art-r3/gym/bike.awake.png",
+    "base": "art-r3/gym/bike.base.png"
+   },
+   "target": {
+    "skill": "triathlon"
+   },
+   "label": "TRIATHLON",
+   "led": [
+    616,
+    238
+   ],
+   "hit": [
+    583,
+    196,
+    54,
+    46
+   ],
+   "note": "bike under a half-draped tarp (awake: tarp off)"
+  },
+  {
+   "id": "gym.running",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 5,
+   "x": 550,
+   "y": 240,
+   "w": 37,
+   "h": 13,
+   "variants": {
+    "s0": "art-r3/gym/running.s0.png",
+    "s1": "art-r3/gym/running.s1.png",
+    "s2": "art-r3/gym/running.s2.png",
+    "base": "art-r3/gym/running.base.png"
+   },
+   "target": {
+    "skill": "running"
+   },
+   "label": "RUNNING",
+   "led": [
+    582,
+    240
+   ],
+   "hit": [
+    550,
+    240,
+    37,
+    13
+   ],
+   "note": "running shoes"
+  },
+  {
+   "id": "gym.chalk",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 536,
+   "y": 231,
+   "w": 9,
+   "h": 10,
+   "variants": {
+    "base": "art-r3/gym/chalk.base.png"
+   },
+   "note": "chalk bucket"
+  },
+  {
+   "id": "gym.bottle",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 560,
+   "y": 224,
+   "w": 6,
+   "h": 15,
+   "variants": {
+    "base": "art-r3/gym/bottle.base.png"
+   },
+   "note": "bottle"
+  },
+  {
+   "id": "gym.roller",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 530,
+   "y": 244,
+   "w": 21,
+   "h": 7,
+   "variants": {
+    "base": "art-r3/gym/roller.base.png"
+   },
+   "note": "foam roller"
+  },
+  {
+   "id": "gym.kettlebell",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 616,
+   "y": 240,
+   "w": 9,
+   "h": 13,
+   "variants": {
+    "base": "art-r3/gym/kettlebell.base.png"
+   },
+   "note": "kettlebell"
+  },
+  {
+   "id": "gym.bag",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 624,
+   "y": 236,
+   "w": 19,
+   "h": 15,
+   "variants": {
+    "base": "art-r3/gym/bag.base.png"
+   },
+   "note": "gym bag"
+  },
+  {
+   "id": "shell.crop.speaker",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": -24,
+   "y": 162,
+   "w": 35,
+   "h": 119,
+   "variants": {
+    "base": "art-r3/shell/crop.speaker.base.png"
+   },
+   "note": "left speakers cropping the frame"
+  },
+  {
+   "id": "shell.crop.boxes",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": -50,
+   "y": 232,
+   "w": 33,
+   "h": 53,
+   "variants": {
+    "base": "art-r3/shell/crop.boxes.base.png"
+   },
+   "note": "filing cabinet cropping the frame"
+  },
+  {
+   "id": "shell.crop.plant",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": 626,
+   "y": 207,
+   "w": 81,
+   "h": 82,
+   "variants": {
+    "base": "art-r3/shell/crop.plant.base.png"
+   },
+   "note": "big plant and amp cropping the right edge"
+  },
+  {
+   "id": "shell.crop.cables",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": -10,
+   "y": 264,
+   "w": 631,
+   "h": 13,
+   "variants": {
+    "base": "art-r3/shell/crop.cables.base.png"
+   },
+   "note": "cables in front"
+  },
+  {
+   "id": "window.statue-closeup",
+   "zone": "window",
+   "kind": "overlay",
+   "layer": 6,
+   "x": 62,
+   "y": -17,
+   "w": 141,
+   "h": 318,
+   "variants": {
+    "base": "art-r3/window/statue-closeup.base.png",
+    "t1": "art-r3/window/statue-closeup.t1.png",
+    "t2": "art-r3/window/statue-closeup.t2.png",
+    "t3": "art-r3/window/statue-closeup.t3.png",
+    "t4": "art-r3/window/statue-closeup.t4.png",
+    "t5": "art-r3/window/statue-closeup.t5.png"
+   },
+   "note": "panel close-up (never drawn in the room)"
+  },
+  {
+   "id": "kitchen.on",
+   "zone": "kitchen",
+   "kind": "overlay",
+   "layer": 4,
+   "x": 26,
+   "y": 118,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r3/kitchen/on.base.png"
+   },
+   "note": "the zone's lamp bulb"
+  },
+  {
+   "id": "bed.on",
+   "zone": "bed",
+   "kind": "overlay",
+   "layer": 3,
+   "x": 84,
+   "y": 129,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r3/bed/on.base.png"
+   },
+   "note": "the zone's lamp bulb"
+  },
+  {
+   "id": "library.on",
+   "zone": "library",
+   "kind": "overlay",
+   "layer": 3,
+   "x": 151,
+   "y": 140,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r3/library/on.base.png"
+   },
+   "note": "the zone's lamp bulb"
+  },
+  {
+   "id": "study.on",
+   "zone": "study",
+   "kind": "overlay",
+   "layer": 3,
+   "x": 455,
+   "y": 160,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r3/study/on.base.png"
+   },
+   "note": "the zone's lamp bulb"
+  },
+  {
+   "id": "computer.on",
+   "zone": "computer",
+   "kind": "overlay",
+   "layer": 3,
+   "x": 567,
+   "y": 152,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r3/computer/on.base.png"
+   },
+   "note": "the zone's lamp bulb"
+  },
+  {
+   "id": "gym.on",
+   "zone": "gym",
+   "kind": "overlay",
+   "layer": 4,
+   "x": 597,
+   "y": 51,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r3/gym/on.base.png"
+   },
+   "note": "the zone's lamp bulb"
+  },
+  {
+   "id": "window.statue-downlight",
+   "zone": "window",
+   "kind": "overlay",
+   "layer": 3,
+   "x": 180,
+   "y": 29,
+   "w": 88,
+   "h": 191,
+   "variants": {
+    "base": "art-r3/window/statue-downlight.base.png"
+   },
+   "note": "statue downlight on: flat 2-tone cone, floor pool, lit side of the statue one step up"
+  }
+ ]
+}

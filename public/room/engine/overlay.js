@@ -92,12 +92,33 @@
         return a + b.toUpperCase();
       });
   }
-  /** Accessible name: "Strength, 52"; features by label, alerts spelled out. */
+  var TODAY_STATE = {
+    full: 'done today',
+    half: 'floor done today',
+    pending: 'not logged yet today',
+    blink: 'never miss twice, not logged yet today',
+    off: 'no goal today',
+  };
+  /** Accessible name: "Strength, 52, done today"; features by label, alerts spelled out. */
   function nameOf(d) {
     var it = d.item;
-    if (d.skill) return d.skill.name + ', ' + d.skill.display;
+    if (d.skill) {
+      var st = ROOM.fx && ROOM.fx.ledStateOf ? TODAY_STATE[ROOM.fx.ledStateOf(d)] : null;
+      var top = ROOM.fx && ROOM.fx.topSkill && ROOM.fx.topSkill() === d.skill.slug ? ', top priority' : '';
+      return d.skill.name + ', ' + d.skill.display + (st ? ', ' + st : '') + top;
+    }
     var label = titleCase(it.label || it.id.split('.').pop());
-    if (it.target && it.target.feature === 'overall' && ROOM.data.overall) return 'Overall, ' + ROOM.data.overall.display;
+    if (it.target && it.target.feature === 'overall' && ROOM.data.overall)
+      return 'Overall, ' + ROOM.data.overall.display + ', tier ' + (ROOM.data.overall.numeral || ROOM.data.overall.tier) + ', today ' + (ROOM.data.todayP || 0) + '%';
+    if (it.target && it.target.feature === 'today') {
+      var goals = ROOM.data.goals || [];
+      var done = goals.filter(function (g) {
+        return !!g.result;
+      }).length;
+      return 'Today, ' + done + ' of ' + goals.length + ' goals logged';
+    }
+    if (it.target && it.target.feature === 'stats' && ROOM.data.overall)
+      return 'Stats, overall ' + ROOM.data.overall.display + ', streak ' + ((ROOM.data.streak && ROOM.data.streak.current) || 0) + ' days';
     if (/backpack/.test(it.id) && ROOM.alertOn(it)) return label + ', something due within 48 hours';
     if (/doormat/.test(it.id) && ROOM.alertOn(it)) return label + ', a review is waiting';
     return label;

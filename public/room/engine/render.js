@@ -284,6 +284,7 @@
       blit(f.buf, f.w, f.h, img, dx, dy, tA, tB, f.step, f.x0, f.y0);
       if (opts.marks) {
         if (d.dust) ROOM.fx.drawDust(f, img, dx, dy);
+        if (ROOM.fx.drawScreen && (d.item.screen || d.item.plaque)) ROOM.fx.drawScreen(f, d, dx, dy);
         if (ROOM.glow) {
           if (opts.outline) ROOM.glow.drawSkillGlow(f, d, img, dx, dy);
           ROOM.glow.drawEmbers(f, d, img, dx, dy);

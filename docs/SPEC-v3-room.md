@@ -126,3 +126,27 @@ with a neon FORGE sign); higher tiers replace items, never empty the room.
 - Tests: `tests/e2e/room.spec.ts` (zones and URLs, Back, Today logging under 30 s to 100%, panels, Shift
   nameplates, relics). Next: panels for calendar, journal, archive and reviews on real data; photo frame
   from `public/room/user/wall-frame.png`; the optional 1.2x goal boost for a relic's linked skill.
+
+## 11. Revision 3 (2026-10-21, live art)
+- The live room art is now the Revision 3 room: `art/room-r3/build.py` draws every object into its own
+  sprite under the existing item ids (all 130 kept, plus 13 new decor/overlay ids such as `centre.dog`,
+  `window.candles`, `window.radiator`). World = master - (80, 96). Back wall master x 170..630, side walls
+  are 14% slivers, vanishing point world (320, 116). Stills in `docs/redesign/room-r3/stills/` are
+  composited from the same sprites in the engine's draw order, so they cannot drift.
+- Pipeline: `python3 art/room-r3/build.py` (sprites to `room-prototype/art-r3/`, manifest, zones.json,
+  palette.json) then `python3 art/room-v3/merge.py --src room-r3` (runs `art/room-r3/parity.py`, palette and
+  grain checks, keeps the replaced bundle as `art-v3.prev.js` for rollback, writes `art-v3.js`), then
+  `node scripts/room-sync.mjs`.
+- Palette: the 32 v3 colours unchanged plus CHAR, WALL_G (plaster) and STAT_1, STAT_2, STAT_HI (obsidian).
+- Style: flat 2-tone lamp pools (no dither), sky in 5 flat bands, 2x2 string-light bulbs, props one value
+  step darker, every skill object has a 1 px lighter resting outline; each skill object sits in a lamp
+  pool or the sun patch (door lamp, kitchen counter light, gym pendant added).
+- Statue: broken cool rim on the window side only; 1 px gold kintsugi that grows by tier (I a seed at the
+  chest, II-V more trunks, flakes at IV-V, glowing eyes at V); pedestal and plaque text by tier. The
+  downlight is a flat two-tone cone with a floor pool that lifts the statue's lit side.
+- Engine: Today CRT idles dim amber with a blinking cursor until the first log, then shows today's bar;
+  the stats CRT alternates "72 OVR" and the streak with a flame; the plaque gets 5 tier pips and an
+  in-tier bar; done LEDs are solid with a cream centre and a dark keyline; never-miss-twice blinks; only
+  today's top-priority object pulses (never-miss-twice, Focus Rack pins, lowest score), and the Today list
+  uses the same order. The dog sleeps in the sun patch or lies head-up by the most neglected object.
+  Hotspot labels include today's state ("Strength, 52, done today"). Reduced motion: no mote or gold pulse.

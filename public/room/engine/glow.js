@@ -1,7 +1,8 @@
 /* FORGE room prototype: light the engine adds on top of the art (after the lighting LUT).
  *
  * Light order, brightest first: statue gold > relic embers > skill outlines > decor.
- * - Skill item glow: a 1 px warm-gold outline on the outer silhouette of every skill object, breathing
+ * - Skill item glow (R3: only today's top-priority object at rest; the art has a resting outline on every
+ *   skill object): a 1 px warm-gold outline on the outer silhouette, breathing
  *   30%..70% over 2.5 s (GOLD_DK..GOLD mixed through a fixed per-pixel threshold, so every frame stays in
  *   the palette); a 3-frame shimmer (one bright pixel; a plus with a CREAM centre and pastel arms; four
  *   dim tips) at 9 fps, once every 4-7 s per item with its own offset. Hover or focus: outline at 100%
@@ -30,6 +31,8 @@
     AMBER: 'GLOW', SUN: 'CREAM', GOLD_DK: 'GOLD', GOLD: 'SUN', ROSE_0: 'ROSE_1', ROSE_1: 'AMBER',
     LEAF_0: 'LEAF_1', LEAF_1: 'LEAF_2', LEAF_2: 'LEAF_3', SLATE_0: 'SLATE_1', SLATE_1: 'SLATE_2',
     PLUM_0: 'PLUM_1', PLUM_1: 'ROSE_1', PLUM_2: 'PLUM_3', CRT_0: 'CRT_1',
+    // R3 palette additions (plaster and obsidian)
+    CHAR: 'WALL_G', WALL_G: 'SLATE_0', STAT_1: 'STAT_2', STAT_2: 'SLATE_0', STAT_HI: 'CREAM',
   };
   var BRIGHTER = new Uint8Array(256);
   for (var i = 0; i < 256; i++) BRIGHTER[i] = i;
@@ -127,6 +130,8 @@
       }
       return;
     }
+    // At rest only today's top-priority object breathes (the art carries every object's resting outline).
+    if (!ROOM.fx || !ROOM.fx.topSkill || ROOM.fx.topSkill() !== d.skill.slug) return;
     var level = (breath(f.now) - 0.3) / 0.4; // 0..1 between 30% and 70%
     var cut = Math.round(level * 16);
     for (var q = 0; q < ring.length; q += 2) {

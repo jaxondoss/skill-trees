@@ -1,0 +1,308 @@
+{
+ "_note": "FORGE room R3 palette: the v3 master palette (32, same names and order) plus 5 R3 colours (charcoal and slate-green plaster, obsidian statue tones). Index 255 = transparent.",
+ "colors": [
+  [
+   "VOID",
+   "#0C0A0C",
+   "m"
+  ],
+  [
+   "INK",
+   "#141517",
+   "m"
+  ],
+  [
+   "OAK_0",
+   "#5C3721",
+   "w"
+  ],
+  [
+   "BROWN_0",
+   "#281B1B",
+   "m"
+  ],
+  [
+   "BROWN_1",
+   "#312D2A",
+   "m"
+  ],
+  [
+   "BROWN_2",
+   "#50302E",
+   "m"
+  ],
+  [
+   "TERRA_0",
+   "#621D1A",
+   "m"
+  ],
+  [
+   "TERRA_1",
+   "#8E432D",
+   "m"
+  ],
+  [
+   "TERRA_2",
+   "#B45B40",
+   "m"
+  ],
+  [
+   "RIM",
+   "#DA6339",
+   "m"
+  ],
+  [
+   "ORANGE",
+   "#F26B2A",
+   "o"
+  ],
+  [
+   "GLOW",
+   "#F39041",
+   "m"
+  ],
+  [
+   "AMBER",
+   "#CE8446",
+   "m"
+  ],
+  [
+   "SUN",
+   "#FEF576",
+   "m"
+  ],
+  [
+   "GOLD",
+   "#D9A441",
+   "n"
+  ],
+  [
+   "GOLD_DK",
+   "#6E5422",
+   "n"
+  ],
+  [
+   "OAK_1",
+   "#7E4C27",
+   "w"
+  ],
+  [
+   "OAK_2",
+   "#A56A32",
+   "w"
+  ],
+  [
+   "LEAF_0",
+   "#212C26",
+   "m"
+  ],
+  [
+   "LEAF_1",
+   "#344136",
+   "m"
+  ],
+  [
+   "LEAF_2",
+   "#3E6B35",
+   "o"
+  ],
+  [
+   "LEAF_3",
+   "#7FA650",
+   "n"
+  ],
+  [
+   "SLATE_0",
+   "#3E4F51",
+   "m"
+  ],
+  [
+   "SLATE_1",
+   "#56858A",
+   "m"
+  ],
+  [
+   "SLATE_2",
+   "#9CC0C2",
+   "n"
+  ],
+  [
+   "OAK_DK",
+   "#45291A",
+   "w"
+  ],
+  [
+   "PLUM_1",
+   "#724F5B",
+   "d"
+  ],
+  [
+   "PLUM_2",
+   "#AF4D61",
+   "d"
+  ],
+  [
+   "PLUM_3",
+   "#D98AA0",
+   "n"
+  ],
+  [
+   "CRT_0",
+   "#D2211A",
+   "m"
+  ],
+  [
+   "CRT_1",
+   "#FC3827",
+   "m"
+  ],
+  [
+   "CREAM",
+   "#F4E6C4",
+   "n"
+  ],
+  [
+   "CHAR",
+   "#1E2423",
+   "charcoal plaster (shadow)"
+  ],
+  [
+   "WALL_G",
+   "#2B3633",
+   "slate-green plaster (main wall)"
+  ],
+  [
+   "STAT_1",
+   "#19202C",
+   "obsidian body, near-black blue"
+  ],
+  [
+   "STAT_2",
+   "#2E3B50",
+   "obsidian sheen, dark blue"
+  ],
+  [
+   "STAT_HI",
+   "#C6DCEE",
+   "cool blue-white specular (short runs only)"
+  ]
+ ],
+ "categories": {
+  "gold": [
+   "GOLD_DK",
+   "GOLD",
+   "SUN"
+  ],
+  "business": [
+   "TERRA_1",
+   "AMBER",
+   "GLOW"
+  ],
+  "school": [
+   "SLATE_0",
+   "SLATE_1",
+   "SLATE_2"
+  ],
+  "athletics": [
+   "TERRA_0",
+   "CRT_0",
+   "CRT_1"
+  ],
+  "nutrition": [
+   "LEAF_1",
+   "LEAF_2",
+   "LEAF_3"
+  ],
+  "mind": [
+   "PLUM_1",
+   "PLUM_2",
+   "PLUM_3"
+  ]
+ },
+ "luts": {
+  "_note": "Each LUT maps colour name -> colour name for art layers; unlisted colours stay. R4 = golden (85%+, identity), R3 = 60-84, R2 = 25-59, R1 = dark dusk 0-24, NIGHT = after 10 PM (sky, shell bands and lamps have painted night variants; this LUT only cools and dims the rest; GLOW/SUN/CREAM stay so lit lamps stay warm), DIM = room behind an open panel. Wood ramp: OAK_DK < OAK_0 < OAK_1 < OAK_2 < AMBER.",
+  "R4": {},
+  "R3": {
+   "SUN": "SUN",
+   "GLOW": "ORANGE",
+   "RIM": "TERRA_2",
+   "SLATE_2": "SLATE_1",
+   "AMBER": "OAK_2"
+  },
+  "R2": {
+   "SUN": "GLOW",
+   "GLOW": "ORANGE",
+   "ORANGE": "TERRA_2",
+   "RIM": "TERRA_1",
+   "TERRA_2": "TERRA_1",
+   "SLATE_2": "SLATE_1",
+   "SLATE_1": "SLATE_0",
+   "LEAF_3": "LEAF_2",
+   "AMBER": "OAK_2",
+   "OAK_2": "OAK_1",
+   "STAT_HI": "SLATE_1"
+  },
+  "R1": {
+   "SUN": "TERRA_2",
+   "GLOW": "TERRA_1",
+   "ORANGE": "TERRA_1",
+   "RIM": "BROWN_2",
+   "TERRA_2": "TERRA_0",
+   "TERRA_1": "BROWN_2",
+   "AMBER": "OAK_1",
+   "OAK_2": "OAK_1",
+   "OAK_1": "OAK_0",
+   "SLATE_2": "SLATE_0",
+   "SLATE_1": "SLATE_0",
+   "LEAF_3": "LEAF_1",
+   "LEAF_2": "LEAF_1",
+   "CREAM": "OAK_2",
+   "GOLD": "GOLD_DK",
+   "PLUM_3": "PLUM_2",
+   "WALL_G": "CHAR",
+   "STAT_HI": "STAT_2"
+  },
+  "NIGHT": {
+   "ORANGE": "RIM",
+   "RIM": "TERRA_1",
+   "TERRA_2": "TERRA_1",
+   "TERRA_1": "BROWN_2",
+   "AMBER": "OAK_1",
+   "OAK_2": "OAK_0",
+   "OAK_1": "OAK_DK",
+   "OAK_0": "BROWN_2",
+   "SLATE_2": "SLATE_1",
+   "SLATE_1": "SLATE_0",
+   "LEAF_3": "LEAF_1",
+   "LEAF_2": "LEAF_1",
+   "PLUM_3": "PLUM_2",
+   "PLUM_2": "PLUM_1",
+   "WALL_G": "CHAR",
+   "CHAR": "INK",
+   "STAT_HI": "STAT_2",
+   "STAT_2": "STAT_1"
+  },
+  "DIM": {
+   "SUN": "AMBER",
+   "GLOW": "TERRA_2",
+   "ORANGE": "TERRA_1",
+   "RIM": "TERRA_1",
+   "TERRA_2": "TERRA_1",
+   "TERRA_1": "BROWN_2",
+   "AMBER": "OAK_2",
+   "OAK_2": "OAK_1",
+   "CREAM": "OAK_2",
+   "SLATE_2": "SLATE_1",
+   "SLATE_1": "SLATE_0",
+   "LEAF_3": "LEAF_2",
+   "LEAF_2": "LEAF_1",
+   "PLUM_3": "PLUM_2",
+   "GOLD": "GOLD_DK",
+   "CRT_1": "CRT_0",
+   "WALL_G": "CHAR",
+   "CHAR": "INK",
+   "STAT_HI": "STAT_2",
+   "STAT_2": "STAT_1"
+  }
+ }
+}

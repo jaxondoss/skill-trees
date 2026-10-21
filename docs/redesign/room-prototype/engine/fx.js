@@ -2,7 +2,13 @@
  *
  * - LEDs (3x3 at item.led, after the LUT, true colour) from today's goals for the item's skill:
  *   no goal = off (dark socket), result null = pending (hollow ring), floor = half, standard or
- *   stretch = full (category light shade), goal.nmt and not done = slow blink.
+ *   stretch = done (solid light shade with a CREAM centre and a 1 px dark keyline, about twice as bright
+ *   as pending), goal.nmt and not done = slow blink (the only blinking state). Today's top-priority
+ *   object (never-miss-twice, then Focus Rack pins, then the lowest score with a goal still open) gets
+ *   the one slow pulse.
+ * - Screens drawn after the LUT: the Today CRT (dim amber, blinking cursor until the first log, then
+ *   today's bar), the stats CRT (alternates the overall score "72 OVR" and the streak with a flame),
+ *   the statue plaque (5 tier pips and the in-tier bar).
  * - Dust on neglected skills: the object one step darker plus BROWN_2/ROSE_0 speckles on its top edge.
  * - Light motes for the logging loop (row -> LED -> statue), queued, never blocking input.
  * - The statue's gold pulse: palette cycling GOLD_DK > GOLD > SUN on its GOLD pixels.
@@ -22,6 +28,8 @@
     LEAF_0: 'INK_COOL', LEAF_1: 'LEAF_0', LEAF_2: 'LEAF_1', LEAF_3: 'LEAF_2', SLATE_0: 'INK_COOL',
     SLATE_1: 'SLATE_0', SLATE_2: 'SLATE_1', PLUM_0: 'BROWN_0', PLUM_1: 'PLUM_0', PLUM_2: 'PLUM_1',
     PLUM_3: 'PLUM_2', CRT_0: 'TERRA_0', CRT_1: 'CRT_0', CREAM: 'ROSE_1',
+    // R3 palette additions (plaster and obsidian)
+    CHAR: 'INK', WALL_G: 'CHAR', STAT_1: 'INK', STAT_2: 'STAT_1', STAT_HI: 'STAT_2',
   };
   var DARKER = new Uint8Array(256);
   for (var i = 0; i < 256; i++) DARKER[i] = i;
@@ -73,24 +81,160 @@
   var BLINK_MS = 800; // slow blink: 1.6 s period
   var flash = null; // {id, until}: the LED a mote just reached
 
-  // 3x3 masks, row-major: 0 none, 1 dark, 2 mid, 3 light, 4 VOID, 5 INK, 6 SUN.
+  // 3x3 masks, row-major: 0 none, 1 dark, 2 mid, 3 light, 4 VOID, 5 INK, 6 SUN, 7 CREAM.
   var MASKS = {
     off: [5, 5, 5, 5, 4, 5, 5, 5, 5],
     pending: [2, 2, 2, 2, 4, 2, 2, 2, 2],
+    pulse: [3, 3, 3, 3, 2, 3, 3, 3, 3],
     half: [1, 1, 1, 1, 3, 1, 3, 3, 3],
-    full: [2, 3, 2, 3, 3, 3, 2, 3, 2],
-    flash: [3, 6, 3, 6, 6, 6, 3, 6, 3],
+    full: [3, 3, 3, 3, 7, 3, 3, 3, 3],
+    flash: [3, 6, 3, 6, 7, 6, 3, 6, 3],
   };
+  var PULSE_MS = 700;
+
+  /* ------------------------------------------------------------------ today's priority */
+  /**
+   * Priority rank of an open goal (lower first): never-miss-twice, then Focus Rack pins, then the
+   * lowest display score. The Today list sorts by the same key.
+   */
+  // Scores are snapshotted once per day so logging a goal (which moves its score) never reorders the list.
+  var rankDay = null, rankScore = {};
+  function rankGoal(g) {
+    var sk = skillBySlug(g.skill);
+    if (rankDay !== ROOM.data.today) {
+      rankDay = ROOM.data.today;
+      rankScore = {};
+    }
+    if (sk && rankScore[sk.slug] == null) rankScore[sk.slug] = sk.display;
+    return [g.nmt ? 0 : 1, sk && sk.pinned ? 0 : 1, sk ? rankScore[sk.slug] : 999];
+  }
+  function cmpRank(a, b) {
+    for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i];
+    return 0;
+  }
+  function skillBySlug(slug) {
+    var list = ROOM.data.skills || [];
+    for (var i = 0; i < list.length; i++) if (list[i].slug === slug) return list[i];
+    return null;
+  }
+  /** The skill slug of today's top-priority open goal, or null when everything is logged. */
+  function topSkill() {
+    var open = (ROOM.data.goals || []).filter(function (g) {
+      return g.skill && !g.result;
+    });
+    if (!open.length) return null;
+    open.sort(function (a, b) {
+      return cmpRank(rankGoal(a), rankGoal(b));
+    });
+    return open[0].skill;
+  }
 
   /** Draw a drawable's LED with its top-left at buffer coordinates (x, y). */
   function drawLed(f, d, x, y) {
     var state = ledStateOf(d);
     if (flash && flash.id === d.id && f.now < flash.until) state = 'flash';
     else if (state === 'blink') state = Math.floor(f.now / BLINK_MS) % 2 ? 'pending' : 'full';
+    else if (state === 'pending' && d.skill && d.skill.slug === topSkill() && !ROOM.state.reducedMotion)
+      state = Math.floor(f.now / PULSE_MS) % 2 ? 'pending' : 'pulse';
     var m = MASKS[state] || MASKS.off;
     var rp = ramp(d.cat);
-    var col = [0, rp[0], rp[1], rp[2], C.VOID, C.INK, C.SUN];
+    var col = [0, rp[0], rp[1], rp[2], C.VOID, C.INK, C.SUN, C.CREAM];
+    if (state === 'full' || state === 'flash') {
+      // 1 px dark keyline around a done LED
+      for (var k2 = -1; k2 <= 3; k2++) {
+        ROOM.render.plot(f, x + k2, y - 1, C.VOID);
+        ROOM.render.plot(f, x + k2, y + 3, C.VOID);
+        ROOM.render.plot(f, x - 1, y + k2, C.VOID);
+        ROOM.render.plot(f, x + 3, y + k2, C.VOID);
+      }
+    }
     for (var k = 0; k < 9; k++) if (m[k]) ROOM.render.plot(f, x + (k % 3), y + ((k / 3) | 0), col[m[k]]);
+  }
+
+  /* ------------------------------------------------------------------ screens and the plaque */
+  // 3x5 digits (rows of 3 bits) drawn 2x tall on the stats LCD.
+  var DIG = {
+    0: '111101101101111', 1: '010110010010111', 2: '111001111100111', 3: '111001111001111', 4: '101101111001001',
+    5: '111100111001111', 6: '111100111101111', 7: '111001001010010', 8: '111101111101111', 9: '111101111001111',
+    O: '111101101101111', V: '101101101101010', R: '110101110101101', D: '110101101101110',
+  };
+  var FLAME = ['..o..', '.oo..', '.oyo.', 'oyyo.', 'oyyyo', 'oysyo', '.ooo.'];
+  function glyph(f, x, y, ch, c, tall) {
+    var g = DIG[ch];
+    if (!g) return;
+    for (var i = 0; i < 15; i++) {
+      if (g[i] !== '1') continue;
+      var gx = x + (i % 3), gy = y + ((i / 3) | 0) * (tall ? 2 : 1);
+      ROOM.render.plot(f, gx, gy, c);
+      if (tall) ROOM.render.plot(f, gx, gy + 1, c);
+    }
+  }
+  function loggedToday() {
+    return (ROOM.data.goals || []).some(function (g) {
+      return !!g.result;
+    });
+  }
+  var SCREEN_MS = 2600; // stats LCD alternation
+  var CURSOR_MS = 530;
+
+  /** Screens (Today CRT, stats LCD) and the statue plaque, drawn right after the item's sprite. */
+  function drawScreen(f, d, dx, dy) {
+    var it = d.item, R = ROOM.render;
+    var ox = dx - it.x, oy = dy - it.y; // world -> buffer for this drawable
+    if (it.screen && it.target && it.target.feature === 'today') {
+      var s = it.screen, x = s[0] + ox, y = s[1] + oy;
+      if (!loggedToday()) {
+        if (ROOM.state.reducedMotion || Math.floor(f.now / CURSOR_MS) % 2 === 0)
+          for (var cy = 0; cy < 4; cy++) for (var cx = 0; cx < 2; cx++) R.plot(f, x + 20 + cx, y + 2 + cy, C.GLOW);
+      } else {
+        var bw = s[2] - 6, p = Math.max(0, Math.min(100, ROOM.data.todayP || 0));
+        var fill = Math.round((bw * p) / 100);
+        for (var bx = 0; bx < bw; bx++)
+          for (var by = 0; by < 2; by++) R.plot(f, x + 3 + bx, y + s[3] - 4 + by, bx < fill ? C.GLOW : C.OAK_DK);
+      }
+    }
+    if (it.screen && it.target && it.target.feature === 'stats') {
+      var t = it.screen, sx = t[0] + ox, sy = t[1] + oy;
+      var phase = ROOM.state.reducedMotion ? 0 : Math.floor(f.now / SCREEN_MS) % 2;
+      var ov = ROOM.data.overall ? String(ROOM.data.overall.display) : '--';
+      var streak = ROOM.data.streak ? ROOM.data.streak.current || 0 : 0;
+      if (phase === 0) {
+        var gx = sx + 1;
+        ov.split('').forEach(function (ch) {
+          glyph(f, gx, sy + 2, ch, C.GLOW, true);
+          gx += 4;
+        });
+        if (ov.length <= 2)
+          ['O', 'V', 'R'].forEach(function (ch, i) {
+            glyph(f, sx + 9 + i * 4, sy + 8, ch, C.GOLD, false);
+          });
+      } else {
+        for (var r = 0; r < FLAME.length; r++)
+          for (var q = 0; q < 5; q++) {
+            var ch2 = FLAME[r][q];
+            if (ch2 !== '.') R.plot(f, sx + 1 + q, sy + 3 + r, ch2 === 'o' ? C.ORANGE : ch2 === 'y' ? C.GLOW : C.SUN);
+          }
+        var str = String(Math.min(999, streak));
+        var gx2 = sx + 8;
+        str.split('').forEach(function (ch) {
+          glyph(f, gx2, sy + 2, ch, C.GLOW, true);
+          gx2 += 4;
+        });
+        if (str.length < 3) glyph(f, gx2, sy + 7, 'D', C.GOLD, false);
+      }
+    }
+    if (it.plaque && d.statue && ROOM.data.overall) {
+      var pl = it.plaque, px0 = pl[0] + ox, py0 = pl[1] + oy;
+      var tier = Math.max(1, Math.min(5, ROOM.data.overall.tier || 1));
+      var disp = ROOM.data.overall.display || 0;
+      var into = tier >= 5 ? Math.min(1, (disp - 80) / 20) : Math.max(0, Math.min(1, (disp - (tier - 1) * 20) / 20));
+      for (var i = 0; i < 5; i++)
+        for (var a = 0; a < 3; a++)
+          for (var b = 0; b < 2; b++) R.plot(f, px0 + 4 + i * 4 + a, py0 + 8 + b, i < tier ? C.GOLD : C.INK);
+      var bx0 = px0 + 25, bw2 = pl[2] - 29, bf = Math.round(bw2 * into);
+      for (var e = 0; e < bw2; e++)
+        for (var g2 = 0; g2 < 2; g2++) R.plot(f, bx0 + e, py0 + 8 + g2, e < bf ? C.GOLD : C.INK);
+    }
   }
 
   /* ------------------------------------------------------------------ dust */
@@ -199,7 +343,8 @@
     var R = ROOM.render;
     var now = ROOM.now();
     if (!R.view || ROOM.state.reducedMotion) {
-      ROOM.pulseStatue(0.5);
+      // Reduced motion: no mote and no gold pulse; the LED simply changes state.
+      ROOM.invalidate();
       m.resolve();
       pump();
       return;
@@ -284,8 +429,13 @@
     for (var i = 0; i < list.length; i++) if (list[i].hotspot && list[i].led && ledStateOf(list[i]) === 'blink') return true;
     return false;
   }
+  function hasAmbient() {
+    if (ROOM.state.reducedMotion) return hasBlink();
+    return true; // the Today cursor or the stats LCD alternation, the priority pulse
+  }
   function ambientKey(now) {
-    return hasBlink() ? String(Math.floor(now / BLINK_MS) % 2) : '';
+    if (ROOM.state.reducedMotion) return hasBlink() ? String(Math.floor(now / BLINK_MS) % 2) : '';
+    return [Math.floor(now / BLINK_MS) % 2, Math.floor(now / PULSE_MS) % 2, Math.floor(now / CURSOR_MS) % 2, Math.floor(now / SCREEN_MS) % 2].join('');
   }
 
   ROOM.fx = {
@@ -293,12 +443,16 @@
     ledForSkill: ledForSkill,
     ledStateOf: ledStateOf,
     drawLed: drawLed,
+    drawScreen: drawScreen,
+    topSkill: topSkill,
+    rankGoal: rankGoal,
+    cmpRank: cmpRank,
     drawDust: drawDust,
     placeDog: placeDog,
     statueColor: statueColor,
     drawMotes: drawMotes,
     busy: busy,
-    hasAmbient: hasBlink,
+    hasAmbient: hasAmbient,
     ambientKey: ambientKey,
     get moteQueue() {
       return queue.length + (active ? 1 : 0);

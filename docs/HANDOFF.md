@@ -37,6 +37,22 @@ efficient (Haiku/Gemini for grunt work, Claude for thinking).
 - Not done yet: real-data panels for calendar, journal, archive and reviews (they still show prototype
   content), the wall photo frame, the optional relic goal boost.
 
+## Room revision 3 (2026-10-21)
+- Live art is R3 (see `docs/SPEC-v3-room.md` section 11). Rebuild: `python3 art/room-r3/build.py`,
+  `python3 art/room-v3/merge.py --src room-r3`, `node scripts/room-sync.mjs`. Rollback: copy
+  `docs/redesign/room-prototype/art-v3.prev.js` over `art-v3.js` and re-run room-sync.
+- Plan and review: `docs/redesign/room-r3/PLAN.md`, `REVIEW.md`. MUST list done; checks green (lint, tsc,
+  vitest, test:db, merge, parity, e2e).
+- Some v3 ids now hold different R3 props (e.g. `kitchen.microwave` is the fridge, `kitchen.table` the
+  bleed shelf, `computer.speakers` the keyboard, `gym.timer` the mileage poster); each manifest note says
+  what it is.
+- LATER (from PLAN.md): sun position from the clock and lit house windows; day-complete flash; tier-up
+  glide and permanent prop; growth-slot caps; morning grade; colour-blind backups beyond LEDs; data-driven
+  calendar and charts (needs per-day history); streak break moment; long-press quick-log with UNDO;
+  status strip of 15 bottles; statue regions per category; "?" sparkles and legend; dog zoomies and
+  welcome-back screen; neglect escalation at day 3/7/14; sound set; daily quest and weekly chest; easter
+  eggs. Also: the phone window zone frames the window and CRTs, so the statue needs a pan.
+
 ## skill-pack
 Added (skills in `.claude/skills/`, sources in `vendor/`): superpowers (minus using-superpowers and its
 hook), karpathy-guidelines, 9 Trail of Bits security skills, pixel-art-studio (scripts at

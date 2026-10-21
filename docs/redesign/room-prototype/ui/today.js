@@ -295,6 +295,19 @@
         return g.kind === gr.kind;
       });
       if (!list.length) return;
+      // Same order as the room's priority (never miss twice, Focus Rack pins, lowest score), stable otherwise.
+      if (ROOM.fx && ROOM.fx.rankGoal) {
+        list = list
+          .map(function (g, i) {
+            return { g: g, i: i, r: ROOM.fx.rankGoal(g) };
+          })
+          .sort(function (a, b) {
+            return ROOM.fx.cmpRank(a.r, b.r) || a.i - b.i;
+          })
+          .map(function (x) {
+            return x.g;
+          });
+      }
       var hid = 'today-group-' + gr.kind;
       listWrap.appendChild(K.h('h3', { class: 'today-group', id: hid }, gr.title, gr.opt ? K.h('span', { class: 'opt', text: gr.opt }) : null));
       var ul = K.h('ul', { class: 'today-list', 'aria-labelledby': hid });

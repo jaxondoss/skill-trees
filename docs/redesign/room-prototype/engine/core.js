@@ -139,7 +139,12 @@
     photo: false,
     // Engine extras (not in the frozen contract; safe for the ui to read or set):
     statueLight: false, // the statue's ceiling downlight (on after a statue click, off when leaving the window)
-    dog: 'sleep', // 'sleep' at centre.dogSleep, or 'neglect' next to the most neglected skill's object
+    // 'sleep' at centre.dogSleep, or 'neglect' (head up) next to the most neglected skill's object
+    dog: (ROOM.data.skills || []).some(function (s) {
+      return s.neglected;
+    })
+      ? 'neglect'
+      : 'sleep',
     ledOverrides: {}, // skill slug -> 'off'|'pending'|'half'|'full'|'blink' (demo drawer)
   };
 
@@ -225,6 +230,8 @@
       return v.base ? 'base' : v.empty ? 'empty' : null;
     }
     if (v.awake && skill && skill.status === 'active') return 'awake';
+    // The dog lies with its head up (alert) when it keeps a neglected object company.
+    if (v.alert && /(^|[.\-_])dog\b/.test(item.id)) return st.dog === 'neglect' ? 'alert' : v.base ? 'base' : null;
     if (v.alert && ROOM.alertOn(item)) return 'alert';
     if (st.night && v.night) return 'night';
     var score = ROOM.scoreOf(item);
