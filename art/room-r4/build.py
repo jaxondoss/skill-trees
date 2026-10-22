@@ -17,9 +17,11 @@ How it works
 Hidden design parameter: TOD in {dawn, midday, golden, night} (golden = default view).
 
 Coordinates: master 800x480; default view = core (80, 96, 720, 366) = 640x270. VP = (400, 212) = 43%.
-Run:  python3 art/room-r4/build.py
+Run:  python3 art/room-r4/build.py            (stills, then the layered live export; --stills-only / --live-only)
 Out:  docs/redesign/room-r4/stills/{room,lighting-strip,knight-tiers,glow-demo}@2x.png
       art/room-r4/palette-proposal.json
+      live: docs/redesign/room-prototype/art-r4/<zone>/<name>.<variant>.png, art/room-r4/{manifest,zones,palette}.json
+Then: python3 art/room-v3/merge.py --src room-r4 && node scripts/room-sync.mjs
 """
 import json
 import math
@@ -90,6 +92,35 @@ def pji(X, Y, z):
     return int(round(x)), int(round(y))
 
 
+# ---------------------------------------------------------------- live-export state
+# VAR: {R3 item id: variant key} for the layered export (empty = the approved stills: s1, g2, relics set).
+# AF: {anim channel: frame index} for the moving lights (0 = the still).
+VAR = {}
+AF = {}
+STAGE = {"s0": 0, "s1": 1, "s2": 2}
+# objects that form the room shell (never cut out of the ghost render; see export_live)
+SHELL_NAMES = {"ceiling", "wall-L", "wall-R", "wall-B", "floor", "window-view", "window-frame", "curtains"}
+
+
+def vk(k, d="base"):
+    return VAR.get(k, d)
+
+
+def stg(k):
+    """Stage 0..2 of a skill object (base = s1, the approved still)."""
+    return STAGE.get(VAR.get(k, "s1"), 1)
+
+
+def grow(k):
+    """Growth 0..3 of a growth piece (base = g2)."""
+    v = VAR.get(k, "g2")
+    return int(v[1]) if v.startswith("g") else 2
+
+
+def af(ch):
+    return AF.get(ch, 0)
+
+
 # ---------------------------------------------------------------- scene buffers
 class G:
     img = None
@@ -99,6 +130,7 @@ class G:
     order = {}
     names = {}
     nxt = 10
+    ghost = False
     lights = []   # (cx, cy, rx, ry, amp)
     tints = []    # (cx, cy, rx, ry, kind, strength)
 
@@ -113,6 +145,8 @@ def new_scene():
     G.nxt = 10
     G.lights = []
     G.tints = []
+    G.gmask = {}
+    G.screens = {}
 
 
 class S:
@@ -142,6 +176,11 @@ def obj(name, oid=None, emit=False):
     yield oid
     a = np.array(S.im)
     m = a != T
+    if G.ghost and name not in SHELL_NAMES:
+        # ghost render (lit shell without objects): keep only the object's lights, tints and shadows
+        G.gmask[name] = G.gmask.get(name, np.zeros((H, W), bool)) | m
+        S.im, S.d, S.em, S.de = prev
+        return
     G.img[m] = a[m]
     G.oid[m] = oid
     e = np.array(S.em) > 0
@@ -680,7 +719,7 @@ def window():
         POLY([(nx - 7, ny + 1), (nx - 7, ny - 7), (nx - 4, ny - 10), (nx + 4, ny - 10), (nx + 7, ny - 7), (nx + 7, ny + 1)], "PLASTER_0", "INK")
         R(nx - 8, ny + 1, nx + 8, ny + 2, "OAK_1")
         L(nx - 8, ny + 2, nx + 8, ny + 2, "INK")
-        relic_gem(nx, ny - 3)
+        relic_slot("window.relic", nx, ny - 3)
         G.niche = (nx, ny - 3)
 
 
@@ -700,6 +739,23 @@ def relic_gem(x, y, frame=0, hot=False):
     k = (1.0, 0.75, 1.2)[frame % 3]
     light(x, y, 14 * k, 12 * k, (0.6 if TOD == "night" else 0.35) * k)
     tint(x, y, (16 if not hot else 22) * k, (13 if not hot else 18) * k, "ember", k)
+
+
+def relic_slot(rid, x, y, frame=0):
+    """A relic mount's content: base = empty socket, active / hot = the ember gem, gold = a gold medallion."""
+    v = vk(rid, "active")
+    if v == "base":
+        R(x - 1, y - 1, x + 1, y + 1, "INK")
+        P(x, y - 1, "OAK_DK")
+        return
+    if v == "gold":
+        circ(x, y - 1, 4, "INK")
+        circ(x, y - 1, 3, "GOLD!")
+        circ(x, y - 1, 1, "SUN!")
+        P(x - 1, y - 3, "CREAM!")
+        light(x, y, 14, 12, 0.4)
+        return
+    relic_gem(x, y, frame, hot=(v == "hot"))
 
 
 def sky(x0, y0, x1, y1):
@@ -1112,6 +1168,20 @@ def knight_zone():
         G.beam = True
 
 
+def decheck(name):
+    """Resolve 2x2 checkerboards inside one object (keeps its clusters flat for the grain check)."""
+    ids = [k for k, v in G.names.items() if v == name]
+    m = np.isin(G.oid, ids)
+    a = G.img
+    for _ in range(4):
+        A, B, C, D = a[:-1, :-1], a[:-1, 1:], a[1:, :-1], a[1:, 1:]
+        w = (A == D) & (B == C) & (A != B) & m[:-1, :-1] & m[:-1, 1:] & m[1:, :-1] & m[1:, 1:]
+        if not w.any():
+            break
+        ys, xs = np.nonzero(w)
+        a[ys + 1, xs + 1] = a[ys, xs + 1]
+
+
 def edge_light_knight():
     """Cyan pedestal light licking up the outer edges of the legs (after compositing)."""
     kid = [k for k, v in G.names.items() if v == "knight"][0]
@@ -1149,8 +1219,8 @@ def library():
                 R(x + 1, yb - h + 2, x + 2, yb - 1, a + "!")
                 P(x + 1, yb - h + 3 + (i % 2), b + "!")
                 R(x + 1, yb - h - 1, x + 2, yb - h, "OAK_2")  # cork
-                if i % 2 == 0:
-                    P(x + 2, yb - h - 2 - (i % 3), b + "!")  # bubble
+                if (i + af("potions")) % 2 == 0:
+                    P(x + 2 - (i + af("potions")) % 2, yb - h - 2 - ((i + af("potions")) % 3), b + "!")  # bubble
                 x += 5
                 i += 1
         light((x0 + x1) / 2, (y0 + 0) + 8, 22, 22, 0.5)
@@ -1169,7 +1239,10 @@ def library():
             R(ax + 3, yb, bx - 3, yb + 1, "OAK_1")
             L(ax + 3, yb + 1, bx - 3, yb + 1, "OAK_0")
             if k < shelves - 1:
-                books_row(ax + 4, bx - 4, yb - 1, int(hgt) - 3, rng, n_fill=0.85 if k != 2 else 0.6)
+                books_row(ax + 4, bx - 4, yb - 1, int(hgt) - 3, rng,
+                          n_fill=(0.3, 0.85, 1.0)[stg("library.bookshelf")] * (1 if k != 2 else 0.7))
+                if stg("library.bookshelf") == 2 and k % 2 == 0:
+                    R(bx - 6, yb - 6, bx - 5, yb - 1, "GOLD")   # gold bookends
             else:
                 R(ax + 3, yb - int(hgt) + 3, bx - 3, yb - 1, "OAK_0")
                 L((ax + bx) // 2, yb - int(hgt) + 3, (ax + bx) // 2, yb - 1, "OAK_DK")
@@ -1271,7 +1344,7 @@ def wallside(k=0.55):
 
 
 def bed_zone():
-    with wallside():
+    with wallside(0.72):
         _bed_zone()
 
 
@@ -1300,14 +1373,15 @@ def _bed_zone():
         L(gx - 2, gy + 4, gx + 2, gy + 4, "SLATE_0")
         circ(gx, gy, 5, "INK")
         circ(gx, gy, 4, "NAVY!")
+        ro = 0.55 * af("globe")
         for a in (0.3, 1.7, 2.9, 4.4, 5.5):
-            L(gx, gy, gx + math.cos(a) * 4, gy + math.sin(a) * 4, "VIOLET!")
-        P(gx + math.cos(1.7) * 4, gy + math.sin(1.7) * 4, "PLUM_3!")
-        P(gx + math.cos(4.4) * 4, gy + math.sin(4.4) * 4, "PLUM_3!")
+            L(gx, gy, gx + math.cos(a + ro) * 4, gy + math.sin(a + ro) * 4, "VIOLET!")
+        P(gx + math.cos(1.7 + ro) * 4, gy + math.sin(1.7 + ro) * 4, "PLUM_3!")
+        P(gx + math.cos(4.4 + ro) * 4, gy + math.sin(4.4 + ro) * 4, "PLUM_3!")
         circ(gx, gy, 1, "CREAM!")
         P(gx - 2, gy - 3, "CREAM")
         light(gx, gy, 26, 22, 0.6)
-        tint(gx, gy, 28, 24, "violet", 1.0)
+        tint(gx, gy, 28, 24, "violet", (1.0, 0.8, 1.2)[af("globe")])
     # headboard (against the back wall corner), platform bed along the left wall
     X0, X1, z0, z1 = -WX, -14.0, 0.2, 7.0
     with obj("headboard"):
@@ -1385,9 +1459,10 @@ def _bed_zone():
         shadow_ell(rx, ry + 1, 10, 3, k=1.0)
     with obj("med-candle"):
         cx_, cy_ = pj(-10.0, 0, 8.4)
-        BOX(cx_ - 2, cy_ - 6, cx_ + 1, cy_, "CREAM", hi="CREAM", sh="AMBER")
-        flame(cx_, cy_ - 8, big=True)
-        light(cx_, cy_ - 8, 16, 12, 0.5)
+        if stg("bed.cushion") > 0:   # s0: the cushion alone
+            BOX(cx_ - 2, cy_ - 6, cx_ + 1, cy_, "CREAM", hi="CREAM", sh="AMBER")
+            flame(cx_, cy_ - 8, big=True)
+            light(cx_, cy_ - 8, 16, 12, 0.5)
 
 
 # ---------------------------------------------------------------- zone 1: kitchen (left wall front)
@@ -1401,8 +1476,9 @@ def _kitchen():
     # corkboard (College Integration) above the fridge
     with obj("corkboard-kitchen"):
         wall_frame("L", 7.3, 9.5, 6.7, 8.7, "OAK_1", "OAK_2")
-        for z, Y, c in ((7.6, 8.2, "CREAM"), (8.3, 8.3, "SLATE_2"), (8.9, 8.0, "PLUM_3"), (7.8, 7.4, "GOLD"),
-                        (8.6, 7.3, "CREAM"), (9.0, 7.1, "TERRA_2")):
+        notes = ((7.6, 8.2, "CREAM"), (8.3, 8.3, "SLATE_2"), (8.9, 8.0, "PLUM_3"), (7.8, 7.4, "GOLD"),
+                 (8.6, 7.3, "CREAM"), (9.0, 7.1, "TERRA_2"), (7.5, 7.0, "LEAF_3"), (8.1, 7.0, "SLATE_2"))
+        for z, Y, c in notes[:(3, 6, 8)[stg("kitchen.door")]]:
             q = wallq("L", z, z + 0.45, Y - 0.5, Y, 0.04)
             quad(q, c)
             P(*pj(-WX + 0.05, Y - 0.05, z + 0.2), "CRT_1")
@@ -1412,7 +1488,7 @@ def _kitchen():
         quad([q[0], q[1], pj(-WX + 0.6, 8.0, 11.4), pj(-WX + 0.6, 8.0, 10.4)], "OAK_1", "INK")
         quad(wallq("L", 10.5, 11.3, 7.5, 7.7, 0.02), "OAK_DK", "INK")
         x, y = pj(-WX + 0.3, 8.6, 10.9)
-        relic_gem(x, y)
+        relic_slot("kitchen.relic", x, y)
     # fridge (real depth: side panel, door with handle facing the room)
     FX0, FX1, fz0, fz1 = -WX, -15.2, 7.3, 9.6
     with obj("fridge"):
@@ -1478,31 +1554,47 @@ def _kitchen():
     with obj("water-jug"):
         x, y = pj(-16.6, 2.95, 11.4)
         BOX(x - 3, y - 11, x + 3, y, "SLATE_2", hi="CREAM")
-        R(x - 2, y - 6, x + 2, y - 1, "SLATE_1")    # water line
+        lvl = (0, 2, 5, 8)[grow("kitchen.water")]
+        if lvl:
+            R(x - 2, y - lvl - 1, x + 2, y - 1, "SLATE_1")    # water line
+            L(x - 2, y - lvl - 1, x + 2, y - lvl - 1, "SLATE_2")
         R(x - 1, y - 13, x + 1, y - 12, "SLATE_0")
     with obj("fruit-basket"):
         x, y = pj(-16.5, 2.95, 12.4)
         POLY([(x - 7, y - 4), (x + 7, y - 4), (x + 5, y), (x - 5, y)], "OAK_2", "INK")
         L(x - 6, y - 2, x + 6, y - 2, "OAK_1")
-        for dx, c in ((-4, "CRT_1"), (-1, "LEAF_3"), (2, "GLOW"), (4, "CRT_0"), (0, "SUN")):
+        fr = ((-4, "CRT_1"), (-1, "LEAF_3"), (2, "GLOW"), (4, "CRT_0"), (0, "SUN"))
+        n = (2, 5, 5)[stg("kitchen.food")]
+        for dx, c in fr[:n]:
             circ(x + dx, y - 6 if dx != 0 else y - 8, 2, c)
-        P(x - 1, y - 9, "LEAF_2")
+        if n == 5:
+            P(x - 1, y - 9, "LEAF_2")
+        if stg("kitchen.food") == 2:   # a bunch of grapes and a pear on top
+            circ(x - 3, y - 10, 2, "PLUM_2")
+            P(x - 3, y - 11, "PLUM_3")
+            circ(x + 3, y - 10, 2, "LEAF_3")
     with obj("envelope"):
         x, y = pj(-16.3, 2.95, 13.5)
         POLY([(x - 6, y - 3), (x + 6, y - 3), (x + 5, y), (x - 7, y)], "CREAM", "INK")
         L(x - 6, y - 3, x, y - 1, "SLATE_2")
         L(x, y - 1, x + 6, y - 3, "SLATE_2")
-        P(x + 5, y - 5, "CRT_1!")   # blinking LED (on frame)
-        R(x - 1, y - 2, x, y - 2, "CRT_0")   # wax seal
+        if vk("kitchen.doormat") == "alert":   # a review is waiting: flap up, red seal
+            POLY([(x - 6, y - 3), (x + 6, y - 3), (x, y - 7)], "CREAM", "INK")
+            R(x - 1, y - 4, x, y - 3, "CRT_1")
+        else:
+            R(x - 1, y - 2, x, y - 2, "CRT_0")   # wax seal
     # big leafy floor plant (Gut Health) in the front-left corner
     with obj("gut-plant"):
         px, py = pj(-14.0, 0, 13.6)
         s = sc(13.6)
         pot(px - 8, py - 11, px + 8, py, "TERRA_1")
         L(px - 7, py - 9, px + 7, py - 9, "TERRA_0")
+        gs = stg("kitchen.gut")
         for i in range(13):
+            if gs == 0 and i % 2:
+                continue
             a = -math.pi / 2 + (i - 6) * 0.24 + 0.08 * math.sin(i * 2.3)
-            ln = 18 + 10 * abs(math.cos(i * 1.3))
+            ln = (18 + 10 * abs(math.cos(i * 1.3))) * (0.6, 1.0, 1.18)[gs]
             big_leaf(px + (i - 6) * 0.6, py - 10, a, ln, 6 + (i % 3),
                      "LEAF_1" if i % 3 == 0 else "LEAF_2", "LEAF_0", "LEAF_0", hi="LEAF_3")
         for i in range(5):
@@ -1548,18 +1640,19 @@ def window_zone():
         R(bx - 5, dy - 5, bx - 3, dy - 4, "CRT_1!")
         cx_, cy_ = (ax + bx) / 2, (ay + dy) / 2
         light(cx_, cy_ + 6, 30, 26, 0.8)
-        tint(cx_, cy_ - 4, 30, 22, "red", 0.9)
+        tint(cx_, cy_ - 4, 30, 22, "red", (0.9, 0.7, 1.15)[af("crt")])
+        G.screens["crt-big"] = (ax + 3, ay + 3, bx - 8, dy - 4)
     with obj("crt-small"):  # stats
-        f = box3d(MX0 + 3.25, MX0 + 4.65, 1.7, 2.9, 0.3, 1.3, "SLATE_0", side="INK", top="SLATE_1")
+        f = box3d(MX0 + 3.0, MX0 + 4.75, 1.7, 3.3, 0.3, 1.3, "SLATE_0", side="INK", top="SLATE_1")
         (ax, ay), (bx, by), _, (dx, dy) = f["front"]
         ax, ay, bx, dy = int(ax), int(ay), int(bx), int(dy)
-        R(ax + 2, ay + 2, bx - 2, dy - 4, "INK")
-        R(ax + 3, ay + 3, bx - 3, dy - 5, "CRT_0!")
-        for k in range(3):
-            L(ax + 4, ay + 4 + k * 2, ax + 4 + (k * 3 + 3) % 8, ay + 4 + k * 2, "SUN!")
+        R(ax + 1, ay + 1, bx - 1, dy - 3, "INK")
+        R(ax + 2, ay + 2, bx - 2, dy - 4, "TERRA_0!")
+        L(ax + 3, ay + 3, bx - 3, ay + 3, "CRT_0!")
+        G.screens["crt-small"] = (ax + 2, ay + 2, bx - 2, dy - 4)
         P(bx - 3, dy - 2, "CRT_1!")
         light((ax + bx) / 2, (ay + dy) / 2, 18, 16, 0.4)
-        tint((ax + bx) / 2, (ay + dy) / 2 + 6, 18, 18, "red", 0.7)
+        tint((ax + bx) / 2, (ay + dy) / 2 + 6, 18, 18, "red", (0.7, 0.55, 0.85)[af("crt")])
     # chess table + two chairs angled toward the window (right of the stand)
     TX, TZ = 8.3, 3.2
     with obj("chess-table"):
@@ -1583,6 +1676,11 @@ def window_zone():
             R(cx_ + dx, ty - 5, cx_ + dx, ty - 3, c)
             P(cx_ + dx, ty - 6, c)
         P(cx_ + 2, ty - 7, "CREAM")
+        if stg("library.chess") == 2:   # chess clock
+            R(cx_ + 7, ty - 4, cx_ + 12, ty - 1, "INK")
+            P(cx_ + 8, ty - 3, "CREAM")
+            P(cx_ + 11, ty - 3, "CREAM")
+            P(cx_ + 9, ty - 5, "CRT_1")
         shadow_ell(cx_, fy, rx * 0.8, 3)
     with obj("chess-chair-L"):
         chair_back(TX - 1.9, TZ + 0.9, side=1)
@@ -1647,10 +1745,20 @@ def study():
         x1, y1 = pji(DX0 + 2.8, 5.2, 0)
         BOX(x0, y0, x1, y1, "OAK_1", hi="OAK_2")
         R(x0 + 2, y0 + 2, x1 - 2, y1 - 2, "OAK_2")
+        ss = stg("study.academics")
         for i in range(5):
             for j in range(4):
                 c = "CREAM" if (i + j) % 3 else rng.choice(["SLATE_2", "PLUM_3", "GOLD", "LEAF_3"])
+                if ss == 0 and i >= 2:
+                    continue
+                if ss == 2 and (i + j) % 3 == 0:
+                    c = "GOLD"
                 R(x0 + 4 + i * 6, y0 + 4 + j * 6, x0 + 7 + i * 6, y0 + 7 + j * 6, c)
+        if vk("study.academics") == "alert":   # a red due note pinned over the corner
+            R(x1 - 9, y1 - 10, x1 - 2, y1 - 3, "CRT_0")
+            L(x1 - 8, y1 - 8, x1 - 4, y1 - 8, "CREAM")
+            L(x1 - 8, y1 - 6, x1 - 5, y1 - 6, "CREAM")
+            P(x1 - 6, y1 - 11, "INK")
         P(x0 + 4, y0 + 3, "CRT_1")
         P(x1 - 4, y0 + 3, "CRT_1")
     with obj("calendar"):  # Time Blocking, with a clear gap
@@ -1662,8 +1770,13 @@ def study():
         P(x1 - 4, y0 - 1, "INK")
         for i in range(5):
             for j in range(4):
+                cs = stg("study.time")
                 if (i, j) in ((2, 1), (3, 1), (2, 2), (3, 2)):
+                    if cs == 2:
+                        R(x0 + 2 + i * 4, y0 + 8 + j * 5, x0 + 4 + i * 4, y0 + 10 + j * 5, "GOLD")
                     continue  # the gap
+                if cs == 0 and j > 0:
+                    continue
                 c = "SLATE_1" if (i + j) % 2 else "TERRA_2"
                 R(x0 + 2 + i * 4, y0 + 8 + j * 5, x0 + 4 + i * 4, y0 + 10 + j * 5, c)
     with obj("forge-sign", emit=False):  # the one neon sign
@@ -1720,11 +1833,11 @@ def study():
         for dx, c in ((-1, "CRT_1"), (0, "GOLD"), (1, "SLATE_2")):
             L(x + dx, y - 7, x + dx + (dx), y - 10, c)
     with obj("journal"):
-        x, y = pj(DX0 + 2.6, 2.56, 1.7)
+        x, y = pj(DX0 + 3.6, 2.56, 1.8)
         POLY([(x - 6, y - 2), (x + 4, y - 3), (x + 6, y), (x - 4, y + 1)], "TERRA_0", "INK")
         L(x - 4, y - 1, x + 4, y - 2, "GOLD")
     with obj("succulent"):
-        x, y = pj(DX1 - 0.7, 2.55, 1.0)
+        x, y = pj(DX1 - 0.5, 2.55, 0.7)
         pot(x - 3, y - 4, x + 3, y, "CREAM")
         for dx, dy in ((-2, -6), (0, -7), (2, -6), (-1, -5), (1, -5)):
             P(x + dx, y + dy, "LEAF_3" if dy == -7 else "LEAF_2")
@@ -1766,7 +1879,9 @@ def _computer():
         pts = [pj(WX - 0.04, 5.8 + 0.3 * k + 0.25 * (k % 2), 1.0 + 0.6 * k) for k in range(5)]
         PL(pts, "SLATE_0")
         PL([pj(WX - 0.04, 5.75, 0.95), pj(WX - 0.04, 7.6, 0.95)], "INK")
-        for z, Y, c in ((3.4, 7.7, "GOLD"), (4.0, 7.6, "PLUM_3"), (3.7, 6.8, "LEAF_3"), (4.1, 6.4, "GOLD")):
+        st_ = ((3.4, 7.7, "GOLD"), (4.0, 7.6, "PLUM_3"), (3.7, 6.8, "LEAF_3"), (4.1, 6.4, "GOLD"),
+               (2.9, 7.6, "SLATE_2"), (3.2, 6.5, "PLUM_3"))
+        for z, Y, c in st_[:(1, 4, 6)[stg("computer.board")]]:
             quad(wallq("R", z, z + 0.4, Y - 0.45, Y, 0.05), c)
     with obj("pc-shelf"):  # small shelf with figurine + plant
         q = wallq("R", 1.0, 3.6, 8.7, 8.9, 0.0)
@@ -1804,7 +1919,9 @@ def _computer():
             x1 = max(p[0] for p in qi) - 1
             y0 = min(p[1] for p in qi) + 2
             y1 = max(p[1] for p in qi) - 2
+            sc_ = af("terminal") if code else 0
             for k, yy in enumerate(range(int(y0), int(y1), 2)):
+                k += sc_
                 ln = (k * 5) % 7 + 2
                 c = ("LEAF_3!" if k % 3 else "ENERGY!") if code else ("CREAM!" if k % 3 == 0 else "SLATE_2!" if k % 3 == 1 else "VIOLET!")
                 L(x0 + (k % 2), yy, min(x1, x0 + ln), yy, c)
@@ -1812,13 +1929,10 @@ def _computer():
             L(st[0], st[1], st[0], st[1] + 3, "INK")
             R(st[0] - 3, st[1] + 3, st[0] + 2, st[1] + 4, "INK")
             if code:
-                # weekly focus sticky note on the bezel
-                n = pj(Xa, 4.95, za + 0.1)
-                R(n[0] - 1, n[1] - 1, n[0] + 3, n[1] + 2, "GOLD")
-                L(n[0], n[1], n[0] + 2, n[1], "OAK_DK")
+                G.focus_at = pj(Xa, 4.95, za + 0.1)
         mx, my = pj(16.3, 4.0, 1.6)
         light(mx, my, 26, 30, 0.7)
-        tint(pj(WX, 4.5, 1.6)[0] - 4, my - 6, 26, 34, "green", 1.0)
+        tint(pj(WX, 4.5, 1.6)[0] - 4, my - 6, 26, 34, "green", (1.0, 0.85, 1.15, 0.95)[af("terminal") % 4])
         kx, ky = pj(15.7, 2.55, 2.2)
         R(kx - 6, ky - 1, kx + 2, ky, "SLATE_0")   # keyboard
         L(kx - 6, ky - 1, kx + 2, ky - 1, "SLATE_1")
@@ -1827,6 +1941,10 @@ def _computer():
         P(sx, sy - 3, "SLATE_1")
         ux, uy = pj(15.8, 2.55, 0.9)
         BOX(ux - 2, uy - 4, ux + 1, uy, "CREAM", hi="CREAM")   # mug
+    with obj("focus-note"):   # weekly focus sticky note on the bezel
+        n = G.focus_at
+        R(n[0] - 1, n[1] - 1, n[0] + 3, n[1] + 2, "GOLD")
+        L(n[0], n[1], n[0] + 2, n[1], "OAK_DK")
     with obj("headphones"):
         hx, hy = pj(WX - 0.05, 5.0, 4.75)
         P(hx, hy - 2, "SLATE_1")
@@ -1853,15 +1971,18 @@ def _computer():
         for k in range(14):
             yy = y - 9 - k
             L(x - 1 + (k // 2) % 2, yy, x + (k // 2) % 2, yy, "OAK_1" if k % 2 else "OAK_0")
-        for (dx, dy) in ((-7, -26), (0, -30), (7, -26), (-4, -21), (5, -21)):
+        lv = ((-4, -21), (5, -21), (0, -30), (-7, -26), (7, -26), (-10, -32), (9, -33))
+        for (dx, dy) in lv[:(2, 3, 5, 7)[grow("computer.money")]]:
             ELL(x + dx - 4, y + dy - 3, x + dx + 4, y + dy + 3, "LEAF_2", "INK")
             P(x + dx, y + dy - 1, "LEAF_3")
+        if grow("computer.money") == 3:
+            circ(x + 2, y - 36, 1, "GOLD")
         shadow_ell(x, y, 7, 2)
 
 
 # ---------------------------------------------------------------- zone 7: gym (right wall front)
 def gym():
-    with wallside():
+    with wallside(0.72):
         _gym()
 
 
@@ -1870,16 +1991,19 @@ def _gym():
     with obj("gym-timer"):  # red LED timer, high on the wall (moving light)
         q = wallq("R", 5.0, 6.3, 9.6, 10.4, 0.02)
         quad(q, "INK", "BROWN_1")
+        seg = ((1, 1, 1, 1), (1, 0, 1, 1), (1, 1, 0, 1), (0, 1, 1, 0))[af("timer")]
         for k, z in enumerate((5.25, 5.5, 5.85, 6.1)):
             a = pj(WX - 0.05, 10.15, z)
             b = pj(WX - 0.05, 9.85, z)
-            L(a[0], a[1], b[0], b[1], "CRT_1!")
+            L(a[0], a[1], b[0], b[1], "CRT_1!" if seg[k] else "TERRA_0")
         m = pj(WX - 0.05, 10.0, 5.7)
-        P(m[0], m[1], "CRT_0!")
+        P(m[0], m[1], "CRT_0!" if af("timer") % 2 == 0 else "TERRA_0")
         light(m[0], m[1], 12, 10, 0.3)
-        tint(m[0], m[1], 12, 9, "red", 0.6)
+        tint(m[0], m[1], 12, 9, "red", (0.6, 0.45, 0.7, 0.5)[af("timer")])
     with obj("medal-wall"):
-        for z, Y, c in ((7.0, 7.5, "GOLD"), (7.5, 7.7, "SLATE_2"), (8.0, 7.4, "AMBER"), (7.3, 6.8, "GOLD"), (7.8, 6.7, "CREAM")):
+        med = ((7.0, 7.5, "GOLD"), (7.5, 7.7, "SLATE_2"), (8.0, 7.4, "AMBER"), (7.3, 6.8, "GOLD"), (7.8, 6.7, "CREAM"),
+               (8.4, 7.6, "GOLD"), (6.7, 6.9, "SLATE_2"))
+        for z, Y, c in med[:(1, 3, 5, 7)[grow("gym.medals")]]:
             a = pj(WX - 0.03, Y + 0.5, z)
             b = pj(WX - 0.03, Y, z)
             L(a[0] - 1, a[1], b[0], b[1], "CRT_0")
@@ -1922,7 +2046,10 @@ def _gym():
             R(c[0] + 3, c[1] - 3, c[0] + 4, c[1] + 1, "INK")
         # plates on the front pegs (facing the camera), heavier = bigger
         fx, _ = pj(RX0 + 0.5, 0, rz1)
-        for Y, r, c in ((3.3, 9, "BROWN_1"), (3.3, 7, "SLATE_0"), (1.4, 10, "INK"), (1.4, 8, "CRT_0")):
+        plates = (((1.4, 7, "SLATE_0"),),
+                  ((3.3, 9, "BROWN_1"), (3.3, 7, "SLATE_0"), (1.4, 10, "INK"), (1.4, 8, "CRT_0")),
+                  ((3.3, 10, "INK"), (3.3, 8, "CRT_0"), (1.4, 11, "INK"), (1.4, 9, "GOLD_DK"), (1.4, 6, "CRT_0")))
+        for Y, r, c in plates[stg("gym.strength")]:
             _, cy = pj(RX0, Y, rz1)
             circ(fx + (2 if r < 9 else 0), cy, r, "INK")
             circ(fx + (2 if r < 9 else 0), cy, r - 1, c)
@@ -1935,7 +2062,7 @@ def _gym():
             R(t[0] - 1, t[1] - 4, t[0] + 1, t[1] + 4, "CRT_0")
         shadow_fp(RX0, RX1, rz0, rz1)
     with obj("foam-roller"):
-        x, y = pj(14.4, 0.35, 7.6)
+        x, y = pj(14.6, 0.35, 12.0)
         R(x - 9, y - 3, x + 9, y + 3, "SLATE_1")
         L(x - 9, y - 2, x + 9, y - 2, "SLATE_2")
         ELL(x + 7, y - 3, x + 11, y + 3, "SLATE_0", "INK")
@@ -1949,11 +2076,11 @@ def _gym():
         a, b = pj(WX - 0.02, 6.6, 10.1), pj(WX - 0.5, 6.85, 10.1)
         L(a[0], a[1] + 4, b[0], b[1], "INK")
         x, y = pj(WX - 0.3, 7.5, 10.45)
-        relic_gem(x, y, frame=1)
+        relic_slot("gym.relic", x, y, 1)
     with obj("bike"):  # Triathlon (dormant): wheels showing, tarp half draped, original swim-bike-run mark
         X = 16.7
         R_ = 1.1
-        wz = (9.2, 11.9)
+        wz = (7.8, 10.5)
         for z in wz:
             cx_, cy_ = pj(X, R_, z)
             s = sc(z)
@@ -1965,34 +2092,36 @@ def _gym():
             L(cx_, cy_ - R_ * s + 3, cx_, cy_ + R_ * s - 3, "SLATE_0")
             L(cx_ - hw + 3, cy_, cx_ + hw - 3, cy_, "SLATE_0")
             P(cx_, cy_, "SLATE_2")
-        p_bb = pj(X, 1.1, 10.6)
-        p_seat = pj(X, 2.9, 10.9)
-        p_head = pj(X, 2.85, 9.6)
+        p_bb = pj(X, 1.1, 9.2)
+        p_seat = pj(X, 2.9, 9.5)
+        p_head = pj(X, 2.85, 8.2)
         p_f = pj(X, R_, wz[0])
         p_r = pj(X, R_, wz[1])
         for a, b in ((p_bb, p_seat), (p_seat, p_head), (p_head, p_f), (p_bb, p_head), (p_bb, p_r), (p_seat, p_r)):
             L(a[0], a[1], b[0], b[1], "CRT_0")
         L(p_head[0], p_head[1] - 1, p_head[0] - 4, p_head[1] - 1, "INK")  # aero bars
         R(p_seat[0] - 2, p_seat[1] - 2, p_seat[0] + 3, p_seat[1] - 1, "INK")
-        # tarp over the rear half
-        t = [pj(X - 0.3, 3.4, 10.4), pj(X - 0.3, 3.0, 12.9), pj(X - 0.3, 0.7, 13.2), pj(X - 0.3, 1.4, 11.6), pj(X - 0.3, 1.9, 10.6)]
-        POLY(t, "SLATE_1", "INK")
-        for k in range(3):
-            a = pj(X - 0.3, 3.3 - k * 0.15, 10.8 + k * 0.7)
-            b = pj(X - 0.3, 1.5, 11.4 + k * 0.6)
-            L(a[0], a[1], b[0], b[1], "SLATE_0")
-        m = pj(X - 0.32, 2.7, 11.6)
+        # tarp over the rear half (awake: tarp off, the mark sits on the frame)
+        awake = vk("gym.bike") == "awake"
+        t = [pj(X - 0.3, 3.4, 9.0), pj(X - 0.3, 3.0, 11.5), pj(X - 0.3, 0.7, 11.8), pj(X - 0.3, 1.4, 10.2), pj(X - 0.3, 1.9, 9.2)]
+        if not awake:
+            POLY(t, "SLATE_1", "INK")
+            for k in range(3):
+                a = pj(X - 0.3, 3.3 - k * 0.15, 9.4 + k * 0.7)
+                b = pj(X - 0.3, 1.5, 10.0 + k * 0.6)
+                L(a[0], a[1], b[0], b[1], "SLATE_0")
+        m = pj(X - 0.32, 2.7, 10.2) if not awake else pj(X - 0.32, 3.6, 8.8)
         PL([(m[0] - 2, m[1]), (m[0] - 1, m[1] - 1), (m[0], m[1]), (m[0] + 1, m[1] - 1)], "CREAM")   # swim
         ring(m[0], m[1] + 4, 1, "CREAM")                                                            # bike
         R(m[0] - 1, m[1] + 7, m[0] + 1, m[1] + 8, "CREAM")                                          # run
-        shadow_fp(X - 0.4, X + 0.4, 8.0, 13.0, k=1.0)
+        shadow_fp(X - 0.4, X + 0.4, 6.6, 11.6, k=1.0)
     with obj("bottle"):
         x, y = pj(15.4, 0, 8.6)
         BOX(x - 2, y - 8, x + 2, y, "ENERGY", hi="ENERGY_HI")
         R(x - 1, y - 10, x + 1, y - 9, "INK")
         shadow_ell(x, y, 3, 1, k=1.0)
     with obj("gym-plant"):  # corner plant framing the front right
-        x, y = pj(14.6, 0, 13.6)
+        x, y = pj(16.4, 0, 14.2)
         pot(x - 6, y - 10, x + 6, y, "TERRA_1")
         for i in range(9):
             a = -math.pi / 2 + (i - 4) * 0.22
@@ -2040,7 +2169,8 @@ DAWN = dict(WARM, **{"PLASTER": "PLUM_1", "BROWN_2": "PLUM_1", "TERRA_1": "PLUM_
                      "RIM": "PLUM_3", "OAK_2": "OAK_2", "OAK_1": "OAK_2"})
 NOON = dict(WARM, **{"PLASTER": "PLUM_1", "BROWN_2": "PLUM_1", "PLUM_1": "PLUM_3", "TERRA_1": "TERRA_2",
                      "RIM": "TERRA_2", "OAK_2": "AMBER", "SLATE_0": "SLATE_1"})
-NIGHT_DARK = dict(DARK, **{"PLASTER": "NAVY", "PLASTER_0": "INK", "BROWN_2": "PLASTER", "SLATE_1": "SLATE_0"})
+# night: plaster stays plum-charcoal (no navy mud); colour comes from the lamps, screens and the plasma globe
+NIGHT_DARK = dict(DARK, **{"PLASTER_0": "PLASTER_0", "BROWN_2": "PLASTER", "SLATE_1": "SLATE_0", "TERRA_0": "PLASTER"})
 
 
 def lut(mp):
@@ -2073,12 +2203,13 @@ def tod_setup():
         dw = lut(DAWN)
         lv = [compose(d, d), d, None, dw, compose(dw, dw)]
     elif TOD == "midday":
-        base = 1.4
-        src = [(wx, wy + 10, 420, 260, 1.9)]
+        # less flat: a brighter window wash, a sun patch on the floor and darker corners
+        base = 1.0
+        src = [(wx, wy + 10, 420, 260, 1.8), (wx + 10, 345, 170, 45, 1.3), (wx, wy - 4, 120, 80, 0.6)]
         nw = lut(NOON)
         lv = [d, d, None, nw, compose(nw, nw)]
     else:
-        base = 0.55
+        base = 0.8
         src = [(wx, wy, 140, 90, 0.5)]
         nd = lut(NIGHT_DARK)
         lv = [compose(nd, nd), nd, None, w, compose(w, w)]
@@ -2105,8 +2236,9 @@ def apply_lighting():
     # quantise with a single 50% checker band before each step
     fl = np.floor(f)
     fr = f - fl
-    chk = ((xx.astype(int) + yy.astype(int)) % 2) == 0
-    lvl = fl + ((fr > 0.78) & chk)
+    chk = (yy.astype(int) % 2) == 0   # falloff band: 1 px line dither (no checkerboard, no lone pixels)
+    # objects step cleanly (flat clusters, no grain); the shell keeps a single checker band at each step
+    lvl = fl + np.where(G.oid < 10, (fr > 0.78) & chk, fr > 0.89)
     lvl = np.clip(lvl, 0, 4).astype(np.int8)
     G.level = lvl
     out = G.img.copy()
@@ -2123,7 +2255,7 @@ def rim_pass():
     win = G.win
     wx = (win[0] + win[2]) / 2
     oid, img = G.oid, G.img
-    order = np.zeros(oid.max() + 1, np.int32)
+    order = np.zeros(max(int(oid.max()), max(G.order)) + 1, np.int32)
     for k, v in G.order.items():
         order[k] = v
     ordr = order[oid]
@@ -2166,7 +2298,7 @@ TINTS = {
 
 def apply_tints():
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-    chk = ((xx.astype(int) + yy.astype(int)) % 2) == 0
+    chk = (yy.astype(int) % 2) == 0
     boost = 1.35 if TOD == "night" else 1.0
     for cx, cy, rx, ry, kind, k in G.tints:
         k2 = k * boost
@@ -2207,14 +2339,14 @@ def floor_reflection():
             for x in range(xa, xb + 1):
                 if floor[y, x] and img[y, x] not in (N["OAK_DK"], N["VOID"], N["INK"], N["PLASTER_0"]):
                     if TOD == "night":
-                        if (x + y) % 2 == 0:
+                        if y % 2 == 0:
                             img[y, x] = N[cols[0]]
-                    elif t < 0.75 or (x + y) % 2 == 0:
+                    elif t < 0.75 or y % 2 == 0:
                         img[y, x] = N[cols[0]] if img[y, x] not in (N[cols[1]], N[cols[2]]) else img[y, x]
-        if TOD in ("night", "midday"):
+        if TOD == "night":
             continue
         prof = math.sin(math.pi * min(1, max(0, (t - 0.04) / 0.92))) ** 0.6
-        hw = (34 if TOD == "golden" else 14) * prof * persp * (0.6 + 0.5 * rng.random())
+        hw = {"golden": 34, "midday": 22, "dawn": 14}[TOD] * prof * persp * (0.6 + 0.5 * rng.random())
         off = rng.randint(-5, 5)
         if rng.random() < 0.22:
             hw *= 0.35  # broken band
@@ -2231,7 +2363,7 @@ def floor_reflection():
     # red CRT reflection streak under the media stand
     crt = [k for k, v in G.names.items() if v == "crt-big"]
     if crt:
-        ys, xs = np.where(G.oid == crt[0])
+        ys, xs = np.where(G.gmask["crt-big"] if G.ghost else G.oid == crt[0])
         cxx = int(xs.mean())
         for y in range(fy + 3, fy + 24):
             if (y - fy) % 5 != 4:
@@ -2258,7 +2390,7 @@ def beam_pass():
                "TERRA_1": "RIM", "PLUM_2": "PLUM_3", "PLUM_3": "CREAM", "OAK_2": "SUN", "SLATE_1": "SLATE_2",
                "SLATE_2": "CREAM", "GOLD": "SUN", "BROWN_2": "TERRA_2", "PLUM_1": "PLUM_3"})
     yy, xx = np.mgrid[0:H, 0:W]
-    chk = ((xx + yy) % 2) == 0
+    chk = (yy % 2) == 0
     kid = [kk for kk, v in G.names.items() if v == "knight"][0]
     k = G.oid != kid
     a = G.img.copy()
@@ -2294,7 +2426,7 @@ def dust_cones():
         up = lut({"PLASTER": "BROWN_2", "BROWN_2": "TERRA_1", "OAK_1": "OAK_2", "OAK_2": "AMBER", "OAK_0": "OAK_1",
                   "SLATE_1": "SLATE_2", "PLASTER_0": "PLASTER", "NAVY": "PLASTER"})
         G.img[M] = up[G.img[M]]
-        rng = random.Random(2)
+        rng = random.Random(2 + 7 * af("dust"))
         ys, xs = np.where(M)
         for _ in range(8):
             i = rng.randrange(len(xs))
@@ -2302,11 +2434,12 @@ def dust_cones():
 
 
 # ---------------------------------------------------------------- scene assembly
-def build(tod="golden", tier=3, beam=False):
+def build(tod="golden", tier=3, beam=False, ghost=False):
     global TOD, TIER
     TOD, TIER = tod, tier
     FLAGS["beam"] = beam
     new_scene()
+    G.ghost = ghost
     G.cones = []
     G.beam = False
     shell()
@@ -2333,6 +2466,7 @@ def build(tod="golden", tier=3, beam=False):
         if v in skip or k < 10:
             G.names_arr[k] = 1
     rim_pass()
+    decheck("gut-plant")
     edge_light_knight()
     apply_tints()
     floor_reflection()
@@ -2514,5 +2648,597 @@ def build_relic_frame(fr):
     return a[int(ny) - 26:int(ny) + 16, int(nx) - 34:int(nx) + 34].copy()
 
 
+# ================================================================ live export (layered art for the engine)
+# Like art/room-r3: every object becomes its own sprite under the existing item ids, cut from full lit renders
+# of the scene (one render per state tag), so the engine's composite of the base variants equals the approved
+# still pixel for pixel. The shell plates come from a "ghost" render (the lit room with every object's lights,
+# tints and shadows but without the objects) so a smaller variant never leaves a hole.
+# Every variant also has a painted night twin "<key>.night" (rendered at night); the engine draws those without
+# the NIGHT LUT. Moving lights are separate decor items with anim frames (and anim.night frames).
+PROTO = os.path.join(ROOT, "docs", "redesign", "room-prototype")
+SPR_DIR = "art-r4"
+OX, OY = 80, 96   # master = world + (OX, OY)
+MIN_HIT = 11      # world px: 44 CSS px at phone zone zoom
+SKI = lambda s: {"skill": s}  # noqa: E731
+FTR = lambda s: {"feature": s}  # noqa: E731
+STGK = ("s0", "s1", "s2")
+RELK = ("base", "active", "hot", "gold")
+BASEVAR = {"kitchen.relic": "base", "window.relic": "base", "gym.relic": "base"}
+
+
+def I(id_, zone, kind, objs, keys=("base",), alias=None, target=None, label=None, note="", screen=None, layer=None):
+    """One live item. keys: rendered variant keys (each a state tag); alias: extra keys -> rendered key."""
+    return dict(id=id_, zone=zone, kind=kind, objs=list(objs), keys=list(keys), alias=dict(alias or {}),
+                target=target, label=label, note=note, screen=screen, layer=layer)
+
+
+TA = {"t1": "base", "t3": "base", "t5": "base"}            # room-tier decor variants: same art for now (LATER)
+SA = {"s0": "base", "s1": "base", "s2": "base"}            # stage keys on objects without stage art yet
+STAGED = dict(keys=STGK, alias={"base": "s1"})
+
+
+def live_items():
+    it = []
+    for sid, objs in (("shell.sky", ["window-view"]), ("shell.outside", []), ("shell.window", ["window-frame", "curtains"]),
+                      ("shell.l2", ["wall-B"]), ("shell.l3", ["ceiling", "void"]), ("shell.l4", ["wall-L", "wall-R"]),
+                      ("shell.l5", ["floor"])):
+        it.append(I(sid, "shell", "shell", objs, ("base", "night"), layer={"shell.sky": 0, "shell.outside": 1}.get(sid, 2)))
+    E = []   # empty placeholders: ids the R3 room had, no R4 counterpart (kept so nothing that names them breaks)
+    # ceiling
+    it += [I("window.skylight", "window", "decor", E, ("base", "night"), note="R4: the skylight is part of the ceiling plate"),
+           I("window.cables-ceiling", "window", "decor", ["string-x"], note="R4: string lights on the front cross beam"),
+           I("kitchen.pendant", "kitchen", "decor", E, ("base", "night"), alias={"t1": "base", "t3": "base", "t5": "base"}),
+           I("library.pendant", "library", "decor", ["pendant@0"], ("base", "night"), alias=TA, note="R4: pendant over the reading chair"),
+           I("study.pendant", "window", "decor", ["pendant@1"], ("base", "night"), alias=TA, note="R4: pendant over the chess table"),
+           I("bed.stringlights", "bed", "decor", E, ("base", "night"), alias={"t1": "base", "t2": "base", "t5": "base"}),
+           I("window.stringlights", "window", "decor", E, note="R4: string lights live on the beams (library/study ids)"),
+           I("library.stringlights", "library", "decor", ["string-1"], note="R4: string lights along the left beam"),
+           I("study.stringlights", "study", "decor", ["string-3"], note="R4: string lights along the right beam"),
+           I("kitchen.pothos", "kitchen", "decor", ["hang-plant@0"], note="hanging plant, left"),
+           I("library.pothos", "window", "decor", ["hang-plant@2"], note="hanging plant by the skylight"),
+           I("study.pothos", "computer", "decor", ["hang-plant@1"], note="hanging plant, right")]
+    # window zone
+    it += [I("window.statue", "window", "hotspot", ["knight", "pedestal"], ("t1", "t2", "t3", "t4", "t5"), alias={"base": "t1"},
+             target=FTR("overall"), label="FORGE",
+             note="R4: the knight on its rune pedestal (I iron, II gold seams, III gold trim + energy lines + cape, "
+                  "IV gold chest and helm + emblem, V fully golden with crest); plaque shows the tier name"),
+           I("window.downlight-fixture", "window", "decor", E, note="R4: the fixture is drawn by the beam overlay"),
+           I("window.tapestry", "window", "decor", ["tapestry"], note="R4: tapestry with the original anvil-and-hammer emblem"),
+           I("library.sign", "study", "decor", ["forge-sign"], alias={"t1": "base", "t5": "base"}, note="R4: FORGE neon sign above the desk"),
+           I("window.relic", "window", "hotspot", ["relic-niche"], RELK, target=FTR("relic-window"), label="RELIC",
+             note="arched niche above the window: empty / ember gem / hot / gold"),
+           I("window.candles", "window", "decor", ["candles"], note="streak candles on the sill"),
+           I("window.sill-plant", "window", "decor", E), I("window.sill-books", "window", "decor", E), I("window.sill-mug", "window", "decor", E),
+           I("window.vinyl", "window", "decor", ["media-stand"], note="R4: low media stand under the window"),
+           I("window.radiator", "window", "decor", E), I("window.plant", "window", "decor", ["floor-plant-window"], note="floor plant between the stand and the knight"),
+           I("window.plantwall", "window", "decor", E, alias={"t1": "base", "t4": "base"}), I("window.amp", "window", "decor", E),
+           I("window.today", "window", "hotspot", ["crt-big"], target=FTR("today"), label="TODAY", screen="crt-big",
+             note="big red CRT (Today): the engine blinks a cursor until the first log, then shows today's bar"),
+           I("window.speaker", "window", "decor", E),
+           I("window.stats", "window", "hotspot", ["crt-small"], target=FTR("stats"), label="STATS", screen="crt-small",
+             note="small CRT: the engine alternates the overall score and the streak"),
+           I("window.powerstrip", "window", "decor", E),
+           I("window.rug", "window", "decor", ["rug"], alias={"t1": "base", "t3": "base", "t5": "base"}, note="rug leading to the knight"),
+           I("window.cables-floor", "window", "decor", E),
+           I("library.chess", "window", "hotspot", ["chess-table"], STGK, alias={"base": "s1"}, target=SKI("chess"), label="CHESS",
+             note="R4: chess table in the window zone (s2 chess clock)"),
+           I("window.chess-chairs", "window", "decor", ["chess-chair-L", "chess-chair-R"], note="two chairs angled toward the window")]
+    # library
+    it += [I("library.bookshelf", "library", "hotspot", ["bookcase"], STGK, alias={"base": "s1"}, target=SKI("reading"), label="READING",
+             note="9 ft bookcase (shelves fill with the score; s2 gold bookends)"),
+           I("library.bookcase", "library", "decor", E, alias={"t1": "base", "t4": "base"}),
+           I("library.shelf-plant", "library", "decor", E), I("library.globe", "library", "decor", E),
+           I("library.potions", "library", "decor", ["potions"], note="potion shelf (bubbles are the library.potions-bubbles anim)"),
+           I("library.archive", "library", "hotspot", ["trophy-case"], target=FTR("archive"), label="ARCHIVE", note="glass trophy case with relics"),
+           I("library.snakeplant", "library", "decor", E), I("library.clock", "library", "decor", E),
+           I("library.poster", "library", "decor", E, alias={"t1": "base", "t3": "base", "t5": "base"}),
+           I("library.armchair", "library", "decor", ["reading-chair"], alias={"t1": "base", "t3": "base", "t4": "base"}, note="reading chair with a throw"),
+           I("library.floorlamp", "library", "decor", ["floor-lamp"], note="floor lamp (reading pool)"),
+           I("library.stool", "library", "decor", ["side-table"], note="R4: side table with a mug"),
+           I("library.books-floor", "library", "decor", ["book-stack"], note="finished books stacked by the chair")]
+    # study
+    it += [I("study.shelf", "study", "decor", E), I("study.speaker", "study", "decor", E),
+           I("study.pennant", "study", "decor", ["pennant"], note="original green and sky-blue pennant (no crest)"),
+           I("study.photo", "study", "decor", ["photo"], note="photo frame"),
+           I("study.academics", "study", "hotspot", ["schedule-board"], STGK + ("alert",), alias={"base": "s1"}, target=SKI("academics"),
+             label="ACADEMICS", note="class-schedule corkboard (alert: a red due note)"),
+           I("study.time", "study", "hotspot", ["calendar"], STGK, alias={"base": "s1"}, target=SKI("time-blocking"), label="TIME BLOCKING",
+             note="wall calendar (more blocks by stage)"),
+           I("study.clock", "study", "decor", E),
+           I("study.desk", "study", "decor", ["desk"], alias={"t1": "base", "t3": "base", "t5": "base"}, note="desk with drawers"),
+           I("study.lamp", "study", "decor", ["desk-lamp"], ("base", "night"), alias={"t1": "base", "t2": "base", "t5": "base"}, note="desk lamp (on at night)"),
+           I("study.courses", "study", "hotspot", ["course-books"], target=FTR("courses"), label="COURSES", note="course books between bookends"),
+           I("study.journal", "study", "hotspot", ["journal"], target=FTR("journal"), label="JOURNAL", note="journal notebook"),
+           I("study.mug", "study", "decor", ["pen-mug"], note="mug of pens"),
+           I("study.headphones", "study", "decor", ["succulent"], note="R4: small succulent on the desk"),
+           I("study.backpack", "study", "decor", ["backpack"], note="backpack leaning on the desk"),
+           I("study.chair", "study", "decor", ["desk-chair"], alias={"t1": "base", "t3": "base", "t5": "base"}, note="desk chair"),
+           I("study.bin", "study", "decor", E), I("study.plant", "study", "decor", E)]
+    # kitchen (left wall, front)
+    it += [I("kitchen.microwave", "kitchen", "decor", ["fridge"], note="R4: fridge with real depth"),
+           I("kitchen.table", "kitchen", "decor", ["kitchen-shelf"], alias={"t1": "base", "t3": "base", "t5": "base"}, note="R4: open shelf with jars and a plant"),
+           I("kitchen.hooks", "kitchen", "decor", E),
+           I("kitchen.door", "kitchen", "hotspot", ["corkboard-kitchen"], STGK, alias={"base": "s1"}, target=SKI("college-integration"),
+             label="COLLEGE INTEGRATION", note="R4: no door; the kitchen-wall corkboard of flyers, photos and tickets (more by stage)"),
+           I("kitchen.clock", "kitchen", "decor", E),
+           I("kitchen.doormat", "kitchen", "hotspot", ["envelope"], ("base", "alert"), target=FTR("review"), label="REVIEW",
+             note="R4: envelope on the counter (alert: flap up, red seal)"),
+           I("kitchen.shoes", "kitchen", "decor", E, alias={"t1": "base", "t3": "base"}),
+           I("kitchen.settings", "kitchen", "hotspot", ["switch-panel"], target=FTR("settings"), label="SETTINGS", note="switch panel low by the counter"),
+           I("kitchen.switch", "kitchen", "decor", E),
+           I("kitchen.relic", "kitchen", "hotspot", ["relic-mount-L"], RELK, target=FTR("relic-left"), label="RELIC", note="relic mount above the counter"),
+           I("kitchen.counter", "kitchen", "decor", ["counter"], alias={"t1": "base", "t3": "base", "t5": "base"}, note="hardwood lower cabinets, butcher-block top"),
+           I("kitchen.spices", "kitchen", "decor", E),
+           I("kitchen.food", "kitchen", "hotspot", ["fruit-basket"], STGK, alias={"base": "s1"}, target=SKI("food"), label="FOOD", note="fruit basket on the counter"),
+           I("kitchen.water", "kitchen", "decor", ["water-jug"], ("g0", "g1", "g2", "g3"), alias={"base": "g2"}, note="water jug (fills g0..g3)"),
+           I("kitchen.kettle", "kitchen", "decor", ["kettle"], note="kettle"),
+           I("kitchen.board", "kitchen", "decor", E),
+           I("kitchen.gut", "kitchen", "hotspot", ["gut-plant"], STGK, alias={"base": "s1"}, target=SKI("gut-health"), label="GUT HEALTH", note="big leafy floor plant"),
+           I("kitchen.stool", "kitchen", "decor", E)]
+    # bed (left wall, back)
+    it += [I("bed.frame", "bed", "decor", ["bed", "headboard"], alias={"t1": "base", "t2": "base", "t5": "base"}, note="R4: low platform bed with the lilac quilt"),
+           I("bed.bed", "bed", "hotspot", ["alarm-clock"], alias=SA, target=SKI("sleep"), label="SLEEP", note="R4: the alarm clock on the nightstand"),
+           I("bed.nightstand", "bed", "decor", ["nightstand"], note="nightstand"),
+           I("bed.shelf", "bed", "decor", ["bed-shelf"], note="wall shelf with a trailing plant"),
+           I("bed.globe", "bed", "hotspot", ["plasma-globe"], alias=SA, target=SKI("visualization"), label="VISUALIZATION",
+             note="plasma globe (tendrils and wall glow are the bed.globe-glow anim)"),
+           I("bed.sconce", "bed", "decor", ["star-jar"], ("base", "night"), note="R4: jar of paper stars"),
+           I("bed.charger", "bed", "decor", E),
+           I("bed.poster", "bed", "decor", ["bed-frame-art"], alias={"t1": "base", "t3": "base", "t5": "base"}, note="framed piece above the bed"),
+           I("bed.runner", "bed", "decor", ["med-rug"], alias={"t3": "base"}, note="R4: small round rug at the foot of the bed"),
+           I("bed.cushion", "bed", "hotspot", ["med-cushion", "med-candle"], STGK, alias={"base": "s1"}, target=SKI("meditation"), label="MEDITATION",
+             note="meditation cushion and candle (s0 cushion only)"),
+           I("bed.slippers", "bed", "decor", E), I("bed.hamper", "bed", "decor", E, alias={"t1": "base", "t3": "base", "t5": "base"})]
+    # computer (right wall, back)
+    it += [I("computer.board", "computer", "hotspot", ["whiteboard"], STGK, alias={"base": "s1"}, target=SKI("dropshipping"), label="DROPSHIPPING",
+             note="product whiteboard (sticky notes by stage)"),
+           I("computer.shelf", "computer", "decor", ["pc-shelf"], note="small shelf with a figurine and a plant"),
+           I("computer.router", "computer", "decor", E),
+           I("computer.desk", "computer", "decor", ["pc-desk"], alias={"t1": "base", "t3": "base", "t5": "base"}, note="desk"),
+           I("computer.led", "computer", "decor", ["pc-tower"], note="R4: PC tower with a dim steady LED"),
+           I("computer.ai", "computer", "hotspot", ["monitors"], alias=SA, target=SKI("ai-building"), label="AI BUILDING",
+             note="two monitors, keyboard, speaker (green code scroll is the computer.terminal anim)"),
+           I("computer.focus", "computer", "hotspot", ["focus-note"], target=FTR("focus"), label="FOCUS", note="weekly focus sticky note"),
+           I("computer.headset", "computer", "decor", ["headphones"], note="headphones on a hook"),
+           I("computer.speakers", "computer", "decor", E), I("computer.can", "computer", "decor", E),
+           I("computer.money", "computer", "decor", ["money-tree"], ("g0", "g1", "g2", "g3"), alias={"base": "g2"}, note="braided money tree (g0..g3)"),
+           I("computer.chair", "computer", "decor", ["pc-chair"], alias={"t1": "base", "t3": "base", "t5": "base"}, note="chair"),
+           I("computer.cables", "computer", "decor", E, alias={"t1": "base", "t3": "base"}),
+           I("computer.boxes", "computer", "decor", E), I("computer.mug", "computer", "decor", E)]
+    # gym (right wall, front)
+    it += [I("gym.relic", "gym", "hotspot", ["relic-bracket-R"], RELK, target=FTR("relic-right"), label="RELIC", note="relic bracket by the bike"),
+           I("gym.light", "gym", "decor", E, ("base", "night")),
+           I("gym.medals", "gym", "decor", ["medal-wall"], ("g0", "g1", "g2", "g3"), alias={"base": "g2"}, note="medal wall and race bib (g0..g3)"),
+           I("gym.trophies", "gym", "decor", E, alias={"t1": "base", "t3": "base", "t5": "base"}),
+           I("gym.timer", "gym", "decor", ["gym-timer"], note="R4: red LED gym timer (digits are the gym.timer-led anim)"),
+           I("gym.tiles", "gym", "decor", E, alias={"t1": "base", "t3": "base", "t5": "base"}),
+           I("gym.strength", "gym", "hotspot", ["weight-rack"], STGK, alias={"base": "s1"}, target=SKI("strength"), label="STRENGTH",
+             note="weight rack (heavier plates by stage)"),
+           I("gym.rope", "gym", "decor", E), I("gym.mat", "gym", "decor", E),
+           I("gym.bike", "gym", "hotspot", ["bike"], ("base", "awake"), alias=SA, target=SKI("triathlon"), label="TRIATHLON",
+             note="tri bike under a half-draped tarp (awake: tarp off)"),
+           I("gym.running", "gym", "hotspot", ["shoe-shelf"], alias=SA, target=SKI("running"), label="RUNNING", note="running shoes on a wall shelf"),
+           I("gym.chalk", "gym", "decor", E), I("gym.bottle", "gym", "decor", ["bottle"], note="water bottle"),
+           I("gym.roller", "gym", "decor", ["foam-roller"], note="foam roller"),
+           I("gym.kettlebell", "gym", "decor", E), I("gym.bag", "gym", "decor", E),
+           I("gym.plant", "gym", "decor", ["gym-plant"], note="corner plant")]
+    for cid in ("shell.crop.speaker", "shell.crop.boxes", "shell.crop.plant", "shell.crop.cables"):
+        it.append(I(cid, "shell", "decor", E, layer=6))
+    return it
+
+
+# moving lights: (item id, zone, channel, frames, frame sequence, fps)
+ANIMS = [("window.crt-flicker", "window", "crt", 3, [0, 0, 1, 0, 2, 0, 0, 1], 8),
+         ("bed.globe-glow", "bed", "globe", 3, [0, 1, 2, 1], 4),
+         ("library.potions-bubbles", "library", "potions", 3, [0, 1, 2], 3),
+         ("study.lamp-dust", "study", "dust", 3, [0, 1, 2], 2),
+         ("computer.terminal", "computer", "terminal", 4, [0, 1, 2, 3], 3),
+         ("gym.timer-led", "gym", "timer", 4, [0, 1, 2, 3], 2)]
+ZONE_ON = {"kitchen": "kettle", "bed": "plasma-globe", "library": "floor-lamp", "study": "desk-lamp", "computer": "pc-tower",
+           "gym": "gym-timer"}
+
+
+class LR:
+    cache = {}
+
+
+def render(tag, tod="golden", var=None, tier=3, beam=False, ghost=False, anim=None):
+    """Full lit render. Returns (img, oid, {name: [oids]}, ghost masks, screens)."""
+    key = (tag, tod)
+    if key in LR.cache:
+        return LR.cache[key]
+    VAR.clear()
+    VAR.update(BASEVAR)
+    VAR.update(var or {})
+    AF.clear()
+    AF.update(anim or {})
+    img = build(tod, tier, beam=beam, ghost=ghost)
+    names = {}
+    for o in sorted(G.names):
+        names.setdefault(G.names[o], []).append(o)
+    r = (img, G.oid.copy(), names, dict(G.gmask), dict(G.screens), G.win)
+    VAR.clear()
+    AF.clear()
+    LR.cache[key] = r
+    return r
+
+
+def obj_mask(r, objs):
+    img, oid, names = r[0], r[1], r[2]
+    m = np.zeros((H, W), bool)
+    for o in objs:
+        nm, _, k = o.partition("@")
+        ids = names.get(nm, [])
+        if nm == "void":
+            ids = [0]
+        elif k:
+            ids = ids[int(k):int(k) + 1]
+        elif len(ids) > 1:
+            raise SystemExit(f"object {nm} is ambiguous ({len(ids)}); use {nm}@k")
+        if not ids and nm != "void":
+            raise SystemExit(f"unknown object {nm}")
+        m |= np.isin(oid, ids)
+    return m
+
+
+TAGVAR = {}   # render tag -> {item id: key} (every item with that key is rendered in the same scene)
+
+
+def tag_state(it, key):
+    """(render tag, var, tier) for an item's rendered variant key."""
+    if it["id"] == "window.statue":
+        return key, {}, int(key[1])
+    if key == "base":
+        return "base", {}, 3
+    return key, TAGVAR[key], 3
+
+
+def bbox(a):
+    ys, xs = np.nonzero(a != T)
+    if not len(xs):
+        return None
+    return int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
+
+
+def union(boxes):
+    boxes = [b for b in boxes if b]
+    if not boxes:
+        return None
+    return (min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes), max(b[3] for b in boxes))
+
+
+def auto_layer(bottom):
+    return 2 if bottom <= 302 else 3 if bottom <= 318 else 4 if bottom <= 334 else 5
+
+
+def save_png(a, path):
+    px = np.zeros((a.shape[0], a.shape[1], 4), np.uint8)
+    px[..., :3] = RGB[a]
+    px[..., 3] = np.where(a == T, 0, 255)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    Image.fromarray(px, "RGBA").save(path)
+
+
+def r3_dog():
+    """The R3 dog (base, alert) re-indexed into the R4 palette (swapped entries go to the nearest kept colour)."""
+    p3 = json.load(open(os.path.join(ROOT, "art", "room-r3", "palette.json")))["colors"]
+    rgb3 = {tuple(int(c[1][i:i + 2], 16) for i in (1, 3, 5)): k for k, c in enumerate(p3)}
+    swapped = {3, 32, 33, 34, 35, 36}
+    keep = [k for k in range(len(PAL)) if k not in swapped]
+    out = {}
+    for v in ("base", "alert"):
+        im = np.array(Image.open(os.path.join(PROTO, "art-r3", "centre", f"dog.{v}.png")).convert("RGBA"))
+        a = np.full(im.shape[:2], T, np.uint8)
+        for y in range(im.shape[0]):
+            for x in range(im.shape[1]):
+                if im[y, x, 3] == 255:
+                    k = rgb3[tuple(int(c) for c in im[y, x, :3])]
+                    if k in swapped:
+                        c = np.array(im[y, x, :3], int)
+                        k = min(keep, key=lambda j: int(((RGB[j].astype(int) - c) ** 2).sum()))
+                    a[y, x] = k
+        out[v] = a
+    return out
+
+
+def derive_lut(src, dst, emit=None):
+    """Most common target colour per source colour (a uniform LUT approximating a lighting change)."""
+    mp = {}
+    s, d = src.ravel(), dst.ravel()
+    if emit is not None:
+        s, d = s[~emit.ravel()], d[~emit.ravel()]
+    for c in np.unique(s):
+        if c == T:
+            continue
+        vals, cnt = np.unique(d[s == c], return_counts=True)
+        t = int(vals[cnt.argmax()])
+        if t != c:
+            mp[PAL[c][0]] = PAL[t][0]
+    return mp
+
+
+def write_live_palette(luts):
+    out = {
+        "_note": "FORGE room R4 palette (art pass 4): the R3 palette with 6 entries swapped (see palette-proposal.json): "
+                 "plum-charcoal plaster, the knight's energy and visor colours, the night sky and the plasma/quilt violet. "
+                 "Same count (37), same index order. LUTs: R4 = golden hour (identity, the baked art), R3 = late afternoon, "
+                 "R2 = midday, R1 = dawn (derived from the lighting strip renders: the most common target colour per colour), "
+                 "NIGHT = after 10 PM for sprites without a painted night twin (every R4 sprite has one, drawn without "
+                 "this LUT), DIM = room behind an open panel. Index 255 = transparent.",
+        "colors": [[n, h] for n, h in PAL],
+        "categories": json.load(open(os.path.join(ROOT, "art", "room-r3", "palette.json")))["categories"],
+        "luts": luts,
+    }
+    with open(os.path.join(HERE, "palette.json"), "w") as f:
+        json.dump(out, f, indent=1)
+
+
+def export_live():
+    items = live_items()
+    TAGVAR.clear()
+    for it in items:
+        if it["kind"] != "shell" and it["id"] != "window.statue":
+            for k in it["keys"]:
+                if k not in ("base", "night"):
+                    TAGVAR.setdefault(k, {})[it["id"]] = k
+    base = render("base")
+    night = render("night", "night")
+    ghost = render("ghost", ghost=True)
+    ghost_n = render("ghost-night", "night", ghost=True)
+    root = os.path.join(PROTO, SPR_DIR)
+    if os.path.isdir(root):
+        for dp, _, fs in os.walk(root):
+            for f in fs:
+                if f.endswith(".png"):
+                    os.remove(os.path.join(dp, f))
+    built = []   # (item spec, {key: full-frame array}, {key: alias key})
+    used = {}
+    for it in items:
+        arrays = {}
+        if it["kind"] == "shell":
+            for key, r in (("base", ghost), ("night", ghost_n)):
+                m = obj_mask(r, it["objs"]) if it["objs"] else np.zeros((H, W), bool)
+                arrays[key] = np.where(m, r[0], T).astype(np.uint8)
+        else:
+            for o in it["objs"]:
+                used[o.split("@")[0] + ("@" + o.split("@")[1] if "@" in o else "")] = it["id"]
+            for key in it["keys"]:
+                if key == "night":
+                    continue
+                tag, var, tier = tag_state(it, key)
+                tod_r = render(tag, var=var, tier=tier) if tag != "base" else base
+                tod_n = render(tag, "night", var=var, tier=tier) if tag != "base" else night
+                for k2, r in ((key, tod_r), (key + ".night", tod_n)):
+                    m = obj_mask(r, it["objs"]) if it["objs"] else np.zeros((H, W), bool)
+                    arrays[k2] = np.where(m, r[0], T).astype(np.uint8)
+            if "night" in it["keys"]:
+                arrays["night"] = arrays.pop("base.night")
+        built.append((it, arrays))
+    # every R4 object is exported once
+    names = set()
+    for nm, oids in base[2].items():
+        if nm in SHELL_NAMES or nm == "void":
+            continue
+        names.update([nm] if len(oids) == 1 else [f"{nm}@{k}" for k in range(len(oids))])
+    missing = sorted(names - set(used))
+    if missing:
+        raise SystemExit(f"R4 objects not exported: {missing}")
+    # renders for the tiers, the beam, the variants (fills LR.cache) are done; build records
+    manifest = []
+    pal_rend = {}
+
+    def write(it, arrays, alias, layer=None, extra=None):
+        box = union([bbox(a) for a in arrays.values()])
+        if box is None:   # an empty placeholder: one transparent pixel
+            box = (OX, OY, OX + 1, OY + 1)
+        x0, y0, x1, y1 = box
+        zone, name = it["id"].split(".", 1)
+        variants = {}
+        for v, a in arrays.items():
+            rel = f"{SPR_DIR}/{zone}/{name}.{v}.png"
+            save_png(a[y0:y1, x0:x1], os.path.join(PROTO, rel))
+            variants[v] = rel
+        for v, src in alias.items():
+            variants[v] = variants[src]
+            if src + ".night" in variants:
+                variants[v + ".night"] = variants[src + ".night"]
+        lay = layer if layer is not None else (it.get("layer") if it.get("layer") is not None else auto_layer(y1))
+        rec = {"id": it["id"], "zone": it["zone"], "kind": it["kind"], "layer": int(lay), "x": x0 - OX, "y": y0 - OY,
+               "w": x1 - x0, "h": y1 - y0, "variants": variants}
+        if it["kind"] == "hotspot":
+            rec["target"], rec["label"] = it["target"], it["label"]
+            # LED: on the object's lower right, inside its sprite
+            a = arrays[it["keys"][0] if it["keys"][0] in arrays else "base"]
+            ys, xs = np.nonzero(a != T)
+            if not len(xs):
+                raise SystemExit(f"{it['id']}: empty hotspot sprite")
+            i = int(np.argmax(xs + ys))
+            lx = min(max(int(xs[i]) - 3, x0), x1 - 3)
+            ly = min(max(int(ys[i]) - 3, y0), y1 - 3)
+            rec["led"] = [lx - OX, ly - OY]
+            pw, ph = max(0, MIN_HIT - (x1 - x0)), max(0, MIN_HIT - (y1 - y0))
+            rec["hit"] = [x0 - OX - pw // 2, y0 - OY - ph // 2, x1 - x0 + pw, y1 - y0 + ph]
+        if extra:
+            rec.update(extra)
+        if it.get("note"):
+            rec["note"] = it["note"]
+        manifest.append(rec)
+        return rec
+
+    owner_layer = np.zeros((H, W), np.int8)
+    for it, arrays in built:
+        extra = None
+        if it.get("screen"):
+            sx0, sy0, sx1, sy1 = base[4][it["screen"]]
+            extra = {"screen": [sx0 - OX, sy0 - OY, sx1 - sx0, sy1 - sy0]}
+        rec = write(it, arrays, it["alias"], extra=extra)
+        if it["kind"] != "shell":
+            a = arrays.get("base", arrays.get(it["keys"][0]))
+            owner_layer[(a != T) & (owner_layer < rec["layer"])] = rec["layer"]
+
+    def top_layer(m):
+        v = owner_layer[m]
+        return int(min(5, max(2, v.max() if len(v) else 2)))
+
+    # the dog (R3 sprite, re-indexed), placed by the engine at centre.dogSleep
+    dog = r3_dog()
+    dx, dy = 455, 352
+    arrays = {}
+    for v, a in dog.items():
+        full = np.full((H, W), T, np.uint8)
+        h_, w_ = a.shape
+        full[dy - h_:dy, dx - w_ // 2:dx - w_ // 2 + w_] = a
+        arrays[v] = full
+    write(I("centre.dog", "window", "decor", []), arrays, {}, layer=4)
+    # moving lights
+    for aid, zone, ch, n, seq, fps in ANIMS:
+        fr = {}
+        for tod in ("golden", "night"):
+            fr[tod] = [(base if tod == "golden" else night)[0]] + [
+                render(f"anim-{ch}-{k}", tod, anim={ch: k})[0] for k in range(1, n)]
+        m = np.zeros((H, W), bool)
+        for tod in fr:
+            for a in fr[tod][1:]:
+                m |= a != fr[tod][0]
+        if not m.any():
+            raise SystemExit(f"anim {aid}: frames do not differ")
+        arrays = {"base": np.where(m, fr["golden"][0], T).astype(np.uint8),
+                  "night": np.where(m, fr["night"][0], T).astype(np.uint8)}
+        for k in range(1, n):
+            arrays[f"f{k}"] = np.where(m, fr["golden"][k], T).astype(np.uint8)
+            arrays[f"n{k}"] = np.where(m, fr["night"][k], T).astype(np.uint8)
+        rec = write(I(aid, zone, "decor", []), arrays, {}, layer=top_layer(m), extra=None)
+        v = rec["variants"]
+        fk = ["base"] + [f"f{k}" for k in range(1, n)]
+        nk = ["night"] + [f"n{k}" for k in range(1, n)]
+        rec["anim"] = {"frames": [v[fk[i]] for i in seq], "night": [v[nk[i]] for i in seq], "fps": fps}
+        for k in range(1, n):
+            del v[f"f{k}"], v[f"n{k}"]
+        rec["note"] = f"R4 moving light ({ch}): anim frames over the base; anim.night over the night twin"
+    # overlays: knight beam (downlight), close-up per tier, zone lamp dots
+    beam = render("beam", var={}, beam=True)
+    kn = obj_mask(beam, ["knight"])
+    diff = (beam[0] != base[0]) & ~kn
+    write(I("window.statue-downlight", "window", "overlay", []), {"base": np.where(diff, beam[0], T).astype(np.uint8)}, {},
+          layer=top_layer(diff), extra={"note": "R4: the thick ceiling beam on the knight with floating dust (after a knight click)"})
+    kx = int(pj(KN_X, 0, 0)[0])
+    cb = (kx - 60, 118, kx + 60, 312)
+    arrays = {}
+    for t in range(1, 6):
+        a = np.full((H, W), T, np.uint8)
+        r = render(f"t{t}", var={}, tier=t)
+        a[cb[1]:cb[3], cb[0]:cb[2]] = r[0][cb[1]:cb[3], cb[0]:cb[2]]
+        arrays[f"t{t}"] = a
+    write(I("window.statue-closeup", "window", "overlay", []), arrays, {"base": "t1"}, layer=6,
+          extra={"note": "panel close-up of the knight per tier (never drawn in the room)"})
+    zone_light = {}
+    for zid, nm in ZONE_ON.items():
+        m = obj_mask(base, [nm])
+        ys, xs = np.nonzero(m)
+        cx, cy = int(np.median(xs)), int(np.median(ys))
+        zone_light[zid] = (cx - OX, cy - OY, 24)
+        arrays = {}
+        for key, r in (("base", base), ("night", night)):
+            a = np.full((H, W), T, np.uint8)
+            a[cy:cy + 2, cx:cx + 2] = r[0][cy:cy + 2, cx:cx + 2]
+            arrays[key] = a
+        write(I(zid + ".on", zid, "overlay", []), arrays, {}, layer=top_layer(arrays["base"] != T),
+              extra={"note": "the zone's lamp point (same pixels as the art; the engine reads its position)"})
+    zone_light["window"] = (int((base[5][0] + base[5][2]) / 2) - OX, int((base[5][1] + base[5][3]) / 2) - OY, 24)
+    with open(os.path.join(HERE, "manifest.json"), "w") as f:
+        json.dump({"part": "room-r4", "items": manifest}, f, indent=1)
+    with open(os.path.join(HERE, "zones.json"), "w") as f:
+        json.dump(make_zones(manifest, base, zone_light), f, indent=1)
+    # LUTs from the lighting strip renders
+    dawn = render("dawn", "dawn")[0]
+    noon = render("midday", "midday")[0]
+    luts = {
+        "_note": "colour name -> colour name for art layers; unlisted colours stay. R4 golden (85%+), R3 60-84, R2 midday "
+                 "25-59, R1 dawn 0-24, NIGHT after 10 PM (unpainted sprites only), DIM behind a panel.",
+        "R4": {},
+        "R3": {"GLOW": "ORANGE", "RIM": "TERRA_2", "AMBER": "OAK_2", "SUN": "GLOW", "ORANGE": "RIM"},
+        "R2": derive_lut(base[0], noon),
+        "R1": derive_lut(base[0], dawn),
+        "NIGHT": derive_lut(base[0], night[0]),
+        "DIM": {"SUN": "AMBER", "GLOW": "TERRA_2", "ORANGE": "TERRA_1", "RIM": "TERRA_1", "TERRA_2": "TERRA_1",
+                "TERRA_1": "BROWN_2", "AMBER": "OAK_2", "OAK_2": "OAK_1", "CREAM": "OAK_2", "SLATE_2": "SLATE_1",
+                "SLATE_1": "SLATE_0", "LEAF_3": "LEAF_2", "LEAF_2": "LEAF_1", "PLUM_3": "PLUM_2", "GOLD": "GOLD_DK",
+                "CRT_1": "CRT_0", "PLASTER": "PLASTER_0", "PLASTER_0": "INK", "ENERGY_HI": "ENERGY", "ENERGY": "SLATE_1",
+                "VIOLET": "PLUM_1", "NAVY": "INK"},
+    }
+    write_live_palette(luts)
+    kinds = {}
+    for r in manifest:
+        kinds[r["kind"]] = kinds.get(r["kind"], 0) + 1
+    print(f"live export: {len(manifest)} items {kinds}, {len(LR.cache)} renders")
+    return manifest
+
+
+ZONE_NAMES = [("kitchen", "KITCHEN"), ("bed", "BED"), ("library", "LIBRARY"), ("window", "WINDOW"), ("study", "STUDY DESK"),
+              ("computer", "COMPUTER"), ("gym", "GYM")]
+
+
+def make_zones(items, base, zone_light):
+    AX, AY = -OX, -OY
+    skills = {}
+    zones = []
+    for n, (zid, name) in enumerate(ZONE_NAMES, 1):
+        hs = [i for i in items if i["zone"] == zid and i["kind"] == "hotspot"]
+        for i in hs:
+            if "skill" in i["target"]:
+                skills[i["target"]["skill"]] = zid
+        boxes = [(i["hit"][0], i["hit"][1], i["hit"][0] + i["hit"][2], i["hit"][1] + i["hit"][3]) for i in hs]
+        x0 = min(b[0] for b in boxes); y0 = min(b[1] for b in boxes)
+        x1 = max(b[2] for b in boxes); y1 = max(b[3] for b in boxes)
+        w = min(270, max(220, (x1 - x0) + 40, ((y1 - y0) + 24) * 16 / 9))
+        h = w * 9 / 16
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        fx = min(max(cx - w / 2, AX), AX + W - w)
+        fy = min(max(cy - h / 2, AY), AY + H - h)
+        zones.append({"id": zid, "n": n, "name": name, "focus": [round(fx), round(fy), round(w), round(h)],
+                      "stop": round(cx), "phoneStop": round(min(max(cx, 60), 640 - 60)),
+                      "hotspots": [i["id"] for i in hs], "territory": {"x0": round(x0), "x1": round(x1)},
+                      "light": list(zone_light[zid])})
+    for a, b in zip(zones, zones[1:]):
+        if a["territory"]["x1"] > b["territory"]["x0"]:
+            mid = round((a["stop"] + b["stop"]) / 2)
+            a["territory"]["x1"] = min(a["territory"]["x1"], mid)
+            b["territory"]["x0"] = max(b["territory"]["x0"], mid)
+    statue = next(i for i in items if i["id"] == "window.statue")
+    rug_ = next(i for i in items if i["id"] == "window.rug")
+    (bx0, by0), (bx1, by1) = pji(-WX, CEIL, 0), pji(WX, 0, 0)
+    wx0, wy0, wx1, wy1 = base[5]
+    bt = pj(KN_X, CEIL, KN_Z)
+    return {
+        "_note": "R4 world coordinates (art px): master (800x480) = world + (80, 96). The 640x270 core is x 0..640, y 0..270; "
+                 "the art spans x -80..720, y -96..384. Keys 1-7 run left to right. focus = what a zone step-in frames. "
+                 "stop = zone centre x for the phone pan. light = the zone's lamp point [x, y, r]. "
+                 "Generated by art/room-r4/build.py.",
+        "art": {"x": AX, "y": AY, "w": W, "h": H},
+        "core": {"w": 640, "h": 270},
+        "horizon": int(CY) - OY,
+        "vp": [int(CX) - OX, int(CY) - OY],
+        "camera": {"defaultZoom": 1.3, "horizonPct": round((CY - OY) / 270, 3), "phoneDefaultX": 320,
+                   "defaultZoomNote": "default view up to 1.3x closer than the full core (whole pixels); the phone pan starts "
+                                      "centred on the knight, window and CRTs"},
+        "zones": zones,
+        "shell": {"backWall": [bx0 - OX, by0 - OY, bx1 - OX, by1 - OY], "window": [wx0 - OX, wy0 - OY, wx1 - OX, wy1 - OY],
+                  "sill": [wx0 - 7 - OX, wy1 + 1 - OY, wx1 + 7 - OX, wy1 + 6 - OY], "ceilingY": by0 - OY, "floorBackY": by1 - OY,
+                  "leftWall": {"formula": "one-point camera in art/room-r4/build.py (pj): side walls at X = -17.7 / +17.7 ft"},
+                  "rightWall": "mirror of leftWall about master x = 400"},
+        "centre": {"statue": [statue["x"], statue["y"], statue["w"], statue["h"]], "statueContactY": statue["y"] + statue["h"],
+                   "rug": [rug_["x"], rug_["y"], rug_["w"], rug_["h"]], "downlight": [int(bt[0]) - OX, int(bt[1]) - OY],
+                   "dogSleep": [455 - OX, 352 - OY], "sunbeam": "glowing sun reflection on the satin floor"},
+        "relics": {"relic-left": "kitchen.relic", "relic-window": "window.relic", "relic-right": "gym.relic"},
+        "layers": {"_note": "L0 sky, L1 outside, L2 shell plates (cut from the ghost render) and the back wall, L3-L5 objects by "
+                            "contact depth; objects are disjoint cuts of one lit render, so draw order only matters for variants."},
+        "skills": dict({"_note": "Every skill maps to exactly one hotspot object."}, **dict(sorted(skills.items()))),
+    }
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    if "--live-only" not in sys.argv:
+        main()
+    if "--stills-only" not in sys.argv:
+        export_live()

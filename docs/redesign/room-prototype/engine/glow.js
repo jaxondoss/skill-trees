@@ -33,6 +33,8 @@
     PLUM_0: 'PLUM_1', PLUM_1: 'ROSE_1', PLUM_2: 'PLUM_3', CRT_0: 'CRT_1',
     // R3 palette additions (plaster and obsidian)
     CHAR: 'WALL_G', WALL_G: 'SLATE_0', STAT_1: 'STAT_2', STAT_2: 'SLATE_0', STAT_HI: 'CREAM',
+    // R4 palette swaps
+    PLASTER_0: 'PLASTER', PLASTER: 'PLUM_1', NAVY: 'SLATE_0', ENERGY: 'ENERGY_HI', ENERGY_HI: 'CREAM', VIOLET: 'PLUM_3',
   };
   var BRIGHTER = new Uint8Array(256);
   for (var i = 0; i < 256; i++) BRIGHTER[i] = i;
@@ -185,7 +187,7 @@
     if (spriteCache[key]) return spriteCache[key];
     var h = rows.length, w = rows[0].length;
     var px = new Uint8Array(w * h).fill(T);
-    var map = { o: C.INK, m: C.BROWN_0, M: C.BROWN_2, p: C.BROWN_2 };
+    var map = { o: C.INK, m: C.BROWN_0 != null ? C.BROWN_0 : C.BROWN_1, M: C.BROWN_2, p: C.BROWN_2 };
     Object.keys(roles || {}).forEach(function (r) {
       map[r] = C[roles[r]];
     });

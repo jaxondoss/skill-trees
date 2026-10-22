@@ -150,3 +150,26 @@ with a neon FORGE sign); higher tiers replace items, never empty the room.
   today's top-priority object pulses (never-miss-twice, Focus Rack pins, lowest score), and the Today list
   uses the same order. The dog sleeps in the sun patch or lies head-up by the most neglected object.
   Hotspot labels include today's state ("Strength, 52, done today"). Reduced motion: no mote or gold pulse.
+
+## 12. Art pass 4 (2026-10-22, live art)
+The approved R4 stills (`docs/redesign/room-r4/stills/`, brief: dorm room, sunset wash, satin floor) are now the live
+room. `art/room-r4/build.py` paints the scene once per state and cuts every object out as its own sprite under the
+existing item ids (all 143 R3 ids, targets and variant keys kept; parity in `art/room-r4/parity.py`).
+- **Knight:** the obsidian figure is replaced by a 10 ft knight on a rune pedestal (`window.statue`, t1..t5): I iron,
+  II gold seams and a faint visor, III gold trim, energy lines and a short cape, IV gold chest and helm with an emblem,
+  V fully golden with a crest. The plaque shows the tier name only. The ceiling beam with floating dust is the
+  downlight overlay; the close-up has one crop per tier. Tapestry with an original anvil-and-hammer emblem behind it.
+- **No door:** College Integration (`kitchen.door`, same id and target) is the kitchen-wall corkboard of flyers,
+  photos and tickets. The weekly review (`kitchen.doormat`) is the envelope on the counter (alert: flap up).
+- **Chess in the window zone:** `library.chess` keeps its id and now sits in zone `window` (key 4), right of the
+  media stand; `zones.json` skills map and focus boxes follow.
+- **Moving lights** (decor items with anim frames, plus anim.night frames for the night): CRT flicker
+  (`window.crt-flicker`), plasma tendrils and wall glow (`bed.globe-glow`), potion bubbles (`library.potions-bubbles`),
+  desk-lamp dust at night (`study.lamp-dust`), green terminal scroll and cast (`computer.terminal`), red gym timer
+  (`gym.timer-led`). The fridge crack glow on hover is LATER (the fridge is not a hotspot).
+- **Light:** every sprite is baked at golden hour (R4 = identity). R1 dawn and R2 midday LUTs are derived from the
+  lighting strip renders, R3 is late afternoon; completion still picks the ramp. Every sprite has a painted night twin
+  (`<key>.night`, or `night`) that the engine draws without the NIGHT LUT, so night matches the strip.
+- **Self-critique fixes:** bed and gym slivers stand further out from their walls, the bike is fully visible, midday
+  has a sun patch and darker corners, night plaster stays plum-charcoal instead of navy. Light falloff bands use a
+  1 px line dither (the grain check passes; objects step without dither).

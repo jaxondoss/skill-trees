@@ -30,6 +30,8 @@
     PLUM_3: 'PLUM_2', CRT_0: 'TERRA_0', CRT_1: 'CRT_0', CREAM: 'ROSE_1',
     // R3 palette additions (plaster and obsidian)
     CHAR: 'INK', WALL_G: 'CHAR', STAT_1: 'INK', STAT_2: 'STAT_1', STAT_HI: 'STAT_2',
+    // R4 palette swaps (plum plaster, night navy, knight energy, plasma violet)
+    PLASTER_0: 'INK', PLASTER: 'PLASTER_0', NAVY: 'INK', ENERGY: 'SLATE_1', ENERGY_HI: 'ENERGY', VIOLET: 'PLUM_1',
   };
   var DARKER = new Uint8Array(256);
   for (var i = 0; i < 256; i++) DARKER[i] = i;

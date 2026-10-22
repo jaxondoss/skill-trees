@@ -1,0 +1,2983 @@
+{
+ "part": "room-r4",
+ "items": [
+  {
+   "id": "shell.sky",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 0,
+   "x": 284,
+   "y": 66,
+   "w": 181,
+   "h": 103,
+   "variants": {
+    "base": "art-r4/shell/sky.base.png",
+    "night": "art-r4/shell/sky.night.png"
+   }
+  },
+  {
+   "id": "shell.outside",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 1,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/shell/outside.base.png",
+    "night": "art-r4/shell/outside.night.png"
+   }
+  },
+  {
+   "id": "shell.window",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 282,
+   "y": 56,
+   "w": 186,
+   "h": 134,
+   "variants": {
+    "base": "art-r4/shell/window.base.png",
+    "night": "art-r4/shell/window.night.png"
+   }
+  },
+  {
+   "id": "shell.l2",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 90,
+   "y": 29,
+   "w": 461,
+   "h": 175,
+   "variants": {
+    "base": "art-r4/shell/l2.base.png",
+    "night": "art-r4/shell/l2.night.png"
+   }
+  },
+  {
+   "id": "shell.l3",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": -80,
+   "y": -96,
+   "w": 800,
+   "h": 125,
+   "variants": {
+    "base": "art-r4/shell/l3.base.png",
+    "night": "art-r4/shell/l3.night.png"
+   }
+  },
+  {
+   "id": "shell.l4",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": -80,
+   "y": -36,
+   "w": 800,
+   "h": 305,
+   "variants": {
+    "base": "art-r4/shell/l4.base.png",
+    "night": "art-r4/shell/l4.night.png"
+   }
+  },
+  {
+   "id": "shell.l5",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": -80,
+   "y": 204,
+   "w": 800,
+   "h": 180,
+   "variants": {
+    "base": "art-r4/shell/l5.base.png",
+    "night": "art-r4/shell/l5.night.png"
+   }
+  },
+  {
+   "id": "window.skylight",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/window/skylight.base.png",
+    "night": "art-r4/window/skylight.night.png"
+   },
+   "note": "R4: the skylight is part of the ceiling plate"
+  },
+  {
+   "id": "window.cables-ceiling",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 154,
+   "y": 32,
+   "w": 333,
+   "h": 12,
+   "variants": {
+    "base": "art-r4/window/cables-ceiling.base.png",
+    "base.night": "art-r4/window/cables-ceiling.base.night.png"
+   },
+   "note": "R4: string lights on the front cross beam"
+  },
+  {
+   "id": "kitchen.pendant",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/kitchen/pendant.base.png",
+    "night": "art-r4/kitchen/pendant.night.png",
+    "t1": "art-r4/kitchen/pendant.base.png",
+    "t3": "art-r4/kitchen/pendant.base.png",
+    "t5": "art-r4/kitchen/pendant.base.png"
+   }
+  },
+  {
+   "id": "library.pendant",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 173,
+   "y": 17,
+   "w": 13,
+   "h": 67,
+   "variants": {
+    "base": "art-r4/library/pendant.base.png",
+    "night": "art-r4/library/pendant.night.png",
+    "t1": "art-r4/library/pendant.base.png",
+    "t3": "art-r4/library/pendant.base.png",
+    "t5": "art-r4/library/pendant.base.png"
+   },
+   "note": "R4: pendant over the reading chair"
+  },
+  {
+   "id": "study.pendant",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 437,
+   "y": -9,
+   "w": 13,
+   "h": 80,
+   "variants": {
+    "base": "art-r4/study/pendant.base.png",
+    "night": "art-r4/study/pendant.night.png",
+    "t1": "art-r4/study/pendant.base.png",
+    "t3": "art-r4/study/pendant.base.png",
+    "t5": "art-r4/study/pendant.base.png"
+   },
+   "note": "R4: pendant over the chess table"
+  },
+  {
+   "id": "bed.stringlights",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/bed/stringlights.base.png",
+    "night": "art-r4/bed/stringlights.night.png",
+    "t1": "art-r4/bed/stringlights.base.png",
+    "t2": "art-r4/bed/stringlights.base.png",
+    "t5": "art-r4/bed/stringlights.base.png"
+   }
+  },
+  {
+   "id": "window.stringlights",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/window/stringlights.base.png",
+    "base.night": "art-r4/window/stringlights.base.night.png"
+   },
+   "note": "R4: string lights live on the beams (library/study ids)"
+  },
+  {
+   "id": "library.stringlights",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 191,
+   "y": -3,
+   "w": 46,
+   "h": 44,
+   "variants": {
+    "base": "art-r4/library/stringlights.base.png",
+    "base.night": "art-r4/library/stringlights.base.night.png"
+   },
+   "note": "R4: string lights along the left beam"
+  },
+  {
+   "id": "study.stringlights",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 404,
+   "y": -3,
+   "w": 46,
+   "h": 45,
+   "variants": {
+    "base": "art-r4/study/stringlights.base.png",
+    "base.night": "art-r4/study/stringlights.base.night.png"
+   },
+   "note": "R4: string lights along the right beam"
+  },
+  {
+   "id": "kitchen.pothos",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 125,
+   "y": 26,
+   "w": 13,
+   "h": 57,
+   "variants": {
+    "base": "art-r4/kitchen/pothos.base.png",
+    "base.night": "art-r4/kitchen/pothos.base.night.png"
+   },
+   "note": "hanging plant, left"
+  },
+  {
+   "id": "library.pothos",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 339,
+   "y": 13,
+   "w": 14,
+   "h": 49,
+   "variants": {
+    "base": "art-r4/library/pothos.base.png",
+    "base.night": "art-r4/library/pothos.base.night.png"
+   },
+   "note": "hanging plant by the skylight"
+  },
+  {
+   "id": "study.pothos",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 521,
+   "y": 30,
+   "w": 19,
+   "h": 51,
+   "variants": {
+    "base": "art-r4/study/pothos.base.png",
+    "base.night": "art-r4/study/pothos.base.night.png"
+   },
+   "note": "hanging plant, right"
+  },
+  {
+   "id": "window.statue",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 239,
+   "y": 45,
+   "w": 59,
+   "h": 165,
+   "variants": {
+    "t1": "art-r4/window/statue.t1.png",
+    "t1.night": "art-r4/window/statue.t1.night.png",
+    "t2": "art-r4/window/statue.t2.png",
+    "t2.night": "art-r4/window/statue.t2.night.png",
+    "t3": "art-r4/window/statue.t3.png",
+    "t3.night": "art-r4/window/statue.t3.night.png",
+    "t4": "art-r4/window/statue.t4.png",
+    "t4.night": "art-r4/window/statue.t4.night.png",
+    "t5": "art-r4/window/statue.t5.png",
+    "t5.night": "art-r4/window/statue.t5.night.png",
+    "base": "art-r4/window/statue.t1.png",
+    "base.night": "art-r4/window/statue.t1.night.png"
+   },
+   "target": {
+    "feature": "overall"
+   },
+   "label": "FORGE",
+   "led": [
+    287,
+    206
+   ],
+   "hit": [
+    239,
+    45,
+    59,
+    165
+   ],
+   "note": "R4: the knight on its rune pedestal (I iron, II gold seams, III gold trim + energy lines + cape, IV gold chest and helm + emblem, V fully golden with crest); plaque shows the tier name"
+  },
+  {
+   "id": "window.downlight-fixture",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/window/downlight-fixture.base.png",
+    "base.night": "art-r4/window/downlight-fixture.base.night.png"
+   },
+   "note": "R4: the fixture is drawn by the beam overlay"
+  },
+  {
+   "id": "window.tapestry",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 233,
+   "y": 32,
+   "w": 71,
+   "h": 118,
+   "variants": {
+    "base": "art-r4/window/tapestry.base.png",
+    "base.night": "art-r4/window/tapestry.base.night.png"
+   },
+   "note": "R4: tapestry with the original anvil-and-hammer emblem"
+  },
+  {
+   "id": "library.sign",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 478,
+   "y": 46,
+   "w": 44,
+   "h": 16,
+   "variants": {
+    "base": "art-r4/library/sign.base.png",
+    "base.night": "art-r4/library/sign.base.night.png",
+    "t1": "art-r4/library/sign.base.png",
+    "t1.night": "art-r4/library/sign.base.night.png",
+    "t5": "art-r4/library/sign.base.png",
+    "t5.night": "art-r4/library/sign.base.night.png"
+   },
+   "note": "R4: FORGE neon sign above the desk"
+  },
+  {
+   "id": "window.relic",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 380,
+   "y": 43,
+   "w": 17,
+   "h": 15,
+   "variants": {
+    "base": "art-r4/window/relic.base.png",
+    "base.night": "art-r4/window/relic.base.night.png",
+    "active": "art-r4/window/relic.active.png",
+    "active.night": "art-r4/window/relic.active.night.png",
+    "hot": "art-r4/window/relic.hot.png",
+    "hot.night": "art-r4/window/relic.hot.night.png",
+    "gold": "art-r4/window/relic.gold.png",
+    "gold.night": "art-r4/window/relic.gold.night.png"
+   },
+   "target": {
+    "feature": "relic-window"
+   },
+   "label": "RELIC",
+   "led": [
+    393,
+    54
+   ],
+   "hit": [
+    380,
+    43,
+    17,
+    15
+   ],
+   "note": "arched niche above the window: empty / ember gem / hot / gold"
+  },
+  {
+   "id": "window.candles",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 306,
+   "y": 160,
+   "w": 26,
+   "h": 9,
+   "variants": {
+    "base": "art-r4/window/candles.base.png",
+    "base.night": "art-r4/window/candles.base.night.png"
+   },
+   "note": "streak candles on the sill"
+  },
+  {
+   "id": "window.sill-plant",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/window/sill-plant.base.png",
+    "base.night": "art-r4/window/sill-plant.base.night.png"
+   }
+  },
+  {
+   "id": "window.sill-books",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/window/sill-books.base.png",
+    "base.night": "art-r4/window/sill-books.base.night.png"
+   }
+  },
+  {
+   "id": "window.sill-mug",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/window/sill-mug.base.png",
+    "base.night": "art-r4/window/sill-mug.base.night.png"
+   }
+  },
+  {
+   "id": "window.vinyl",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 3,
+   "x": 341,
+   "y": 182,
+   "w": 66,
+   "h": 26,
+   "variants": {
+    "base": "art-r4/window/vinyl.base.png",
+    "base.night": "art-r4/window/vinyl.base.night.png"
+   },
+   "note": "R4: low media stand under the window"
+  },
+  {
+   "id": "window.radiator",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/window/radiator.base.png",
+    "base.night": "art-r4/window/radiator.base.night.png"
+   }
+  },
+  {
+   "id": "window.plant",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 3,
+   "x": 304,
+   "y": 159,
+   "w": 18,
+   "h": 48,
+   "variants": {
+    "base": "art-r4/window/plant.base.png",
+    "base.night": "art-r4/window/plant.base.night.png"
+   },
+   "note": "floor plant between the stand and the knight"
+  },
+  {
+   "id": "window.plantwall",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/window/plantwall.base.png",
+    "base.night": "art-r4/window/plantwall.base.night.png",
+    "t1": "art-r4/window/plantwall.base.png",
+    "t1.night": "art-r4/window/plantwall.base.night.png",
+    "t4": "art-r4/window/plantwall.base.png",
+    "t4.night": "art-r4/window/plantwall.base.night.png"
+   }
+  },
+  {
+   "id": "window.amp",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/window/amp.base.png",
+    "base.night": "art-r4/window/amp.base.night.png"
+   }
+  },
+  {
+   "id": "window.today",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 345,
+   "y": 153,
+   "w": 37,
+   "h": 32,
+   "variants": {
+    "base": "art-r4/window/today.base.png",
+    "base.night": "art-r4/window/today.base.night.png"
+   },
+   "target": {
+    "feature": "today"
+   },
+   "label": "TODAY",
+   "led": [
+    378,
+    181
+   ],
+   "hit": [
+    345,
+    153,
+    37,
+    32
+   ],
+   "screen": [
+    348,
+    157,
+    24,
+    23
+   ],
+   "note": "big red CRT (Today): the engine blinks a cursor until the first log, then shows today's bar"
+  },
+  {
+   "id": "window.speaker",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/window/speaker.base.png",
+    "base.night": "art-r4/window/speaker.base.night.png"
+   }
+  },
+  {
+   "id": "window.stats",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 380,
+   "y": 161,
+   "w": 26,
+   "h": 24,
+   "variants": {
+    "base": "art-r4/window/stats.base.png",
+    "base.night": "art-r4/window/stats.base.night.png"
+   },
+   "target": {
+    "feature": "stats"
+   },
+   "label": "STATS",
+   "led": [
+    401,
+    181
+   ],
+   "hit": [
+    380,
+    161,
+    26,
+    24
+   ],
+   "screen": [
+    383,
+    164,
+    20,
+    15
+   ],
+   "note": "small CRT: the engine alternates the overall score and the streak"
+  },
+  {
+   "id": "window.powerstrip",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/window/powerstrip.base.png",
+    "base.night": "art-r4/window/powerstrip.base.night.png"
+   }
+  },
+  {
+   "id": "window.rug",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 5,
+   "x": 177,
+   "y": 210,
+   "w": 119,
+   "h": 50,
+   "variants": {
+    "base": "art-r4/window/rug.base.png",
+    "base.night": "art-r4/window/rug.base.night.png",
+    "t1": "art-r4/window/rug.base.png",
+    "t1.night": "art-r4/window/rug.base.night.png",
+    "t3": "art-r4/window/rug.base.png",
+    "t3.night": "art-r4/window/rug.base.night.png",
+    "t5": "art-r4/window/rug.base.png",
+    "t5.night": "art-r4/window/rug.base.night.png"
+   },
+   "note": "rug leading to the knight"
+  },
+  {
+   "id": "window.cables-floor",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/window/cables-floor.base.png",
+    "base.night": "art-r4/window/cables-floor.base.night.png"
+   }
+  },
+  {
+   "id": "library.chess",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 422,
+   "y": 171,
+   "w": 30,
+   "h": 41,
+   "variants": {
+    "s0": "art-r4/library/chess.s0.png",
+    "s0.night": "art-r4/library/chess.s0.night.png",
+    "s1": "art-r4/library/chess.s1.png",
+    "s1.night": "art-r4/library/chess.s1.night.png",
+    "s2": "art-r4/library/chess.s2.png",
+    "s2.night": "art-r4/library/chess.s2.night.png",
+    "base": "art-r4/library/chess.s1.png",
+    "base.night": "art-r4/library/chess.s1.night.png"
+   },
+   "target": {
+    "skill": "chess"
+   },
+   "label": "CHESS",
+   "led": [
+    442,
+    208
+   ],
+   "hit": [
+    422,
+    171,
+    30,
+    41
+   ],
+   "note": "R4: chess table in the window zone (s2 chess clock)"
+  },
+  {
+   "id": "window.chess-chairs",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 3,
+   "x": 404,
+   "y": 168,
+   "w": 72,
+   "h": 46,
+   "variants": {
+    "base": "art-r4/window/chess-chairs.base.png",
+    "base.night": "art-r4/window/chess-chairs.base.night.png"
+   },
+   "note": "two chairs angled toward the window"
+  },
+  {
+   "id": "library.bookshelf",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 159,
+   "y": 84,
+   "w": 50,
+   "h": 123,
+   "variants": {
+    "s0": "art-r4/library/bookshelf.s0.png",
+    "s0.night": "art-r4/library/bookshelf.s0.night.png",
+    "s1": "art-r4/library/bookshelf.s1.png",
+    "s1.night": "art-r4/library/bookshelf.s1.night.png",
+    "s2": "art-r4/library/bookshelf.s2.png",
+    "s2.night": "art-r4/library/bookshelf.s2.night.png",
+    "base": "art-r4/library/bookshelf.s1.png",
+    "base.night": "art-r4/library/bookshelf.s1.night.png"
+   },
+   "target": {
+    "skill": "reading"
+   },
+   "label": "READING",
+   "led": [
+    205,
+    199
+   ],
+   "hit": [
+    159,
+    84,
+    50,
+    123
+   ],
+   "note": "9 ft bookcase (shelves fill with the score; s2 gold bookends)"
+  },
+  {
+   "id": "library.bookcase",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/library/bookcase.base.png",
+    "base.night": "art-r4/library/bookcase.base.night.png",
+    "t1": "art-r4/library/bookcase.base.png",
+    "t1.night": "art-r4/library/bookcase.base.night.png",
+    "t4": "art-r4/library/bookcase.base.png",
+    "t4.night": "art-r4/library/bookcase.base.night.png"
+   }
+  },
+  {
+   "id": "library.shelf-plant",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/library/shelf-plant.base.png",
+    "base.night": "art-r4/library/shelf-plant.base.night.png"
+   }
+  },
+  {
+   "id": "library.globe",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/library/globe.base.png",
+    "base.night": "art-r4/library/globe.base.night.png"
+   }
+  },
+  {
+   "id": "library.potions",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 134,
+   "y": 81,
+   "w": 26,
+   "h": 34,
+   "variants": {
+    "base": "art-r4/library/potions.base.png",
+    "base.night": "art-r4/library/potions.base.night.png"
+   },
+   "note": "potion shelf (bubbles are the library.potions-bubbles anim)"
+  },
+  {
+   "id": "library.archive",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 209,
+   "y": 134,
+   "w": 26,
+   "h": 74,
+   "variants": {
+    "base": "art-r4/library/archive.base.png",
+    "base.night": "art-r4/library/archive.base.night.png"
+   },
+   "target": {
+    "feature": "archive"
+   },
+   "label": "ARCHIVE",
+   "led": [
+    230,
+    203
+   ],
+   "hit": [
+    209,
+    134,
+    26,
+    74
+   ],
+   "note": "glass trophy case with relics"
+  },
+  {
+   "id": "library.snakeplant",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/library/snakeplant.base.png",
+    "base.night": "art-r4/library/snakeplant.base.night.png"
+   }
+  },
+  {
+   "id": "library.clock",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/library/clock.base.png",
+    "base.night": "art-r4/library/clock.base.night.png"
+   }
+  },
+  {
+   "id": "library.poster",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/library/poster.base.png",
+    "base.night": "art-r4/library/poster.base.night.png",
+    "t1": "art-r4/library/poster.base.png",
+    "t1.night": "art-r4/library/poster.base.night.png",
+    "t3": "art-r4/library/poster.base.png",
+    "t3.night": "art-r4/library/poster.base.night.png",
+    "t5": "art-r4/library/poster.base.png",
+    "t5.night": "art-r4/library/poster.base.night.png"
+   }
+  },
+  {
+   "id": "library.armchair",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 3,
+   "x": 148,
+   "y": 160,
+   "w": 51,
+   "h": 60,
+   "variants": {
+    "base": "art-r4/library/armchair.base.png",
+    "base.night": "art-r4/library/armchair.base.night.png",
+    "t1": "art-r4/library/armchair.base.png",
+    "t1.night": "art-r4/library/armchair.base.night.png",
+    "t3": "art-r4/library/armchair.base.png",
+    "t3.night": "art-r4/library/armchair.base.night.png",
+    "t4": "art-r4/library/armchair.base.png",
+    "t4.night": "art-r4/library/armchair.base.night.png"
+   },
+   "note": "reading chair with a throw"
+  },
+  {
+   "id": "library.floorlamp",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 173,
+   "y": 129,
+   "w": 13,
+   "h": 31,
+   "variants": {
+    "base": "art-r4/library/floorlamp.base.png",
+    "base.night": "art-r4/library/floorlamp.base.night.png"
+   },
+   "note": "floor lamp (reading pool)"
+  },
+  {
+   "id": "library.stool",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 3,
+   "x": 210,
+   "y": 180,
+   "w": 21,
+   "h": 36,
+   "variants": {
+    "base": "art-r4/library/stool.base.png",
+    "base.night": "art-r4/library/stool.base.night.png"
+   },
+   "note": "R4: side table with a mug"
+  },
+  {
+   "id": "library.books-floor",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 3,
+   "x": 201,
+   "y": 203,
+   "w": 12,
+   "h": 18,
+   "variants": {
+    "base": "art-r4/library/books-floor.base.png",
+    "base.night": "art-r4/library/books-floor.base.night.png"
+   },
+   "note": "finished books stacked by the chair"
+  },
+  {
+   "id": "study.shelf",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/study/shelf.base.png",
+    "base.night": "art-r4/study/shelf.base.night.png"
+   }
+  },
+  {
+   "id": "study.speaker",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/study/speaker.base.png",
+    "base.night": "art-r4/study/speaker.base.night.png"
+   }
+  },
+  {
+   "id": "study.pennant",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 458,
+   "y": 82,
+   "w": 44,
+   "h": 15,
+   "variants": {
+    "base": "art-r4/study/pennant.base.png",
+    "base.night": "art-r4/study/pennant.base.night.png"
+   },
+   "note": "original green and sky-blue pennant (no crest)"
+  },
+  {
+   "id": "study.photo",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 502,
+   "y": 79,
+   "w": 21,
+   "h": 18,
+   "variants": {
+    "base": "art-r4/study/photo.base.png",
+    "base.night": "art-r4/study/photo.base.night.png"
+   },
+   "note": "photo frame"
+  },
+  {
+   "id": "study.academics",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 460,
+   "y": 108,
+   "w": 34,
+   "h": 29,
+   "variants": {
+    "s0": "art-r4/study/academics.s0.png",
+    "s0.night": "art-r4/study/academics.s0.night.png",
+    "s1": "art-r4/study/academics.s1.png",
+    "s1.night": "art-r4/study/academics.s1.night.png",
+    "s2": "art-r4/study/academics.s2.png",
+    "s2.night": "art-r4/study/academics.s2.night.png",
+    "alert": "art-r4/study/academics.alert.png",
+    "alert.night": "art-r4/study/academics.alert.night.png",
+    "base": "art-r4/study/academics.s1.png",
+    "base.night": "art-r4/study/academics.s1.night.png"
+   },
+   "target": {
+    "skill": "academics"
+   },
+   "label": "ACADEMICS",
+   "led": [
+    490,
+    133
+   ],
+   "hit": [
+    460,
+    108,
+    34,
+    29
+   ],
+   "note": "class-schedule corkboard (alert: a red due note)"
+  },
+  {
+   "id": "study.time",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 498,
+   "y": 104,
+   "w": 23,
+   "h": 32,
+   "variants": {
+    "s0": "art-r4/study/time.s0.png",
+    "s0.night": "art-r4/study/time.s0.night.png",
+    "s1": "art-r4/study/time.s1.png",
+    "s1.night": "art-r4/study/time.s1.night.png",
+    "s2": "art-r4/study/time.s2.png",
+    "s2.night": "art-r4/study/time.s2.night.png",
+    "base": "art-r4/study/time.s1.png",
+    "base.night": "art-r4/study/time.s1.night.png"
+   },
+   "target": {
+    "skill": "time-blocking"
+   },
+   "label": "TIME BLOCKING",
+   "led": [
+    517,
+    132
+   ],
+   "hit": [
+    498,
+    104,
+    23,
+    32
+   ],
+   "note": "wall calendar (more blocks by stage)"
+  },
+  {
+   "id": "study.clock",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/study/clock.base.png",
+    "base.night": "art-r4/study/clock.base.night.png"
+   }
+  },
+  {
+   "id": "study.desk",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 456,
+   "y": 171,
+   "w": 69,
+   "h": 39,
+   "variants": {
+    "base": "art-r4/study/desk.base.png",
+    "base.night": "art-r4/study/desk.base.night.png",
+    "t1": "art-r4/study/desk.base.png",
+    "t1.night": "art-r4/study/desk.base.night.png",
+    "t3": "art-r4/study/desk.base.png",
+    "t3.night": "art-r4/study/desk.base.night.png",
+    "t5": "art-r4/study/desk.base.png",
+    "t5.night": "art-r4/study/desk.base.night.png"
+   },
+   "note": "desk with drawers"
+  },
+  {
+   "id": "study.lamp",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 468,
+   "y": 156,
+   "w": 12,
+   "h": 12,
+   "variants": {
+    "base": "art-r4/study/lamp.base.png",
+    "night": "art-r4/study/lamp.night.png",
+    "t1": "art-r4/study/lamp.base.png",
+    "t2": "art-r4/study/lamp.base.png",
+    "t5": "art-r4/study/lamp.base.png"
+   },
+   "note": "desk lamp (on at night)"
+  },
+  {
+   "id": "study.courses",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 480,
+   "y": 163,
+   "w": 19,
+   "h": 10,
+   "variants": {
+    "base": "art-r4/study/courses.base.png",
+    "base.night": "art-r4/study/courses.base.night.png"
+   },
+   "target": {
+    "feature": "courses"
+   },
+   "label": "COURSES",
+   "led": [
+    495,
+    163
+   ],
+   "hit": [
+    480,
+    163,
+    19,
+    11
+   ],
+   "note": "course books between bookends"
+  },
+  {
+   "id": "study.journal",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 505,
+   "y": 170,
+   "w": 13,
+   "h": 5,
+   "variants": {
+    "base": "art-r4/study/journal.base.png",
+    "base.night": "art-r4/study/journal.base.night.png"
+   },
+   "target": {
+    "feature": "journal"
+   },
+   "label": "JOURNAL",
+   "led": [
+    514,
+    170
+   ],
+   "hit": [
+    505,
+    167,
+    13,
+    11
+   ],
+   "note": "journal notebook"
+  },
+  {
+   "id": "study.mug",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 503,
+   "y": 162,
+   "w": 6,
+   "h": 11,
+   "variants": {
+    "base": "art-r4/study/mug.base.png",
+    "base.night": "art-r4/study/mug.base.night.png"
+   },
+   "note": "mug of pens"
+  },
+  {
+   "id": "study.headphones",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 507,
+   "y": 165,
+   "w": 7,
+   "h": 8,
+   "variants": {
+    "base": "art-r4/study/headphones.base.png",
+    "base.night": "art-r4/study/headphones.base.night.png"
+   },
+   "note": "R4: small succulent on the desk"
+  },
+  {
+   "id": "study.backpack",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 448,
+   "y": 190,
+   "w": 15,
+   "h": 19,
+   "variants": {
+    "base": "art-r4/study/backpack.base.png",
+    "base.night": "art-r4/study/backpack.base.night.png"
+   },
+   "note": "backpack leaning on the desk"
+  },
+  {
+   "id": "study.chair",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 488,
+   "y": 165,
+   "w": 19,
+   "h": 46,
+   "variants": {
+    "base": "art-r4/study/chair.base.png",
+    "base.night": "art-r4/study/chair.base.night.png",
+    "t1": "art-r4/study/chair.base.png",
+    "t1.night": "art-r4/study/chair.base.night.png",
+    "t3": "art-r4/study/chair.base.png",
+    "t3.night": "art-r4/study/chair.base.night.png",
+    "t5": "art-r4/study/chair.base.png",
+    "t5.night": "art-r4/study/chair.base.night.png"
+   },
+   "note": "desk chair"
+  },
+  {
+   "id": "study.bin",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/study/bin.base.png",
+    "base.night": "art-r4/study/bin.base.night.png"
+   }
+  },
+  {
+   "id": "study.plant",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/study/plant.base.png",
+    "base.night": "art-r4/study/plant.base.night.png"
+   }
+  },
+  {
+   "id": "kitchen.microwave",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 24,
+   "y": 125,
+   "w": 41,
+   "h": 105,
+   "variants": {
+    "base": "art-r4/kitchen/microwave.base.png",
+    "base.night": "art-r4/kitchen/microwave.base.night.png"
+   },
+   "note": "R4: fridge with real depth"
+  },
+  {
+   "id": "kitchen.table",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": -12,
+   "y": 124,
+   "w": 38,
+   "h": 13,
+   "variants": {
+    "base": "art-r4/kitchen/table.base.png",
+    "base.night": "art-r4/kitchen/table.base.night.png",
+    "t1": "art-r4/kitchen/table.base.png",
+    "t1.night": "art-r4/kitchen/table.base.night.png",
+    "t3": "art-r4/kitchen/table.base.png",
+    "t3.night": "art-r4/kitchen/table.base.night.png",
+    "t5": "art-r4/kitchen/table.base.png",
+    "t5.night": "art-r4/kitchen/table.base.night.png"
+   },
+   "note": "R4: open shelf with jars and a plant"
+  },
+  {
+   "id": "kitchen.hooks",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/kitchen/hooks.base.png",
+    "base.night": "art-r4/kitchen/hooks.base.night.png"
+   }
+  },
+  {
+   "id": "kitchen.door",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 25,
+   "y": 84,
+   "w": 19,
+   "h": 37,
+   "variants": {
+    "s0": "art-r4/kitchen/door.s0.png",
+    "s0.night": "art-r4/kitchen/door.s0.night.png",
+    "s1": "art-r4/kitchen/door.s1.png",
+    "s1.night": "art-r4/kitchen/door.s1.night.png",
+    "s2": "art-r4/kitchen/door.s2.png",
+    "s2.night": "art-r4/kitchen/door.s2.night.png",
+    "base": "art-r4/kitchen/door.s1.png",
+    "base.night": "art-r4/kitchen/door.s1.night.png"
+   },
+   "target": {
+    "skill": "college-integration"
+   },
+   "label": "COLLEGE INTEGRATION",
+   "led": [
+    40,
+    114
+   ],
+   "hit": [
+    25,
+    84,
+    19,
+    37
+   ],
+   "note": "R4: no door; the kitchen-wall corkboard of flyers, photos and tickets (more by stage)"
+  },
+  {
+   "id": "kitchen.clock",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/kitchen/clock.base.png",
+    "base.night": "art-r4/kitchen/clock.base.night.png"
+   }
+  },
+  {
+   "id": "kitchen.doormat",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": -8,
+   "y": 181,
+   "w": 14,
+   "h": 8,
+   "variants": {
+    "base": "art-r4/kitchen/doormat.base.png",
+    "base.night": "art-r4/kitchen/doormat.base.night.png",
+    "alert": "art-r4/kitchen/doormat.alert.png",
+    "alert.night": "art-r4/kitchen/doormat.alert.night.png"
+   },
+   "target": {
+    "feature": "review"
+   },
+   "label": "REVIEW",
+   "led": [
+    1,
+    185
+   ],
+   "hit": [
+    -8,
+    180,
+    14,
+    11
+   ],
+   "note": "R4: envelope on the counter (alert: flap up, red seal)"
+  },
+  {
+   "id": "kitchen.shoes",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/kitchen/shoes.base.png",
+    "base.night": "art-r4/kitchen/shoes.base.night.png",
+    "t1": "art-r4/kitchen/shoes.base.png",
+    "t1.night": "art-r4/kitchen/shoes.base.night.png",
+    "t3": "art-r4/kitchen/shoes.base.png",
+    "t3.night": "art-r4/kitchen/shoes.base.night.png"
+   }
+  },
+  {
+   "id": "kitchen.settings",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 19,
+   "y": 161,
+   "w": 5,
+   "h": 14,
+   "variants": {
+    "base": "art-r4/kitchen/settings.base.png",
+    "base.night": "art-r4/kitchen/settings.base.night.png"
+   },
+   "target": {
+    "feature": "settings"
+   },
+   "label": "SETTINGS",
+   "led": [
+    19,
+    171
+   ],
+   "hit": [
+    16,
+    161,
+    11,
+    14
+   ],
+   "note": "switch panel low by the counter"
+  },
+  {
+   "id": "kitchen.switch",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/kitchen/switch.base.png",
+    "base.night": "art-r4/kitchen/switch.base.night.png"
+   }
+  },
+  {
+   "id": "kitchen.relic",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 7,
+   "y": 75,
+   "w": 16,
+   "h": 29,
+   "variants": {
+    "base": "art-r4/kitchen/relic.base.png",
+    "base.night": "art-r4/kitchen/relic.base.night.png",
+    "active": "art-r4/kitchen/relic.active.png",
+    "active.night": "art-r4/kitchen/relic.active.night.png",
+    "hot": "art-r4/kitchen/relic.hot.png",
+    "hot.night": "art-r4/kitchen/relic.hot.night.png",
+    "gold": "art-r4/kitchen/relic.gold.png",
+    "gold.night": "art-r4/kitchen/relic.gold.night.png"
+   },
+   "target": {
+    "feature": "relic-left"
+   },
+   "label": "RELIC",
+   "led": [
+    13,
+    100
+   ],
+   "hit": [
+    7,
+    75,
+    16,
+    29
+   ],
+   "note": "relic mount above the counter"
+  },
+  {
+   "id": "kitchen.counter",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": -24,
+   "y": 180,
+   "w": 67,
+   "h": 68,
+   "variants": {
+    "base": "art-r4/kitchen/counter.base.png",
+    "base.night": "art-r4/kitchen/counter.base.night.png",
+    "t1": "art-r4/kitchen/counter.base.png",
+    "t1.night": "art-r4/kitchen/counter.base.night.png",
+    "t3": "art-r4/kitchen/counter.base.png",
+    "t3.night": "art-r4/kitchen/counter.base.night.png",
+    "t5": "art-r4/kitchen/counter.base.png",
+    "t5.night": "art-r4/kitchen/counter.base.night.png"
+   },
+   "note": "hardwood lower cabinets, butcher-block top"
+  },
+  {
+   "id": "kitchen.spices",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/kitchen/spices.base.png",
+    "base.night": "art-r4/kitchen/spices.base.night.png"
+   }
+  },
+  {
+   "id": "kitchen.food",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 2,
+   "y": 174,
+   "w": 15,
+   "h": 13,
+   "variants": {
+    "s0": "art-r4/kitchen/food.s0.png",
+    "s0.night": "art-r4/kitchen/food.s0.night.png",
+    "s1": "art-r4/kitchen/food.s1.png",
+    "s1.night": "art-r4/kitchen/food.s1.night.png",
+    "s2": "art-r4/kitchen/food.s2.png",
+    "s2.night": "art-r4/kitchen/food.s2.night.png",
+    "base": "art-r4/kitchen/food.s1.png",
+    "base.night": "art-r4/kitchen/food.s1.night.png"
+   },
+   "target": {
+    "skill": "food"
+   },
+   "label": "FOOD",
+   "led": [
+    11,
+    183
+   ],
+   "hit": [
+    2,
+    174,
+    15,
+    13
+   ],
+   "note": "fruit basket on the counter"
+  },
+  {
+   "id": "kitchen.water",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 15,
+   "y": 171,
+   "w": 7,
+   "h": 14,
+   "variants": {
+    "g0": "art-r4/kitchen/water.g0.png",
+    "g0.night": "art-r4/kitchen/water.g0.night.png",
+    "g1": "art-r4/kitchen/water.g1.png",
+    "g1.night": "art-r4/kitchen/water.g1.night.png",
+    "g2": "art-r4/kitchen/water.g2.png",
+    "g2.night": "art-r4/kitchen/water.g2.night.png",
+    "g3": "art-r4/kitchen/water.g3.png",
+    "g3.night": "art-r4/kitchen/water.g3.night.png",
+    "base": "art-r4/kitchen/water.g2.png",
+    "base.night": "art-r4/kitchen/water.g2.night.png"
+   },
+   "note": "water jug (fills g0..g3)"
+  },
+  {
+   "id": "kitchen.kettle",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 22,
+   "y": 173,
+   "w": 9,
+   "h": 10,
+   "variants": {
+    "base": "art-r4/kitchen/kettle.base.png",
+    "base.night": "art-r4/kitchen/kettle.base.night.png"
+   },
+   "note": "kettle"
+  },
+  {
+   "id": "kitchen.board",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/kitchen/board.base.png",
+    "base.night": "art-r4/kitchen/board.base.night.png"
+   }
+  },
+  {
+   "id": "kitchen.gut",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 5,
+   "x": -14,
+   "y": 203,
+   "w": 74,
+   "h": 43,
+   "variants": {
+    "s0": "art-r4/kitchen/gut.s0.png",
+    "s0.night": "art-r4/kitchen/gut.s0.night.png",
+    "s1": "art-r4/kitchen/gut.s1.png",
+    "s1.night": "art-r4/kitchen/gut.s1.night.png",
+    "s2": "art-r4/kitchen/gut.s2.png",
+    "s2.night": "art-r4/kitchen/gut.s2.night.png",
+    "base": "art-r4/kitchen/gut.s1.png",
+    "base.night": "art-r4/kitchen/gut.s1.night.png"
+   },
+   "target": {
+    "skill": "gut-health"
+   },
+   "label": "GUT HEALTH",
+   "led": [
+    39,
+    230
+   ],
+   "hit": [
+    -14,
+    203,
+    74,
+    43
+   ],
+   "note": "big leafy floor plant"
+  },
+  {
+   "id": "kitchen.stool",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/kitchen/stool.base.png",
+    "base.night": "art-r4/kitchen/stool.base.night.png"
+   }
+  },
+  {
+   "id": "bed.frame",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 65,
+   "y": 160,
+   "w": 61,
+   "h": 62,
+   "variants": {
+    "base": "art-r4/bed/frame.base.png",
+    "base.night": "art-r4/bed/frame.base.night.png",
+    "t1": "art-r4/bed/frame.base.png",
+    "t1.night": "art-r4/bed/frame.base.night.png",
+    "t2": "art-r4/bed/frame.base.png",
+    "t2.night": "art-r4/bed/frame.base.night.png",
+    "t5": "art-r4/bed/frame.base.png",
+    "t5.night": "art-r4/bed/frame.base.night.png"
+   },
+   "note": "R4: low platform bed with the lilac quilt"
+  },
+  {
+   "id": "bed.bed",
+   "zone": "bed",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 121,
+   "y": 173,
+   "w": 7,
+   "h": 7,
+   "variants": {
+    "base": "art-r4/bed/bed.base.png",
+    "base.night": "art-r4/bed/bed.base.night.png",
+    "s0": "art-r4/bed/bed.base.png",
+    "s0.night": "art-r4/bed/bed.base.night.png",
+    "s1": "art-r4/bed/bed.base.png",
+    "s1.night": "art-r4/bed/bed.base.night.png",
+    "s2": "art-r4/bed/bed.base.png",
+    "s2.night": "art-r4/bed/bed.base.night.png"
+   },
+   "target": {
+    "skill": "sleep"
+   },
+   "label": "SLEEP",
+   "led": [
+    124,
+    176
+   ],
+   "hit": [
+    119,
+    171,
+    11,
+    11
+   ],
+   "note": "R4: the alarm clock on the nightstand"
+  },
+  {
+   "id": "bed.nightstand",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 118,
+   "y": 178,
+   "w": 20,
+   "h": 30,
+   "variants": {
+    "base": "art-r4/bed/nightstand.base.png",
+    "base.night": "art-r4/bed/nightstand.base.night.png"
+   },
+   "note": "nightstand"
+  },
+  {
+   "id": "bed.shelf",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 56,
+   "y": 121,
+   "w": 20,
+   "h": 22,
+   "variants": {
+    "base": "art-r4/bed/shelf.base.png",
+    "base.night": "art-r4/bed/shelf.base.night.png"
+   },
+   "note": "wall shelf with a trailing plant"
+  },
+  {
+   "id": "bed.globe",
+   "zone": "bed",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 62,
+   "y": 116,
+   "w": 11,
+   "h": 12,
+   "variants": {
+    "base": "art-r4/bed/globe.base.png",
+    "base.night": "art-r4/bed/globe.base.night.png",
+    "s0": "art-r4/bed/globe.base.png",
+    "s0.night": "art-r4/bed/globe.base.night.png",
+    "s1": "art-r4/bed/globe.base.png",
+    "s1.night": "art-r4/bed/globe.base.night.png",
+    "s2": "art-r4/bed/globe.base.png",
+    "s2.night": "art-r4/bed/globe.base.night.png"
+   },
+   "target": {
+    "skill": "visualization"
+   },
+   "label": "VISUALIZATION",
+   "led": [
+    67,
+    124
+   ],
+   "hit": [
+    62,
+    116,
+    11,
+    12
+   ],
+   "note": "plasma globe (tendrils and wall glow are the bed.globe-glow anim)"
+  },
+  {
+   "id": "bed.sconce",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 128,
+   "y": 172,
+   "w": 5,
+   "h": 8,
+   "variants": {
+    "base": "art-r4/bed/sconce.base.png",
+    "night": "art-r4/bed/sconce.night.png"
+   },
+   "note": "R4: jar of paper stars"
+  },
+  {
+   "id": "bed.charger",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/bed/charger.base.png",
+    "base.night": "art-r4/bed/charger.base.night.png"
+   }
+  },
+  {
+   "id": "bed.poster",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 69,
+   "y": 113,
+   "w": 15,
+   "h": 29,
+   "variants": {
+    "base": "art-r4/bed/poster.base.png",
+    "base.night": "art-r4/bed/poster.base.night.png",
+    "t1": "art-r4/bed/poster.base.png",
+    "t1.night": "art-r4/bed/poster.base.night.png",
+    "t3": "art-r4/bed/poster.base.png",
+    "t3.night": "art-r4/bed/poster.base.night.png",
+    "t5": "art-r4/bed/poster.base.png",
+    "t5.night": "art-r4/bed/poster.base.night.png"
+   },
+   "note": "framed piece above the bed"
+  },
+  {
+   "id": "bed.runner",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 4,
+   "x": 74,
+   "y": 219,
+   "w": 60,
+   "h": 15,
+   "variants": {
+    "base": "art-r4/bed/runner.base.png",
+    "base.night": "art-r4/bed/runner.base.night.png",
+    "t3": "art-r4/bed/runner.base.png",
+    "t3.night": "art-r4/bed/runner.base.night.png"
+   },
+   "note": "R4: small round rug at the foot of the bed"
+  },
+  {
+   "id": "bed.cushion",
+   "zone": "bed",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 91,
+   "y": 215,
+   "w": 35,
+   "h": 14,
+   "variants": {
+    "s0": "art-r4/bed/cushion.s0.png",
+    "s0.night": "art-r4/bed/cushion.s0.night.png",
+    "s1": "art-r4/bed/cushion.s1.png",
+    "s1.night": "art-r4/bed/cushion.s1.night.png",
+    "s2": "art-r4/bed/cushion.s2.png",
+    "s2.night": "art-r4/bed/cushion.s2.night.png",
+    "base": "art-r4/bed/cushion.s1.png",
+    "base.night": "art-r4/bed/cushion.s1.night.png"
+   },
+   "target": {
+    "skill": "meditation"
+   },
+   "label": "MEDITATION",
+   "led": [
+    106,
+    222
+   ],
+   "hit": [
+    91,
+    215,
+    35,
+    14
+   ],
+   "note": "meditation cushion and candle (s0 cushion only)"
+  },
+  {
+   "id": "bed.slippers",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/bed/slippers.base.png",
+    "base.night": "art-r4/bed/slippers.base.night.png"
+   }
+  },
+  {
+   "id": "bed.hamper",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/bed/hamper.base.png",
+    "base.night": "art-r4/bed/hamper.base.night.png",
+    "t1": "art-r4/bed/hamper.base.png",
+    "t1.night": "art-r4/bed/hamper.base.night.png",
+    "t3": "art-r4/bed/hamper.base.png",
+    "t3.night": "art-r4/bed/hamper.base.night.png",
+    "t5": "art-r4/bed/hamper.base.png",
+    "t5.night": "art-r4/bed/hamper.base.night.png"
+   }
+  },
+  {
+   "id": "computer.board",
+   "zone": "computer",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 553,
+   "y": 98,
+   "w": 26,
+   "h": 39,
+   "variants": {
+    "s0": "art-r4/computer/board.s0.png",
+    "s0.night": "art-r4/computer/board.s0.night.png",
+    "s1": "art-r4/computer/board.s1.png",
+    "s1.night": "art-r4/computer/board.s1.night.png",
+    "s2": "art-r4/computer/board.s2.png",
+    "s2.night": "art-r4/computer/board.s2.night.png",
+    "base": "art-r4/computer/board.s1.png",
+    "base.night": "art-r4/computer/board.s1.night.png"
+   },
+   "target": {
+    "skill": "dropshipping"
+   },
+   "label": "DROPSHIPPING",
+   "led": [
+    575,
+    133
+   ],
+   "hit": [
+    553,
+    98,
+    26,
+    39
+   ],
+   "note": "product whiteboard (sticky notes by stage)"
+  },
+  {
+   "id": "computer.shelf",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 550,
+   "y": 78,
+   "w": 22,
+   "h": 20,
+   "variants": {
+    "base": "art-r4/computer/shelf.base.png",
+    "base.night": "art-r4/computer/shelf.base.night.png"
+   },
+   "note": "small shelf with a figurine and a plant"
+  },
+  {
+   "id": "computer.router",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/computer/router.base.png",
+    "base.night": "art-r4/computer/router.base.night.png"
+   }
+  },
+  {
+   "id": "computer.desk",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 535,
+   "y": 171,
+   "w": 44,
+   "h": 44,
+   "variants": {
+    "base": "art-r4/computer/desk.base.png",
+    "base.night": "art-r4/computer/desk.base.night.png",
+    "t1": "art-r4/computer/desk.base.png",
+    "t1.night": "art-r4/computer/desk.base.night.png",
+    "t3": "art-r4/computer/desk.base.png",
+    "t3.night": "art-r4/computer/desk.base.night.png",
+    "t5": "art-r4/computer/desk.base.png",
+    "t5.night": "art-r4/computer/desk.base.night.png"
+   },
+   "note": "desk"
+  },
+  {
+   "id": "computer.led",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 556,
+   "y": 186,
+   "w": 17,
+   "h": 29,
+   "variants": {
+    "base": "art-r4/computer/led.base.png",
+    "base.night": "art-r4/computer/led.base.night.png"
+   },
+   "note": "R4: PC tower with a dim steady LED"
+  },
+  {
+   "id": "computer.ai",
+   "zone": "computer",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 539,
+   "y": 141,
+   "w": 31,
+   "h": 37,
+   "variants": {
+    "base": "art-r4/computer/ai.base.png",
+    "base.night": "art-r4/computer/ai.base.night.png",
+    "s0": "art-r4/computer/ai.base.png",
+    "s0.night": "art-r4/computer/ai.base.night.png",
+    "s1": "art-r4/computer/ai.base.png",
+    "s1.night": "art-r4/computer/ai.base.night.png",
+    "s2": "art-r4/computer/ai.base.png",
+    "s2.night": "art-r4/computer/ai.base.night.png"
+   },
+   "target": {
+    "skill": "ai-building"
+   },
+   "label": "AI BUILDING",
+   "led": [
+    566,
+    174
+   ],
+   "hit": [
+    539,
+    141,
+    31,
+    37
+   ],
+   "note": "two monitors, keyboard, speaker (green code scroll is the computer.terminal anim)"
+  },
+  {
+   "id": "computer.focus",
+   "zone": "computer",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 542,
+   "y": 139,
+   "w": 5,
+   "h": 4,
+   "variants": {
+    "base": "art-r4/computer/focus.base.png",
+    "base.night": "art-r4/computer/focus.base.night.png"
+   },
+   "target": {
+    "feature": "focus"
+   },
+   "label": "FOCUS",
+   "led": [
+    543,
+    139
+   ],
+   "hit": [
+    539,
+    136,
+    11,
+    11
+   ],
+   "note": "weekly focus sticky note"
+  },
+  {
+   "id": "computer.headset",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 575,
+   "y": 140,
+   "w": 7,
+   "h": 10,
+   "variants": {
+    "base": "art-r4/computer/headset.base.png",
+    "base.night": "art-r4/computer/headset.base.night.png"
+   },
+   "note": "headphones on a hook"
+  },
+  {
+   "id": "computer.speakers",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/computer/speakers.base.png",
+    "base.night": "art-r4/computer/speakers.base.night.png"
+   }
+  },
+  {
+   "id": "computer.can",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/computer/can.base.png",
+    "base.night": "art-r4/computer/can.base.night.png"
+   }
+  },
+  {
+   "id": "computer.money",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 536,
+   "y": 180,
+   "w": 28,
+   "h": 38,
+   "variants": {
+    "g0": "art-r4/computer/money.g0.png",
+    "g0.night": "art-r4/computer/money.g0.night.png",
+    "g1": "art-r4/computer/money.g1.png",
+    "g1.night": "art-r4/computer/money.g1.night.png",
+    "g2": "art-r4/computer/money.g2.png",
+    "g2.night": "art-r4/computer/money.g2.night.png",
+    "g3": "art-r4/computer/money.g3.png",
+    "g3.night": "art-r4/computer/money.g3.night.png",
+    "base": "art-r4/computer/money.g2.png",
+    "base.night": "art-r4/computer/money.g2.night.png"
+   },
+   "note": "braided money tree (g0..g3)"
+  },
+  {
+   "id": "computer.chair",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 533,
+   "y": 152,
+   "w": 19,
+   "h": 61,
+   "variants": {
+    "base": "art-r4/computer/chair.base.png",
+    "base.night": "art-r4/computer/chair.base.night.png",
+    "t1": "art-r4/computer/chair.base.png",
+    "t1.night": "art-r4/computer/chair.base.night.png",
+    "t3": "art-r4/computer/chair.base.png",
+    "t3.night": "art-r4/computer/chair.base.night.png",
+    "t5": "art-r4/computer/chair.base.png",
+    "t5.night": "art-r4/computer/chair.base.night.png"
+   },
+   "note": "chair"
+  },
+  {
+   "id": "computer.cables",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/computer/cables.base.png",
+    "base.night": "art-r4/computer/cables.base.night.png",
+    "t1": "art-r4/computer/cables.base.png",
+    "t1.night": "art-r4/computer/cables.base.night.png",
+    "t3": "art-r4/computer/cables.base.png",
+    "t3.night": "art-r4/computer/cables.base.night.png"
+   }
+  },
+  {
+   "id": "computer.boxes",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/computer/boxes.base.png",
+    "base.night": "art-r4/computer/boxes.base.night.png"
+   }
+  },
+  {
+   "id": "computer.mug",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/computer/mug.base.png",
+    "base.night": "art-r4/computer/mug.base.night.png"
+   }
+  },
+  {
+   "id": "gym.relic",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 613,
+   "y": 92,
+   "w": 16,
+   "h": 32,
+   "variants": {
+    "base": "art-r4/gym/relic.base.png",
+    "base.night": "art-r4/gym/relic.base.night.png",
+    "active": "art-r4/gym/relic.active.png",
+    "active.night": "art-r4/gym/relic.active.night.png",
+    "hot": "art-r4/gym/relic.hot.png",
+    "hot.night": "art-r4/gym/relic.hot.night.png",
+    "gold": "art-r4/gym/relic.gold.png",
+    "gold.night": "art-r4/gym/relic.gold.night.png"
+   },
+   "target": {
+    "feature": "relic-right"
+   },
+   "label": "RELIC",
+   "led": [
+    617,
+    120
+   ],
+   "hit": [
+    613,
+    92,
+    16,
+    32
+   ],
+   "note": "relic bracket by the bike"
+  },
+  {
+   "id": "gym.light",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/gym/light.base.png",
+    "night": "art-r4/gym/light.night.png"
+   }
+  },
+  {
+   "id": "gym.medals",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 590,
+   "y": 93,
+   "w": 22,
+   "h": 45,
+   "variants": {
+    "g0": "art-r4/gym/medals.g0.png",
+    "g0.night": "art-r4/gym/medals.g0.night.png",
+    "g1": "art-r4/gym/medals.g1.png",
+    "g1.night": "art-r4/gym/medals.g1.night.png",
+    "g2": "art-r4/gym/medals.g2.png",
+    "g2.night": "art-r4/gym/medals.g2.night.png",
+    "g3": "art-r4/gym/medals.g3.png",
+    "g3.night": "art-r4/gym/medals.g3.night.png",
+    "base": "art-r4/gym/medals.g2.png",
+    "base.night": "art-r4/gym/medals.g2.night.png"
+   },
+   "note": "medal wall and race bib (g0..g3)"
+  },
+  {
+   "id": "gym.trophies",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/gym/trophies.base.png",
+    "base.night": "art-r4/gym/trophies.base.night.png",
+    "t1": "art-r4/gym/trophies.base.png",
+    "t1.night": "art-r4/gym/trophies.base.night.png",
+    "t3": "art-r4/gym/trophies.base.png",
+    "t3.night": "art-r4/gym/trophies.base.night.png",
+    "t5": "art-r4/gym/trophies.base.png",
+    "t5.night": "art-r4/gym/trophies.base.night.png"
+   }
+  },
+  {
+   "id": "gym.timer",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 580,
+   "y": 61,
+   "w": 10,
+   "h": 14,
+   "variants": {
+    "base": "art-r4/gym/timer.base.png",
+    "base.night": "art-r4/gym/timer.base.night.png"
+   },
+   "note": "R4: red LED gym timer (digits are the gym.timer-led anim)"
+  },
+  {
+   "id": "gym.tiles",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/gym/tiles.base.png",
+    "base.night": "art-r4/gym/tiles.base.night.png",
+    "t1": "art-r4/gym/tiles.base.png",
+    "t1.night": "art-r4/gym/tiles.base.night.png",
+    "t3": "art-r4/gym/tiles.base.png",
+    "t3.night": "art-r4/gym/tiles.base.night.png",
+    "t5": "art-r4/gym/tiles.base.png",
+    "t5.night": "art-r4/gym/tiles.base.night.png"
+   }
+  },
+  {
+   "id": "gym.strength",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 554,
+   "y": 146,
+   "w": 39,
+   "h": 75,
+   "variants": {
+    "s0": "art-r4/gym/strength.s0.png",
+    "s0.night": "art-r4/gym/strength.s0.night.png",
+    "s1": "art-r4/gym/strength.s1.png",
+    "s1.night": "art-r4/gym/strength.s1.night.png",
+    "s2": "art-r4/gym/strength.s2.png",
+    "s2.night": "art-r4/gym/strength.s2.night.png",
+    "base": "art-r4/gym/strength.s1.png",
+    "base.night": "art-r4/gym/strength.s1.night.png"
+   },
+   "target": {
+    "skill": "strength"
+   },
+   "label": "STRENGTH",
+   "led": [
+    577,
+    212
+   ],
+   "hit": [
+    554,
+    146,
+    39,
+    75
+   ],
+   "note": "weight rack (heavier plates by stage)"
+  },
+  {
+   "id": "gym.rope",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/gym/rope.base.png",
+    "base.night": "art-r4/gym/rope.base.night.png"
+   }
+  },
+  {
+   "id": "gym.mat",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/gym/mat.base.png",
+    "base.night": "art-r4/gym/mat.base.night.png"
+   }
+  },
+  {
+   "id": "gym.bike",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 581,
+   "y": 167,
+   "w": 42,
+   "h": 66,
+   "variants": {
+    "base": "art-r4/gym/bike.base.png",
+    "base.night": "art-r4/gym/bike.base.night.png",
+    "awake": "art-r4/gym/bike.awake.png",
+    "awake.night": "art-r4/gym/bike.awake.night.png",
+    "s0": "art-r4/gym/bike.base.png",
+    "s0.night": "art-r4/gym/bike.base.night.png",
+    "s1": "art-r4/gym/bike.base.png",
+    "s1.night": "art-r4/gym/bike.base.night.png",
+    "s2": "art-r4/gym/bike.base.png",
+    "s2.night": "art-r4/gym/bike.base.night.png"
+   },
+   "target": {
+    "skill": "triathlon"
+   },
+   "label": "TRIATHLON",
+   "led": [
+    616,
+    224
+   ],
+   "hit": [
+    581,
+    167,
+    42,
+    66
+   ],
+   "note": "tri bike under a half-draped tarp (awake: tarp off)"
+  },
+  {
+   "id": "gym.running",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 586,
+   "y": 162,
+   "w": 25,
+   "h": 11,
+   "variants": {
+    "base": "art-r4/gym/running.base.png",
+    "base.night": "art-r4/gym/running.base.night.png",
+    "s0": "art-r4/gym/running.base.png",
+    "s0.night": "art-r4/gym/running.base.night.png",
+    "s1": "art-r4/gym/running.base.png",
+    "s1.night": "art-r4/gym/running.base.night.png",
+    "s2": "art-r4/gym/running.base.png",
+    "s2.night": "art-r4/gym/running.base.night.png"
+   },
+   "target": {
+    "skill": "running"
+   },
+   "label": "RUNNING",
+   "led": [
+    607,
+    167
+   ],
+   "hit": [
+    586,
+    162,
+    25,
+    11
+   ],
+   "note": "running shoes on a wall shelf"
+  },
+  {
+   "id": "gym.chalk",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/gym/chalk.base.png",
+    "base.night": "art-r4/gym/chalk.base.night.png"
+   }
+  },
+  {
+   "id": "gym.bottle",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 579,
+   "y": 216,
+   "w": 5,
+   "h": 11,
+   "variants": {
+    "base": "art-r4/gym/bottle.base.png",
+    "base.night": "art-r4/gym/bottle.base.night.png"
+   },
+   "note": "water bottle"
+  },
+  {
+   "id": "gym.roller",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 589,
+   "y": 229,
+   "w": 22,
+   "h": 7,
+   "variants": {
+    "base": "art-r4/gym/roller.base.png",
+    "base.night": "art-r4/gym/roller.base.night.png"
+   },
+   "note": "foam roller"
+  },
+  {
+   "id": "gym.kettlebell",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/gym/kettlebell.base.png",
+    "base.night": "art-r4/gym/kettlebell.base.night.png"
+   }
+  },
+  {
+   "id": "gym.bag",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/gym/bag.base.png",
+    "base.night": "art-r4/gym/bag.base.night.png"
+   }
+  },
+  {
+   "id": "gym.plant",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 632,
+   "y": 193,
+   "w": 29,
+   "h": 55,
+   "variants": {
+    "base": "art-r4/gym/plant.base.png",
+    "base.night": "art-r4/gym/plant.base.night.png"
+   },
+   "note": "corner plant"
+  },
+  {
+   "id": "shell.crop.speaker",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/shell/crop.speaker.base.png",
+    "base.night": "art-r4/shell/crop.speaker.base.night.png"
+   }
+  },
+  {
+   "id": "shell.crop.boxes",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/shell/crop.boxes.base.png",
+    "base.night": "art-r4/shell/crop.boxes.base.night.png"
+   }
+  },
+  {
+   "id": "shell.crop.plant",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/shell/crop.plant.base.png",
+    "base.night": "art-r4/shell/crop.plant.base.night.png"
+   }
+  },
+  {
+   "id": "shell.crop.cables",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r4/shell/crop.cables.base.png",
+    "base.night": "art-r4/shell/crop.cables.base.night.png"
+   }
+  },
+  {
+   "id": "centre.dog",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 4,
+   "x": 356,
+   "y": 238,
+   "w": 39,
+   "h": 18,
+   "variants": {
+    "base": "art-r4/centre/dog.base.png",
+    "alert": "art-r4/centre/dog.alert.png"
+   }
+  },
+  {
+   "id": "window.crt-flicker",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 328,
+   "y": 163,
+   "w": 86,
+   "h": 26,
+   "variants": {
+    "base": "art-r4/window/crt-flicker.base.png",
+    "night": "art-r4/window/crt-flicker.night.png"
+   },
+   "anim": {
+    "frames": [
+     "art-r4/window/crt-flicker.base.png",
+     "art-r4/window/crt-flicker.base.png",
+     "art-r4/window/crt-flicker.f1.png",
+     "art-r4/window/crt-flicker.base.png",
+     "art-r4/window/crt-flicker.f2.png",
+     "art-r4/window/crt-flicker.base.png",
+     "art-r4/window/crt-flicker.base.png",
+     "art-r4/window/crt-flicker.f1.png"
+    ],
+    "night": [
+     "art-r4/window/crt-flicker.night.png",
+     "art-r4/window/crt-flicker.night.png",
+     "art-r4/window/crt-flicker.n1.png",
+     "art-r4/window/crt-flicker.night.png",
+     "art-r4/window/crt-flicker.n2.png",
+     "art-r4/window/crt-flicker.night.png",
+     "art-r4/window/crt-flicker.night.png",
+     "art-r4/window/crt-flicker.n1.png"
+    ],
+    "fps": 8
+   },
+   "note": "R4 moving light (crt): anim frames over the base; anim.night over the night twin"
+  },
+  {
+   "id": "bed.globe-glow",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 32,
+   "y": 90,
+   "w": 72,
+   "h": 61,
+   "variants": {
+    "base": "art-r4/bed/globe-glow.base.png",
+    "night": "art-r4/bed/globe-glow.night.png"
+   },
+   "anim": {
+    "frames": [
+     "art-r4/bed/globe-glow.base.png",
+     "art-r4/bed/globe-glow.f1.png",
+     "art-r4/bed/globe-glow.f2.png",
+     "art-r4/bed/globe-glow.f1.png"
+    ],
+    "night": [
+     "art-r4/bed/globe-glow.night.png",
+     "art-r4/bed/globe-glow.n1.png",
+     "art-r4/bed/globe-glow.n2.png",
+     "art-r4/bed/globe-glow.n1.png"
+    ],
+    "fps": 4
+   },
+   "note": "R4 moving light (globe): anim frames over the base; anim.night over the night twin"
+  },
+  {
+   "id": "library.potions-bubbles",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 138,
+   "y": 81,
+   "w": 21,
+   "h": 25,
+   "variants": {
+    "base": "art-r4/library/potions-bubbles.base.png",
+    "night": "art-r4/library/potions-bubbles.night.png"
+   },
+   "anim": {
+    "frames": [
+     "art-r4/library/potions-bubbles.base.png",
+     "art-r4/library/potions-bubbles.f1.png",
+     "art-r4/library/potions-bubbles.f2.png"
+    ],
+    "night": [
+     "art-r4/library/potions-bubbles.night.png",
+     "art-r4/library/potions-bubbles.n1.png",
+     "art-r4/library/potions-bubbles.n2.png"
+    ],
+    "fps": 3
+   },
+   "note": "R4 moving light (potions): anim frames over the base; anim.night over the night twin"
+  },
+  {
+   "id": "study.lamp-dust",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 473,
+   "y": 162,
+   "w": 17,
+   "h": 11,
+   "variants": {
+    "base": "art-r4/study/lamp-dust.base.png",
+    "night": "art-r4/study/lamp-dust.night.png"
+   },
+   "anim": {
+    "frames": [
+     "art-r4/study/lamp-dust.base.png",
+     "art-r4/study/lamp-dust.f1.png",
+     "art-r4/study/lamp-dust.f2.png"
+    ],
+    "night": [
+     "art-r4/study/lamp-dust.night.png",
+     "art-r4/study/lamp-dust.n1.png",
+     "art-r4/study/lamp-dust.n2.png"
+    ],
+    "fps": 2
+   },
+   "note": "R4 moving light (dust): anim frames over the base; anim.night over the night twin"
+  },
+  {
+   "id": "computer.terminal",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 523,
+   "y": 106,
+   "w": 65,
+   "h": 81,
+   "variants": {
+    "base": "art-r4/computer/terminal.base.png",
+    "night": "art-r4/computer/terminal.night.png"
+   },
+   "anim": {
+    "frames": [
+     "art-r4/computer/terminal.base.png",
+     "art-r4/computer/terminal.f1.png",
+     "art-r4/computer/terminal.f2.png",
+     "art-r4/computer/terminal.f3.png"
+    ],
+    "night": [
+     "art-r4/computer/terminal.night.png",
+     "art-r4/computer/terminal.n1.png",
+     "art-r4/computer/terminal.n2.png",
+     "art-r4/computer/terminal.n3.png"
+    ],
+    "fps": 3
+   },
+   "note": "R4 moving light (terminal): anim frames over the base; anim.night over the night twin"
+  },
+  {
+   "id": "gym.timer-led",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 572,
+   "y": 58,
+   "w": 26,
+   "h": 19,
+   "variants": {
+    "base": "art-r4/gym/timer-led.base.png",
+    "night": "art-r4/gym/timer-led.night.png"
+   },
+   "anim": {
+    "frames": [
+     "art-r4/gym/timer-led.base.png",
+     "art-r4/gym/timer-led.f1.png",
+     "art-r4/gym/timer-led.f2.png",
+     "art-r4/gym/timer-led.f3.png"
+    ],
+    "night": [
+     "art-r4/gym/timer-led.night.png",
+     "art-r4/gym/timer-led.n1.png",
+     "art-r4/gym/timer-led.n2.png",
+     "art-r4/gym/timer-led.n3.png"
+    ],
+    "fps": 2
+   },
+   "note": "R4 moving light (timer): anim frames over the base; anim.night over the night twin"
+  },
+  {
+   "id": "window.statue-downlight",
+   "zone": "window",
+   "kind": "overlay",
+   "layer": 3,
+   "x": 226,
+   "y": 23,
+   "w": 81,
+   "h": 187,
+   "variants": {
+    "base": "art-r4/window/statue-downlight.base.png"
+   },
+   "note": "R4: the thick ceiling beam on the knight with floating dust (after a knight click)"
+  },
+  {
+   "id": "window.statue-closeup",
+   "zone": "window",
+   "kind": "overlay",
+   "layer": 6,
+   "x": 208,
+   "y": 22,
+   "w": 120,
+   "h": 194,
+   "variants": {
+    "t1": "art-r4/window/statue-closeup.t1.png",
+    "t2": "art-r4/window/statue-closeup.t2.png",
+    "t3": "art-r4/window/statue-closeup.t3.png",
+    "t4": "art-r4/window/statue-closeup.t4.png",
+    "t5": "art-r4/window/statue-closeup.t5.png",
+    "base": "art-r4/window/statue-closeup.t1.png"
+   },
+   "note": "panel close-up of the knight per tier (never drawn in the room)"
+  },
+  {
+   "id": "kitchen.on",
+   "zone": "kitchen",
+   "kind": "overlay",
+   "layer": 2,
+   "x": 25,
+   "y": 178,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r4/kitchen/on.base.png",
+    "night": "art-r4/kitchen/on.night.png"
+   },
+   "note": "the zone's lamp point (same pixels as the art; the engine reads its position)"
+  },
+  {
+   "id": "bed.on",
+   "zone": "bed",
+   "kind": "overlay",
+   "layer": 2,
+   "x": 67,
+   "y": 121,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r4/bed/on.base.png",
+    "night": "art-r4/bed/on.night.png"
+   },
+   "note": "the zone's lamp point (same pixels as the art; the engine reads its position)"
+  },
+  {
+   "id": "library.on",
+   "zone": "library",
+   "kind": "overlay",
+   "layer": 2,
+   "x": 179,
+   "y": 135,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r4/library/on.base.png",
+    "night": "art-r4/library/on.night.png"
+   },
+   "note": "the zone's lamp point (same pixels as the art; the engine reads its position)"
+  },
+  {
+   "id": "study.on",
+   "zone": "study",
+   "kind": "overlay",
+   "layer": 2,
+   "x": 474,
+   "y": 160,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r4/study/on.base.png",
+    "night": "art-r4/study/on.night.png"
+   },
+   "note": "the zone's lamp point (same pixels as the art; the engine reads its position)"
+  },
+  {
+   "id": "computer.on",
+   "zone": "computer",
+   "kind": "overlay",
+   "layer": 3,
+   "x": 564,
+   "y": 204,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r4/computer/on.base.png",
+    "night": "art-r4/computer/on.night.png"
+   },
+   "note": "the zone's lamp point (same pixels as the art; the engine reads its position)"
+  },
+  {
+   "id": "gym.on",
+   "zone": "gym",
+   "kind": "overlay",
+   "layer": 2,
+   "x": 585,
+   "y": 68,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r4/gym/on.base.png",
+    "night": "art-r4/gym/on.night.png"
+   },
+   "note": "the zone's lamp point (same pixels as the art; the engine reads its position)"
+  }
+ ]
+}

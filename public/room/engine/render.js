@@ -73,9 +73,16 @@
     if (!composed[key]) {
       var out = new Uint8Array(256);
       for (var i = 0; i < 256; i++) out[i] = dim ? LUT.DIM[LUT[base][i]] : LUT[base][i];
+      out.base = base;
+      out.dim = dim;
       composed[key] = out;
     }
     return composed[key];
+  }
+  // Painted night twins ("night" or "<key>.night" variants) are already lit for the night: they skip the
+  // NIGHT ramp (DIM still applies).
+  function paintedLut(l) {
+    return l && l.base === 'NIGHT' ? lutFor('R4', l.dim) : l;
   }
   // Compose a per-item colour remap (applied first) with a LUT.
   function chain(remap, lut) {
@@ -169,6 +176,22 @@
         d.frames = it.anim.frames;
         d.fps = Math.min(10, it.anim.fps || 4);
       }
+      // Night: an item's painted twin of the chosen variant ("<key>.night"), with its own anim frames.
+      if (ROOM.state.night && key !== 'night' && it.variants[key + '.night']) {
+        var twin = D.get(it.variants[key + '.night']);
+        if (twin) {
+          d.key = key + '.night';
+          d.img = twin;
+          img = twin;
+        }
+      }
+      d.painted = d.key === 'night' || /\.night$/.test(d.key);
+      if (d.painted && it.anim && it.anim.night && it.anim.night.length > 1 && (d.key === 'night' || d.key === 'base.night')) {
+        d.frames = it.anim.night;
+        d.fps = Math.min(10, it.anim.fps || 4);
+      } else if (d.painted && !(it.anim && it.anim.night)) {
+        d.frames = null;
+      }
       if (d.dog && ROOM.fx) ROOM.fx.placeDog(d);
       d.contact = d.y + img.h;
       var dx = d.x - it.x, dy = d.y - it.y;
@@ -255,6 +278,10 @@
       var dx = d.x + f.offs[d.layer] - f.x0;
       var dy = d.y - f.y0;
       var tA = f.lutA, tB = f.lutB;
+      if (d.painted) {
+        tA = paintedLut(tA);
+        tB = paintedLut(tB);
+      }
       if (d.dust) {
         // Neglect: the whole object one step darker (then lit as usual).
         if (!dustA) {

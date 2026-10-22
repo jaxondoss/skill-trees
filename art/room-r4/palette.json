@@ -1,0 +1,298 @@
+{
+ "_note": "FORGE room R4 palette (art pass 4): the R3 palette with 6 entries swapped (see palette-proposal.json): plum-charcoal plaster, the knight's energy and visor colours, the night sky and the plasma/quilt violet. Same count (37), same index order. LUTs: R4 = golden hour (identity, the baked art), R3 = late afternoon, R2 = midday, R1 = dawn (derived from the lighting strip renders: the most common target colour per colour), NIGHT = after 10 PM for sprites without a painted night twin (every R4 sprite has one, drawn without this LUT), DIM = room behind an open panel. Index 255 = transparent.",
+ "colors": [
+  [
+   "VOID",
+   "#0C0A0C"
+  ],
+  [
+   "INK",
+   "#141517"
+  ],
+  [
+   "OAK_0",
+   "#5C3721"
+  ],
+  [
+   "VIOLET",
+   "#9466DA"
+  ],
+  [
+   "BROWN_1",
+   "#312D2A"
+  ],
+  [
+   "BROWN_2",
+   "#50302E"
+  ],
+  [
+   "TERRA_0",
+   "#621D1A"
+  ],
+  [
+   "TERRA_1",
+   "#8E432D"
+  ],
+  [
+   "TERRA_2",
+   "#B45B40"
+  ],
+  [
+   "RIM",
+   "#DA6339"
+  ],
+  [
+   "ORANGE",
+   "#F26B2A"
+  ],
+  [
+   "GLOW",
+   "#F39041"
+  ],
+  [
+   "AMBER",
+   "#CE8446"
+  ],
+  [
+   "SUN",
+   "#FEF576"
+  ],
+  [
+   "GOLD",
+   "#D9A441"
+  ],
+  [
+   "GOLD_DK",
+   "#6E5422"
+  ],
+  [
+   "OAK_1",
+   "#7E4C27"
+  ],
+  [
+   "OAK_2",
+   "#A56A32"
+  ],
+  [
+   "LEAF_0",
+   "#212C26"
+  ],
+  [
+   "LEAF_1",
+   "#344136"
+  ],
+  [
+   "LEAF_2",
+   "#3E6B35"
+  ],
+  [
+   "LEAF_3",
+   "#7FA650"
+  ],
+  [
+   "SLATE_0",
+   "#3E4F51"
+  ],
+  [
+   "SLATE_1",
+   "#56858A"
+  ],
+  [
+   "SLATE_2",
+   "#9CC0C2"
+  ],
+  [
+   "OAK_DK",
+   "#45291A"
+  ],
+  [
+   "PLUM_1",
+   "#724F5B"
+  ],
+  [
+   "PLUM_2",
+   "#AF4D61"
+  ],
+  [
+   "PLUM_3",
+   "#D98AA0"
+  ],
+  [
+   "CRT_0",
+   "#D2211A"
+  ],
+  [
+   "CRT_1",
+   "#FC3827"
+  ],
+  [
+   "CREAM",
+   "#F4E6C4"
+  ],
+  [
+   "PLASTER_0",
+   "#1E151D"
+  ],
+  [
+   "PLASTER",
+   "#36232F"
+  ],
+  [
+   "NAVY",
+   "#1B2552"
+  ],
+  [
+   "ENERGY",
+   "#3FD8E8"
+  ],
+  [
+   "ENERGY_HI",
+   "#D4FFFB"
+  ]
+ ],
+ "categories": {
+  "gold": [
+   "GOLD_DK",
+   "GOLD",
+   "SUN"
+  ],
+  "business": [
+   "TERRA_1",
+   "AMBER",
+   "GLOW"
+  ],
+  "school": [
+   "SLATE_0",
+   "SLATE_1",
+   "SLATE_2"
+  ],
+  "athletics": [
+   "TERRA_0",
+   "CRT_0",
+   "CRT_1"
+  ],
+  "nutrition": [
+   "LEAF_1",
+   "LEAF_2",
+   "LEAF_3"
+  ],
+  "mind": [
+   "PLUM_1",
+   "PLUM_2",
+   "PLUM_3"
+  ]
+ },
+ "luts": {
+  "_note": "colour name -> colour name for art layers; unlisted colours stay. R4 golden (85%+), R3 60-84, R2 midday 25-59, R1 dawn 0-24, NIGHT after 10 PM (unpainted sprites only), DIM behind a panel.",
+  "R4": {},
+  "R3": {
+   "GLOW": "ORANGE",
+   "RIM": "TERRA_2",
+   "AMBER": "OAK_2",
+   "SUN": "GLOW",
+   "ORANGE": "RIM"
+  },
+  "R2": {
+   "VOID": "PLASTER_0",
+   "OAK_0": "OAK_DK",
+   "BROWN_1": "SLATE_0",
+   "BROWN_2": "PLASTER",
+   "TERRA_1": "TERRA_0",
+   "TERRA_2": "OAK_2",
+   "RIM": "SLATE_2",
+   "ORANGE": "SLATE_2",
+   "GLOW": "TERRA_2",
+   "AMBER": "OAK_2",
+   "SUN": "CREAM",
+   "GOLD": "GOLD_DK",
+   "OAK_1": "OAK_0",
+   "OAK_2": "OAK_1",
+   "LEAF_1": "LEAF_0",
+   "LEAF_2": "LEAF_1",
+   "LEAF_3": "LEAF_2",
+   "OAK_DK": "OAK_0",
+   "PLUM_2": "SLATE_1",
+   "PLUM_3": "PLUM_1",
+   "PLASTER_0": "OAK_DK",
+   "PLASTER": "PLASTER_0"
+  },
+  "R1": {
+   "OAK_0": "OAK_DK",
+   "VIOLET": "VOID",
+   "BROWN_2": "PLASTER",
+   "TERRA_0": "PLASTER",
+   "TERRA_1": "TERRA_0",
+   "TERRA_2": "OAK_DK",
+   "RIM": "PLUM_2",
+   "ORANGE": "PLUM_3",
+   "GLOW": "PLUM_2",
+   "AMBER": "OAK_2",
+   "SUN": "CREAM",
+   "GOLD": "GOLD_DK",
+   "OAK_1": "OAK_0",
+   "OAK_2": "OAK_1",
+   "LEAF_1": "LEAF_0",
+   "LEAF_2": "LEAF_1",
+   "LEAF_3": "LEAF_2",
+   "SLATE_2": "SLATE_1",
+   "PLUM_1": "PLASTER",
+   "PLUM_2": "PLUM_1",
+   "PLUM_3": "PLUM_1",
+   "CRT_0": "TERRA_0",
+   "CREAM": "SLATE_2",
+   "PLASTER": "PLASTER_0"
+  },
+  "NIGHT": {
+   "VOID": "PLASTER_0",
+   "INK": "VOID",
+   "OAK_0": "PLASTER_0",
+   "BROWN_2": "PLASTER_0",
+   "TERRA_0": "PLASTER_0",
+   "TERRA_1": "PLASTER",
+   "TERRA_2": "PLASTER_0",
+   "RIM": "VOID",
+   "ORANGE": "NAVY",
+   "GLOW": "SLATE_0",
+   "AMBER": "OAK_1",
+   "SUN": "PLUM_1",
+   "GOLD": "OAK_DK",
+   "OAK_1": "OAK_DK",
+   "OAK_2": "OAK_0",
+   "LEAF_1": "LEAF_0",
+   "LEAF_2": "LEAF_1",
+   "LEAF_3": "LEAF_1",
+   "SLATE_1": "SLATE_0",
+   "SLATE_2": "SLATE_1",
+   "PLUM_1": "PLASTER",
+   "PLUM_2": "INK",
+   "PLUM_3": "BROWN_2",
+   "CRT_0": "PLASTER",
+   "CREAM": "SLATE_1",
+   "PLASTER": "PLASTER_0"
+  },
+  "DIM": {
+   "SUN": "AMBER",
+   "GLOW": "TERRA_2",
+   "ORANGE": "TERRA_1",
+   "RIM": "TERRA_1",
+   "TERRA_2": "TERRA_1",
+   "TERRA_1": "BROWN_2",
+   "AMBER": "OAK_2",
+   "OAK_2": "OAK_1",
+   "CREAM": "OAK_2",
+   "SLATE_2": "SLATE_1",
+   "SLATE_1": "SLATE_0",
+   "LEAF_3": "LEAF_2",
+   "LEAF_2": "LEAF_1",
+   "PLUM_3": "PLUM_2",
+   "GOLD": "GOLD_DK",
+   "CRT_1": "CRT_0",
+   "PLASTER": "PLASTER_0",
+   "PLASTER_0": "INK",
+   "ENERGY_HI": "ENERGY",
+   "ENERGY": "SLATE_1",
+   "VIOLET": "PLUM_1",
+   "NAVY": "INK"
+  }
+ }
+}

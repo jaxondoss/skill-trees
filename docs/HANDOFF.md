@@ -1,4 +1,4 @@
-# Session handoff (2026-10-21)
+# Session handoff (2026-10-22)
 
 Read this first in a new session. Repos: `jaxondoss/skill-trees` (the FORGE app) and `jaxondoss/skill-pack`
 (skills). Work on branch `claude/confident-curie-o7oqeb`, then fast-forward `main` (`git push origin
@@ -52,6 +52,21 @@ efficient (Haiku/Gemini for grunt work, Claude for thinking).
   status strip of 15 bottles; statue regions per category; "?" sparkles and legend; dog zoomies and
   welcome-back screen; neglect escalation at day 3/7/14; sound set; daily quest and weekly chest; easter
   eggs. Also: the phone window zone frames the window and CRTs, so the statue needs a pan.
+
+## Art pass 4 (2026-10-22, live)
+- Live art is R4 (spec section 12; stills and `live-room@2x.png` in `docs/redesign/room-r4/stills/`).
+  Rebuild: `python3 art/room-r4/build.py` (stills + layered export; `--live-only` / `--stills-only`),
+  `python3 art/room-v3/merge.py --src room-r4` (parity vs `art-v3.r3.js`, palette and grain checks),
+  `node scripts/room-sync.mjs`. Sprites: `docs/redesign/room-prototype/art-r4/`.
+- Rollback to R3: copy `docs/redesign/room-prototype/art-v3.r3.js` over `art-v3.js`, run room-sync
+  (R3 sprites still in `art-r3/`; `art-v3.prev.js` is the older v3 bundle).
+- Engine: painted night twins skip the NIGHT LUT (`render.js`), `anim.night` frames, R4 colour names in the
+  dust and brighter maps. e2e: chess is clicked from the window zone.
+- Many R3 decor ids have no R4 prop and are 1 px placeholders (manifest notes say which ids hold which prop).
+- LATER: room-tier decor art (t1..t5 keys alias the base art), stage art for the alarm clock, plasma globe,
+  monitors, shoes and bike (s0..s2 alias base), fridge crack glow on hover, desk lamp on when Academics opens,
+  hologram glitch on tier-up, the dog redrawn in R4 style (it is the R3 sprite re-indexed), lighting slider
+  as a real time-of-day feature.
 
 ## skill-pack
 Added (skills in `.claude/skills/`, sources in `vendor/`): superpowers (minus using-superpowers and its

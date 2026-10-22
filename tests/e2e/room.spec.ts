@@ -69,8 +69,9 @@ test("T opens Today; logging every core goal through the HUD is quick and reache
 
 test("a skill hotspot opens its panel, and holding Shift shows the nameplates", async ({ page }) => {
   await openRoom(page);
-  await page.keyboard.press("3");
-  await expect(page).toHaveURL(/\/room\/library$/);
+  // Art pass 4: the chess table stands in the window zone (key 4); its id stays library.chess.
+  await page.keyboard.press("4");
+  await expect(page).toHaveURL(/\/room\/window$/);
   await page.locator('.hs[data-id="library.chess"]').click({ force: true });
   const panel = page.locator(".ui-panel");
   await expect(panel).toBeVisible();

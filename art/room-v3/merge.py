@@ -10,6 +10,8 @@ Run the part builds first, then: python3 art/room-v3/merge.py
 R3 (the live art since revision 3): python3 art/room-r3/build.py, then python3 art/room-v3/merge.py --src room-r3
 (reads art/room-r3/{manifest,zones,palette}.json, runs art/room-r3/parity.py against the current bundle first,
 keeps the replaced bundle as art-v3.prev.js for rollback, then writes art-v3.js).
+Art pass 4 (the live art since R4): python3 art/room-r4/build.py, then python3 art/room-v3/merge.py --src room-r4
+(parity against art-v3.r3.js, the R3 bundle it keeps for rollback; anim.night frames are encoded too).
 """
 import argparse
 import shutil
@@ -28,6 +30,8 @@ PAL = json.loads((COMMON / "palette.json").read_text())
 ZONES = json.loads((COMMON / "zones.json").read_text())
 RGB = {tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)): n for n, (_, h, *_r) in enumerate(PAL["colors"])}
 PARTS = ["shell", "left", "back", "right", "statue-relics"]
+# rollback copy kept the first time a source replaces the live bundle
+ROLLBACK = {"room-r3": "art-v3.prev.js", "room-r4": "art-v3.r3.js"}
 
 
 def use_src(src: str) -> None:
@@ -114,10 +118,11 @@ def main() -> None:
         errs = parity.run()
         if errs:
             sys.exit("parity check failed:\n  " + "\n  ".join(errs))
-        prev = PROTO / "art-v3.prev.js"
+        name = ROLLBACK.get(args.src, "art-v3.prev.js")
+        prev = PROTO / name
         if not prev.exists() and (PROTO / "art-v3.js").exists():
             shutil.copyfile(PROTO / "art-v3.js", prev)
-            print("kept the replaced bundle as art-v3.prev.js (rollback: copy it back to art-v3.js)")
+            print(f"kept the replaced bundle as {name} (rollback: copy it back to art-v3.js)")
     images: dict[str, dict] = {}
     items: list[dict] = []
     for mf in parts:
@@ -126,7 +131,8 @@ def main() -> None:
             it["part"] = part["part"]
             if it["kind"] == "hotspot" and not (it.get("target") and it.get("label") and it.get("led")):
                 sys.exit(f"{it['id']}: hotspot needs target, label and led")
-            for p in list(it["variants"].values()) + (it.get("anim") or {}).get("frames", []):
+            anim = it.get("anim") or {}
+            for p in list(it["variants"].values()) + anim.get("frames", []) + anim.get("night", []):
                 if p not in images:
                     images[p] = encode(PROTO / p)
             items.append(it)
