@@ -163,3 +163,45 @@ body.photo #room-hotspots {
     height: 44px;
   }
 }
+
+/* Art pass 5: side-view chevrons at the far left and right edges (always visible, 44 px targets). */
+.turn-chevron {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 64px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--gold);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 21;
+  image-rendering: pixelated;
+  filter: drop-shadow(1px 1px 0 var(--ink)) drop-shadow(-1px -1px 0 var(--ink));
+}
+.turn-chevron[hidden] {
+  display: none;
+}
+.turn-chevron svg {
+  fill: currentColor;
+}
+.turn-chevron:hover {
+  color: var(--cream);
+}
+.turn-chevron:focus-visible {
+  outline: 1px dashed var(--gold);
+  outline-offset: -4px;
+}
+#turn-left {
+  left: max(4px, env(safe-area-inset-left));
+}
+#turn-right {
+  right: max(4px, env(safe-area-inset-right));
+}
+body.photo .turn-chevron {
+  display: none;
+}

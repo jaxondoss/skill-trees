@@ -180,7 +180,7 @@ export function RoomClient({ data }: { data: RoomData }) {
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/room/ui/ui.css" precedence="room" />
       <main id="room-stage" aria-label="Your room">
-        <canvas id="room-canvas" role="img" aria-label="Pixel-art room. Use the object buttons, keys 1 to 7, or the zone dots to look around." />
+        <canvas id="room-canvas" role="img" aria-label="Pixel-art room. Use the object buttons, keys 1 to 7, the arrow keys, or the zone dots to look around." />
         <div id="room-hotspots" />
       </main>
       <nav id="zone-dots" aria-label="Zones" />

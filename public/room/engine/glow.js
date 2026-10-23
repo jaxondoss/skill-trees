@@ -375,7 +375,13 @@
     return { x: f[0] + f[2] / 2, y: f[1] + f[3] * 0.38, r: 22 };
   }
 
+  // Art pass 5: lamp pools are smooth light, drawn by the renderer's light overlay (no dithered rings).
+  var smoothPools = [];
   function pool(f, p, strength) {
+    if (ROOM.hasViews && ROOM.hasViews()) {
+      smoothPools.push({ x: p.x, y: p.y, r: p.r * 1.7, a: 0.34 * Math.max(0, Math.min(1, strength)) });
+      return;
+    }
     var r = p.r;
     for (var y = Math.floor(p.y - r); y <= p.y + r; y++) {
       var by = y - f.y0;
@@ -442,10 +448,12 @@
   /** Post-passes on the rest frame, before the marks: lamp pools, zone dim, statue cone. */
   function post(f, dimOn) {
     var now = f.now;
+    smoothPools = [];
     // Lamp pools: the lit zone at full strength; at night, completion sets how many lamps are on.
     var lz = litZone();
+    if (lz && ROOM.viewOf && ROOM.viewOf(zoneOf(lz)) !== (ROOM.state.view || 'main')) lz = null; // lamp in another view
     if (lz !== lamp.zone) lamp = { zone: lz, t0: now };
-    var zones = ROOM.zones;
+    var zones = ROOM.zonesInView ? ROOM.zonesInView() : ROOM.zones;
     if (ROOM.state.night) {
       var on = Math.round(((ROOM.data.todayP || 0) / 100) * zones.length);
       for (var i = 0; i < on; i++) if (zones[i].id !== lz) pool(f, Object.assign(lightPoint(zones[i]), { r: 16 }), 0.6);
@@ -511,6 +519,9 @@
   }
 
   ROOM.glow = {
+    pools: function () {
+      return smoothPools;
+    },
     BRIGHTER: BRIGHTER,
     drawSkillGlow: drawSkillGlow,
     drawEmbers: drawEmbers,

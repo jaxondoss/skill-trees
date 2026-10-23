@@ -100,3 +100,30 @@ test("a relic can be set on an empty mount and is saved", async ({ page }) => {
   await openRoom(page);
   expect(await page.evaluate(() => (window as unknown as { ROOM: { data: { relics: { slots: Record<string, { title: string } | null> } } } }).ROOM.data.relics.slots.window?.title)).toBe("Chess 1500");
 });
+
+test("art pass 5: the arrow keys and edge chevrons turn to the side views, and a side zone turns there", async ({ page }) => {
+  await openRoom(page);
+  const view = async () => {
+    // a view counts once its walk-and-turn has finished
+    const turning = await page.evaluate(() => (window as unknown as { ROOM: { render: { turning: boolean } } }).ROOM.render.turning);
+    return turning ? "turning" : (await roomState(page)).view;
+  };
+  expect(await view()).toBe("main");
+  await expect(page.locator("#turn-left")).toBeVisible();
+  await expect(page.locator("#turn-right")).toBeVisible();
+  await page.keyboard.press("ArrowLeft");
+  await expect.poll(view).toBe("left");
+  await expect(page.locator("#turn-left")).toBeHidden();
+  await expect(page.locator('.hs[data-id="bed.bed"]')).toHaveCount(1);
+  await page.locator("#turn-right").click();
+  await expect.poll(view).toBe("main");
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(view).toBe("right");
+  await expect(page.locator('.hs[data-id="gym.strength"]')).toHaveCount(1);
+  await page.keyboard.press("ArrowLeft");
+  await expect.poll(view).toBe("main");
+  // Key 1 (kitchen) turns into the left view and lands in the zone.
+  await page.keyboard.press("1");
+  await expect(page).toHaveURL(/\/room\/kitchen$/);
+  await expect.poll(view).toBe("left");
+});

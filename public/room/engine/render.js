@@ -22,12 +22,19 @@
  * Stepping into a zone: an 80 ms anticipation pull-back, the push-in, then on landing the rest of the
  * room dims in DIM steps, the clicked object gets a spotlight pulse and opts.onArrive runs (the ui
  * opens the panel). World size, horizon and zones come from ROOM_ART.zones (camera.configure).
+ *
+ * Art pass 5: three views (ROOM.state.view: main, left, right). Only the current view's items are drawn;
+ * camera.configure takes that view's frame. ROOM.turn plays the walk-forward-and-turn (a short push, then a
+ * yaw sweep drawn as vertical strips) between two rest frames. After the indexed frame is drawn, the view's
+ * smooth light (zones.json views.<v>.light: warm wash, glows, oval vignette) is laid over it with canvas
+ * gradients ("screen" and "multiply"); that is the one place colours leave the palette. Window drift sprites
+ * (clouds, birds, the streetcar) move by time, clipped to the window.
  */
 (function () {
   'use strict';
   var ROOM = window.ROOM;
   var CAM = ROOM.camera;
-  CAM.configure(ROOM.art.zones || {});
+  CAM.configure(ROOM.viewConf ? ROOM.viewConf('main') : ROOM.art.zones || {});
   var MID_X = CAM.CORE_W / 2;
   var D = ROOM.decode;
   var C = ROOM.C;
@@ -145,7 +152,9 @@
   /** Pick variants, place the dog, sort by layer, shell first, contact y, item order. */
   function buildScene() {
     var list = [];
+    var curView = ROOM.state.view || 'main';
     ROOM.art.items.forEach(function (it, order) {
+      if ((it.view || 'main') !== curView) return;
       var key = ROOM.variantOf(it);
       if (!key) return;
       var img = D.get(it.variants[key]);
@@ -228,10 +237,16 @@
    * Pixels whose world-anchored Bayer threshold is below `step` use tB, the rest tA.
    * (bx, by) is the world position of the buffer's (0, 0).
    */
-  function blit(dst, dw, dh, img, dx, dy, tA, tB, step, bx, by) {
+  function blit(dst, dw, dh, img, dx, dy, tA, tB, step, bx, by, clip) {
     var sw = img.w, src = img.px;
     var x0 = Math.max(0, -dx), y0 = Math.max(0, -dy);
     var x1 = Math.min(sw, dw - dx), y1 = Math.min(img.h, dh - dy);
+    if (clip) {
+      x0 = Math.max(x0, clip[0] - dx);
+      y0 = Math.max(y0, clip[1] - dy);
+      x1 = Math.min(x1, clip[2] - dx);
+      y1 = Math.min(y1, clip[3] - dy);
+    }
     if (x0 >= x1 || y0 >= y1) return;
     var mixing = step > 0 && step < 16 && tA !== tB;
     var t = step >= 16 ? tB : tA;
@@ -308,6 +323,10 @@
           tB = tA === tB ? sA : ROOM.glow.spotTable(d, tB, f.now);
         }
       }
+      if (d.item.drift) {
+        drawDrift(f, d, img, dx, dy, tA, tB);
+        continue;
+      }
       blit(f.buf, f.w, f.h, img, dx, dy, tA, tB, f.step, f.x0, f.y0);
       if (opts.marks) {
         if (d.dust) ROOM.fx.drawDust(f, img, dx, dy);
@@ -324,6 +343,110 @@
         for (var k = 0; k < ring.length; k += 2) plot(f, dx + ring[k], dy + ring[k + 1], col);
       }
     }
+  }
+
+  /* ------------------------------------------------------------------ window drift (art pass 5) */
+  /**
+   * Offset (world px) of a drift sprite at time now: "wrap" slides a tile at speed px/s (drawn twice,
+   * span apart); "pass" crosses span px every period s, with an optional vertical wave. Reduced motion
+   * holds the first frame.
+   */
+  function driftOffset(dr, now) {
+    var t = ROOM.state.reducedMotion ? 0 : now / 1000;
+    if (dr.mode === 'wrap') return { x: (t * dr.speed) % dr.span, y: 0 };
+    // the sprite was exported at u = 0; the art build's stills at time t use u = t / period + phase
+    var u = (t / dr.period + (dr.phase || 0)) % 1;
+    return { x: Math.round(u * dr.span), y: Math.round((dr.ampY || 0) * Math.sin(u * (dr.freqY || 0))) };
+  }
+  function drawDrift(f, d, img, dx, dy, tA, tB) {
+    var dr = d.item.drift;
+    var c = dr.clip;
+    var clip = [c[0] + f.offs[d.layer] - f.x0, c[1] - f.y0, c[0] + c[2] + f.offs[d.layer] - f.x0, c[1] + c[3] - f.y0];
+    var o = driftOffset(dr, f.now);
+    blit(f.buf, f.w, f.h, img, dx + Math.floor(o.x), dy + o.y, tA, tB, f.step, f.x0, f.y0, clip);
+    if (dr.mode === 'wrap') blit(f.buf, f.w, f.h, img, dx + Math.floor(o.x) - dr.span, dy, tA, tB, f.step, f.x0, f.y0, clip);
+  }
+
+  /* ------------------------------------------------------------------ smooth light (art pass 5) */
+  function lightSpec() {
+    var vc = ROOM.viewConf ? ROOM.viewConf(ROOM.state.view || 'main') : null;
+    var L = vc && vc.light;
+    return L ? (ROOM.state.night ? L.night : L.day) : null;
+  }
+  function rgba(c, a) {
+    return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + Math.max(0, Math.min(1, a)).toFixed(4) + ')';
+  }
+  function chanFrame(spec, ch, now) {
+    var an = spec.anims && spec.anims[ch];
+    if (!an || ROOM.state.reducedMotion) return 0;
+    return an.seq[Math.floor((now / 1000) * an.fps) % an.seq.length];
+  }
+  /**
+   * Lay the view's light over the frame just drawn: tr maps world to device px (x * z + tx).
+   * Warm wash and glows use "screen", the oval vignette "multiply"; falloff stops come from the art build.
+   */
+  function drawLight(tr, now, dim) {
+    var spec = lightSpec();
+    if (!spec || !ctx) return;
+    var W = canvas.width, H = canvas.height, k = dim ? 0.55 : 1;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.fillStyle = rgba(spec.ambient.rgb, spec.ambient.a * k);
+    ctx.fillRect(0, 0, W, H);
+    var stops = spec.stops, fall = spec.fall;
+    for (var i = 0; i < spec.glows.length; i++) {
+      var g = spec.glows[i];
+      var a = g.a;
+      if (g.ch && g.ak) a = g.ak[chanFrame(spec, g.ch, now)] != null ? g.ak[chanFrame(spec, g.ch, now)] : a;
+      a *= k;
+      if (a <= 0.002) continue;
+      var cx = g.x * tr.z + tr.tx, cy = g.y * tr.z + tr.ty, rx = g.rx * tr.z, ry = g.ry * tr.z;
+      if (cx + rx < 0 || cx - rx > W || cy + ry < 0 || cy - ry > H) continue;
+      ctx.setTransform(1, 0, 0, ry / rx, cx, cy);
+      var gr = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+      for (var j = 0; j < stops.length; j++) gr.addColorStop(stops[j], rgba(g.rgb, a * fall[j]));
+      ctx.fillStyle = gr;
+      ctx.fillRect(-rx, -rx, 2 * rx, 2 * rx);
+    }
+    // the active zone's lamp pool (glow.js), warm and smooth
+    var pools = ROOM.glow && ROOM.glow.pools ? ROOM.glow.pools() : [];
+    for (var q = 0; q < pools.length; q++) {
+      var pl = pools[q];
+      var px = pl.x * tr.z + tr.tx, py = pl.y * tr.z + tr.ty, pr = pl.r * tr.z;
+      ctx.setTransform(1, 0, 0, 1, px, py);
+      var pg = ctx.createRadialGradient(0, 0, 0, 0, 0, pr);
+      for (var pj = 0; pj < stops.length; pj++) pg.addColorStop(stops[pj], rgba([255, 190, 112], pl.a * k * fall[pj]));
+      ctx.fillStyle = pg;
+      ctx.fillRect(-pr, -pr, 2 * pr, 2 * pr);
+    }
+    var v = spec.vignette;
+    var vx = v.x * tr.z + tr.tx, vy = v.y * tr.z + tr.ty, vr = v.rx * tr.z;
+    ctx.setTransform(1, 0, 0, v.ry / v.rx, vx, vy);
+    ctx.globalCompositeOperation = 'multiply';
+    var vg = ctx.createRadialGradient(0, 0, 0, 0, 0, vr);
+    var vs = spec.vstops || [0, 0.25, 0.5, 0.75, 1];
+    vg.addColorStop(0, '#fff');
+    for (var m = 0; m < vs.length; m++) {
+      var t = vs[m], e = t * t * (3 - 2 * t);
+      var col = [0, 1, 2].map(function (c) {
+        return Math.round(255 * (1 - e * (1 - v.c[c])));
+      });
+      vg.addColorStop(v.inner + t * (1 - v.inner), 'rgb(' + col.join(',') + ')');
+    }
+    ctx.fillStyle = vg;
+    // cover the whole canvas (the gradient pads beyond its radius with the last stop)
+    var inv = v.rx / v.ry;
+    ctx.fillRect(-vx - 10, (-vy - 10) * inv, W + 20, (H + 20) * inv);
+    ctx.restore();
+  }
+  function lightKey(now) {
+    var spec = lightSpec();
+    if (!spec || !spec.anims || ROOM.state.reducedMotion) return '';
+    var k = '';
+    Object.keys(spec.anims).forEach(function (ch) {
+      k += chanFrame(spec, ch, now) + ',';
+    });
+    return k;
   }
 
   /* ------------------------------------------------------------------ view and camera */
@@ -395,6 +518,7 @@
     fbCtx.putImageData(fbImage, 0, 0);
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(fbCanvas, x0 * z - org.ox, y0 * z - org.oy, fbW * z, fbH * z);
+    drawLight({ z: z, tx: -org.ox, ty: -org.oy }, now, dimOn);
     lastRest = { cam: cam, org: org, offs: offs, z: z, x0: x0, y0: y0, key: [org.ox, org.oy, z, offs.join(','), sceneVersion, ROOM.state.zone, view.Wd, view.Hd].join('|') };
     if (ROOM.overlay) ROOM.overlay.sync(lastRest);
   }
@@ -513,6 +637,7 @@
       if (!dolly.layers[L]) continue;
       drawSnapped(dolly.layers[L], dolly.R, CAM.scaleAbout(CAM.dollyLayer(p, L, u, dolly.oFrom[L], dolly.oTo[L]), k, view), 0);
     }
+    drawLight(CAM.scaleAbout(CAM.dollyLayer(p, 3, u, dolly.oFrom[3], dolly.oTo[3]), k, view), now, dimOn);
     dolly.crops.forEach(function (cr) {
       var cam = dolly.leaving ? p.from : p.to;
       var o6 = dolly.leaving ? dolly.oFrom[6] : dolly.oTo[6];
@@ -541,6 +666,101 @@
     if (a.fn) setTimeout(a.fn, ROOM.state.reducedMotion || !a.item ? 0 : 220);
   }
 
+  /* ------------------------------------------------------------------ turn: walk forward, then turn (art pass 5) */
+  // Under a second: a short push forward with a two-step bob, then a yaw sweep of TURN_YAW between the two
+  // rest frames. A pure yaw keeps vertical lines vertical, so each frame is drawn as vertical strips: the
+  // strip at screen angle phi shows the source column at angle phi + delta, scaled by cos(alpha)/cos(phi).
+  var turn = null;
+  var TURN_WALK_MS = 300, TURN_SWEEP_MS = 460;
+  var TURN_YAW = Math.PI / 3;
+  var HALF_FOV = Math.PI / 6;
+
+  function easeInOut(u) {
+    u = Math.max(0, Math.min(1, u));
+    return u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+  }
+  function snapshot() {
+    var c = document.createElement('canvas');
+    c.width = canvas.width;
+    c.height = canvas.height;
+    c.getContext('2d').drawImage(canvas, 0, 0);
+    return c;
+  }
+  /** Switch the drawn view at once: scene, camera frame, phone pan. */
+  function applyView(v) {
+    if (ROOM.state.view === v) return;
+    ROOM.state.view = v;
+    CAM.configure(ROOM.viewConf(v));
+    sceneDirty = true;
+    pan.x = CAM.CORE_W / 2;
+    pan.v = 0;
+    pan.target = null;
+    ROOM.emit('view', { view: v });
+  }
+  function viewIndex(v) {
+    return v === 'left' ? -1 : v === 'right' ? 1 : 0;
+  }
+  function startTurn(toView, dir) {
+    if (dolly) endDolly();
+    var now = ROOM.now();
+    if (light.key === null) updateLighting(now);
+    if (sceneDirty) buildScene();
+    renderRest(now);
+    var A = snapshot();
+    applyView(toView);
+    buildScene();
+    renderRest(now);
+    var B = snapshot();
+    ctx.drawImage(A, 0, 0);
+    turn = { A: A, B: B, dir: dir, t0: now };
+    if (ROOM.overlay) ROOM.overlay.setHidden(true);
+  }
+  // One image drawn for camera yaw offset delta (radians, + = the camera turned right of the image), zoom k.
+  function drawYaw(img, delta, k, bob) {
+    var W = canvas.width, H = canvas.height;
+    var f = W / 2 / Math.tan(HALF_FOV);
+    var step = Math.max(2, Math.round(W / 480));
+    for (var x = 0; x < W; x += step) {
+      var phi = Math.atan((x + step / 2 - W / 2) / f);
+      var a = phi + delta;
+      if (Math.abs(a) >= HALF_FOV + 0.02) continue;
+      var ca = Math.cos(a), cp = Math.cos(phi);
+      var xa = W / 2 + f * Math.tan(a);
+      var sx = W / 2 + (xa - W / 2) / k;
+      var sw = (step * (cp * cp)) / (ca * ca) / k;
+      if (sx + sw < 0 || sx > W) continue;
+      var dh = (H * k * ca) / cp;
+      ctx.drawImage(img, Math.max(0, sx - sw / 2), 0, Math.max(1, sw), H, x, H / 2 - dh / 2 + bob, step + 1, dh);
+    }
+  }
+  function renderTurn(now) {
+    var t = now - turn.t0;
+    var total = TURN_WALK_MS + TURN_SWEEP_MS;
+    if (t >= total) {
+      endTurn();
+      return false;
+    }
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = VOID_CSS;
+    ctx.fillRect(0, 0, view.Wd, view.Hd);
+    var walk = Math.min(1, t / TURN_WALK_MS);
+    var kA = 1 + 0.12 * easeInOut(walk);
+    var bob = Math.sin(walk * Math.PI * 2) * 0.008 * view.Hd;
+    var su = (t - TURN_WALK_MS * 0.6) / (total - TURN_WALK_MS * 0.6);
+    var e = easeInOut(su);
+    var th = e * TURN_YAW * turn.dir;
+    var kB = 1 + 0.06 * (1 - e);
+    drawYaw(turn.A, th, kA, bob);
+    drawYaw(turn.B, th - TURN_YAW * turn.dir, kB, bob * (1 - e));
+    return true;
+  }
+  function endTurn() {
+    turn = null;
+    if (ROOM.overlay) ROOM.overlay.setHidden(false);
+    dirty = true;
+    landed();
+  }
+
   /* ------------------------------------------------------------------ scheduler */
   var raf = 0, timer = 0, dirty = true, lastTick = 0, lastDepthDraw = -1e9, lastOffsKey = '', lastAmbient = '';
 
@@ -558,12 +778,17 @@
     for (var i = 0; i < drawables.length; i++) {
       var d = drawables[i];
       if (d.frames) k += (Math.floor((now / 1000) * d.fps) % d.frames.length) + ',';
+      if (d.item.drift) {
+        var o = driftOffset(d.item.drift, now);
+        k += Math.floor(o.x) + ':' + o.y + ',';
+      }
     }
-    return k + '|' + (ROOM.fx ? ROOM.fx.ambientKey(now) : '') + '|' + (ROOM.glow ? ROOM.glow.ambientKey(now) : '');
+    return k + '|' + lightKey(now) + '|' + (ROOM.fx ? ROOM.fx.ambientKey(now) : '') + '|' + (ROOM.glow ? ROOM.glow.ambientKey(now) : '');
   }
   function hasAmbient() {
     if (ROOM.state.reducedMotion) return false;
-    for (var i = 0; i < drawables.length; i++) if (drawables[i].frames) return true;
+    for (var i = 0; i < drawables.length; i++) if (drawables[i].frames || drawables[i].item.drift) return true;
+    if (lightKey(0) !== '') return true;
     return (ROOM.fx && ROOM.fx.hasAmbient()) || (ROOM.glow && ROOM.glow.hasAmbient());
   }
   function scheduleAmbient() {
@@ -583,6 +808,12 @@
     if (sceneDirty) {
       buildScene();
       dirty = true;
+    }
+    if (turn) {
+      if (renderTurn(now)) {
+        kick();
+        return;
+      }
     }
     if (dolly) {
       if (renderDolly(now)) {
@@ -664,6 +895,7 @@
     if (canvas.width !== Wd) canvas.width = Wd;
     if (canvas.height !== Hd) canvas.height = Hd;
     ctx.imageSmoothingEnabled = false; // resizing a canvas resets its context state
+    if (turn) endTurn();
     if (dolly) endDolly();
     var b = CAM.panBounds(view);
     pan.x = CAM.clamp(pan.x, b.min, b.max);
@@ -734,8 +966,22 @@
       return false;
     }
     if (dolly) endDolly();
+    if (turn) endTurn();
     arrive = opts.item || opts.onArrive ? { item: opts.item || null, fn: opts.onArrive || null } : null;
     if (id !== 'window' && ROOM.state.statueLight) ROOM.state.statueLight = false;
+    // A zone in another view: walk and turn straight into it.
+    var toView = zone ? ROOM.viewOf(zone) : ROOM.state.view || 'main';
+    if (toView !== (ROOM.state.view || 'main')) {
+      var dir = viewIndex(toView) > viewIndex(ROOM.state.view) ? 1 : -1;
+      ROOM.state.zone = id;
+      if (id) lastZone = id;
+      if (view && !opts.instant && !ROOM.state.reducedMotion) startTurn(toView, dir);
+      else applyView(toView);
+      ROOM.emit('zone', { zone: id, from: prev, push: opts.push !== false });
+      if (!turn) landed();
+      invalidate();
+      return true;
+    }
     var from = view ? restCamera() : null;
     if (!id && prev && view && view.mode === 'pan') {
       // Back to the room on the phone: settle on the zone's stop.
@@ -751,6 +997,26 @@
     }
     ROOM.emit('zone', { zone: id, from: prev, push: opts.push !== false });
     if (!dolly) landed();
+    invalidate();
+    return true;
+  };
+
+  /**
+   * Turn to the next view left (dir -1) or right (dir +1): left and right are the side views, the opposite
+   * direction comes back to the centre. Leaves any zone. Returns false when there is no view that way.
+   */
+  ROOM.turn = function (dir, opts) {
+    opts = opts || {};
+    var to = ROOM.viewToward ? ROOM.viewToward(ROOM.state.view || 'main', dir) : null;
+    if (!to || turn) return false;
+    if (dolly) endDolly();
+    var prev = ROOM.state.zone;
+    arrive = null;
+    if (ROOM.state.statueLight) ROOM.state.statueLight = false;
+    ROOM.state.zone = null;
+    if (view && !opts.instant && !ROOM.state.reducedMotion) startTurn(to, dir);
+    else applyView(to);
+    if (prev) ROOM.emit('zone', { zone: null, from: prev, push: opts.push !== false });
     invalidate();
     return true;
   };
@@ -825,6 +1091,9 @@
     get dolly() {
       return dolly;
     },
+    get turning() {
+      return !!turn;
+    },
     get lastZone() {
       return lastZone;
     },
@@ -871,6 +1140,8 @@
         view: view,
         camera: view ? restCamera() : null,
         zone: ROOM.state.zone,
+        view: ROOM.state.view,
+        turn: turn ? { dir: turn.dir, t: ROOM.now() - turn.t0 } : null,
         dolly: dolly ? { u: lastDollyU, from: dolly.plan.from, to: dolly.plan.to } : null,
         light: { key: light.key, step: light.step },
         offsets: view ? offsetsFor(restCamera().z) : ZERO,

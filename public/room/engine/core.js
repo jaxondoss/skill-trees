@@ -45,6 +45,39 @@
     return null;
   };
 
+  /* ------------------------------------------------------------------ views (art pass 5) */
+  // The room has three views: main (the knight and the window), left (bed, kitchen), right (desks, gym).
+  // Items carry "view" (default main) and zones their view; zones.json views.<v> holds each view's frame
+  // (art, core, horizon) and its smooth light. Art without views (older bundles) is all "main".
+  ROOM.VIEWS = ['left', 'main', 'right'];
+  ROOM.viewOf = function (thing) {
+    return (thing && thing.view) || 'main';
+  };
+  /** The frame and light of a view (falls back to the top-level zones.json frame). */
+  ROOM.viewConf = function (v) {
+    var Z = ROOM.art.zones || {};
+    return (Z.views && Z.views[v]) || Z;
+  };
+  ROOM.hasViews = function () {
+    var Z = ROOM.art.zones || {};
+    return !!(Z.views && Z.views.left && Z.views.right);
+  };
+  /** Zones that live in a view (default: the current one). */
+  ROOM.zonesInView = function (v) {
+    v = v || (ROOM.state && ROOM.state.view) || 'main';
+    return ROOM.zones.filter(function (z) {
+      return ROOM.viewOf(z) === v;
+    });
+  };
+  /** The view a turn in direction dir (-1 left, +1 right) leads to from view v, or null. */
+  ROOM.viewToward = function (v, dir) {
+    if (!ROOM.hasViews()) return null;
+    if (v === 'main') return dir < 0 ? 'left' : 'right';
+    if (v === 'left' && dir > 0) return 'main';
+    if (v === 'right' && dir < 0) return 'main';
+    return null;
+  };
+
   // Colour name -> palette index, and index -> name.
   ROOM.C = {};
   ROOM.colorNames = [];
@@ -127,6 +160,7 @@
 
   ROOM.state = {
     zone: null,
+    view: 'main', // which of the three views is on screen (see ROOM.turn)
     night: query.has('night') ? query.get('night') === '1' : hour >= 22 || hour < 5,
     season: ROOM.seasonOf(day),
     holiday: ROOM.holidayOf(day),

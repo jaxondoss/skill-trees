@@ -1,4 +1,4 @@
-# Session handoff (2026-10-22)
+# Session handoff (2026-10-23)
 
 Read this first in a new session. Repos: `jaxondoss/skill-trees` (the FORGE app) and `jaxondoss/skill-pack`
 (skills). Work on branch `claude/confident-curie-o7oqeb`, then fast-forward `main` (`git push origin
@@ -53,7 +53,7 @@ efficient (Haiku/Gemini for grunt work, Claude for thinking).
   welcome-back screen; neglect escalation at day 3/7/14; sound set; daily quest and weekly chest; easter
   eggs. Also: the phone window zone frames the window and CRTs, so the statue needs a pan.
 
-## Art pass 4 (2026-10-22, live)
+## Art pass 4 (2026-10-22, replaced by art pass 5)
 - Live art is R4 (spec section 12; stills and `live-room@2x.png` in `docs/redesign/room-r4/stills/`).
   Rebuild: `python3 art/room-r4/build.py` (stills + layered export; `--live-only` / `--stills-only`),
   `python3 art/room-v3/merge.py --src room-r4` (parity vs `art-v3.r3.js`, palette and grain checks),
@@ -67,6 +67,26 @@ efficient (Haiku/Gemini for grunt work, Claude for thinking).
   monitors, shoes and bike (s0..s2 alias base), fridge crack glow on hover, desk lamp on when Academics opens,
   hologram glitch on tier-up, the dog redrawn in R4 style (it is the R3 sprite re-indexed), lighting slider
   as a real time-of-day feature.
+
+## Art pass 5 (2026-10-23, live)
+- Three views: main (knight, window), left (bed, kitchen, entry door), right (study desk on the side wall,
+  dropshipping desk, gym). Arrow keys or the pixel chevrons at the screen edges play a walk-forward-and-turn
+  (~760 ms, `ROOM.turn`); a zone in another view (keys 1-7, a copy hotspot) turns straight into it.
+- Art: `art/room-r5/build.py` (stills + layered export per view; `--stills-only` / `--live-only`), then
+  `python3 art/room-v3/merge.py --src room-r5` (parity vs `art-v3.r3.js`, grain check) and
+  `node scripts/room-sync.mjs`. Sprites in `docs/redesign/room-prototype/art-r5/<view>/`. Stills and the turn
+  captures in `docs/redesign/room-r5/`. Rollback to R4: copy `art-v3.r4.js` over `art-v3.js`, run room-sync.
+- Items carry `view`; objects seen in two views keep their canonical id in their zone's view and get a
+  suffixed copy (-m, -l, -r) with the same target. zones.json has `views.<v>` (frame + smooth light) and each
+  zone a `view`.
+- Light: sprites are baked at one flat ramp level per object; the warm wash, every glow and the oval vignette
+  are drawn by the engine with canvas gradients from `views.<v>.light` (render.js drawLight). This is the one
+  place the frame leaves the palette. Lamp pools (glow.js) go through the same overlay.
+- Window: mountains; clouds, birds and the streetcar are drift sprites (`drift` on the item, render.js).
+- Default framing 15% closer: the core is 556x235 (was 640x270).
+- LATER: the FORGE sign sits above the right view's frame; side-wall objects are drawn per view, so small
+  differences between views exist; plant sway runs at 2 fps (art frames); stage art still missing for the
+  same items as pass 4.
 
 ## skill-pack
 Added (skills in `.claude/skills/`, sources in `vendor/`): superpowers (minus using-superpowers and its

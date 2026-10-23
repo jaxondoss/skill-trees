@@ -1,0 +1,197 @@
+{
+ "_note": "FORGE room R4 palette proposal: the R3 palette (v3 32 + 5 R3 colours = 37) with 6 entries swapped for plum-charcoal plaster, the knight's energy/visor colours, the night sky and the plasma/quilt lilac. Same count (37), same index order; index 255 = transparent.",
+ "swaps": [
+  {
+   "from": "BROWN_0",
+   "from_hex": "#281B1B",
+   "to": "VIOLET",
+   "hex": "#9466DA",
+   "why": "plasma tendrils, lilac quilt, night string bulbs (BROWN_0 was near-duplicate of PLASTER_0)"
+  },
+  {
+   "from": "CHAR",
+   "from_hex": "#1E2423",
+   "to": "PLASTER_0",
+   "hex": "#1E151D",
+   "why": "plum-charcoal plaster, shadow / corner tone"
+  },
+  {
+   "from": "WALL_G",
+   "from_hex": "#2B3633",
+   "to": "PLASTER",
+   "hex": "#36232F",
+   "why": "plum-charcoal plaster, main wall tone (warm, not brown, not slate)"
+  },
+  {
+   "from": "STAT_1",
+   "from_hex": "#19202C",
+   "to": "NAVY",
+   "hex": "#1B2552",
+   "why": "knight visor depth + deep blue night window"
+  },
+  {
+   "from": "STAT_2",
+   "from_hex": "#2E3B50",
+   "to": "ENERGY",
+   "hex": "#3FD8E8",
+   "why": "knight energy lines, pedestal runes, visor glow"
+  },
+  {
+   "from": "STAT_HI",
+   "from_hex": "#C6DCEE",
+   "to": "ENERGY_HI",
+   "hex": "#D4FFFB",
+   "why": "knight luminous line core, bright visor (tier IV-V), beam core"
+  }
+ ],
+ "colors": [
+  [
+   "VOID",
+   "#0C0A0C"
+  ],
+  [
+   "INK",
+   "#141517"
+  ],
+  [
+   "OAK_0",
+   "#5C3721"
+  ],
+  [
+   "VIOLET",
+   "#9466DA"
+  ],
+  [
+   "BROWN_1",
+   "#312D2A"
+  ],
+  [
+   "BROWN_2",
+   "#50302E"
+  ],
+  [
+   "TERRA_0",
+   "#621D1A"
+  ],
+  [
+   "TERRA_1",
+   "#8E432D"
+  ],
+  [
+   "TERRA_2",
+   "#B45B40"
+  ],
+  [
+   "RIM",
+   "#DA6339"
+  ],
+  [
+   "ORANGE",
+   "#F26B2A"
+  ],
+  [
+   "GLOW",
+   "#F39041"
+  ],
+  [
+   "AMBER",
+   "#CE8446"
+  ],
+  [
+   "SUN",
+   "#FEF576"
+  ],
+  [
+   "GOLD",
+   "#D9A441"
+  ],
+  [
+   "GOLD_DK",
+   "#6E5422"
+  ],
+  [
+   "OAK_1",
+   "#7E4C27"
+  ],
+  [
+   "OAK_2",
+   "#A56A32"
+  ],
+  [
+   "LEAF_0",
+   "#212C26"
+  ],
+  [
+   "LEAF_1",
+   "#344136"
+  ],
+  [
+   "LEAF_2",
+   "#3E6B35"
+  ],
+  [
+   "LEAF_3",
+   "#7FA650"
+  ],
+  [
+   "SLATE_0",
+   "#3E4F51"
+  ],
+  [
+   "SLATE_1",
+   "#56858A"
+  ],
+  [
+   "SLATE_2",
+   "#9CC0C2"
+  ],
+  [
+   "OAK_DK",
+   "#45291A"
+  ],
+  [
+   "PLUM_1",
+   "#724F5B"
+  ],
+  [
+   "PLUM_2",
+   "#AF4D61"
+  ],
+  [
+   "PLUM_3",
+   "#D98AA0"
+  ],
+  [
+   "CRT_0",
+   "#D2211A"
+  ],
+  [
+   "CRT_1",
+   "#FC3827"
+  ],
+  [
+   "CREAM",
+   "#F4E6C4"
+  ],
+  [
+   "PLASTER_0",
+   "#1E151D"
+  ],
+  [
+   "PLASTER",
+   "#36232F"
+  ],
+  [
+   "NAVY",
+   "#1B2552"
+  ],
+  [
+   "ENERGY",
+   "#3FD8E8"
+  ],
+  [
+   "ENERGY_HI",
+   "#D4FFFB"
+  ]
+ ]
+}

@@ -12,6 +12,8 @@ R3 (the live art since revision 3): python3 art/room-r3/build.py, then python3 a
 keeps the replaced bundle as art-v3.prev.js for rollback, then writes art-v3.js).
 Art pass 4 (the live art since R4): python3 art/room-r4/build.py, then python3 art/room-v3/merge.py --src room-r4
 (parity against art-v3.r3.js, the R3 bundle it keeps for rollback; anim.night frames are encoded too).
+Art pass 5 (three views): python3 art/room-r5/build.py, then python3 art/room-v3/merge.py --src room-r5
+(parity against art-v3.r3.js as well; the replaced R4 bundle is kept as art-v3.r4.js).
 """
 import argparse
 import shutil
@@ -31,7 +33,7 @@ ZONES = json.loads((COMMON / "zones.json").read_text())
 RGB = {tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)): n for n, (_, h, *_r) in enumerate(PAL["colors"])}
 PARTS = ["shell", "left", "back", "right", "statue-relics"]
 # rollback copy kept the first time a source replaces the live bundle
-ROLLBACK = {"room-r3": "art-v3.prev.js", "room-r4": "art-v3.r3.js"}
+ROLLBACK = {"room-r3": "art-v3.prev.js", "room-r4": "art-v3.r3.js", "room-r5": "art-v3.r4.js"}
 
 
 def use_src(src: str) -> None:

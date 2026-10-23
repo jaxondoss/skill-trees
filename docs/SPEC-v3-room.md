@@ -173,3 +173,21 @@ existing item ids (all 143 R3 ids, targets and variant keys kept; parity in `art
 - **Self-critique fixes:** bed and gym slivers stand further out from their walls, the bike is fully visible, midday
   has a sun patch and darker corners, night plaster stays plum-charcoal instead of navy. Light falloff bands use a
   1 px line dither (the grain check passes; objects step without dither).
+
+## 13. Art pass 5 (2026-10-23)
+Brief: the owner's art pass 5 prompt (dorm room). Built and live; see `docs/HANDOFF.md` (Art pass 5) for files.
+- Lighting: warmer, stronger sunset wash; every halo a smooth gradient (no rings); the oval vignette has no
+  visible edge. Implemented as an RGB overlay over the palette art (zones.json `views.<v>.light`).
+- Window: larger window kept with both curtains; mountains behind the rooftops and trees; drifting clouds,
+  birds now and then, the streetcar passing; the TV setup below stays.
+- Camera: 15% closer (556x235 core), knight and window centred. Left view: bed and kitchen up close. Right view:
+  the gym and both desks. A walk-forward-and-turn under a second; the opposite arrow returns to the centre.
+  Pixel chevrons at the far left and right edges, always visible where a turn exists; arrow keys turn in the
+  room view (in a zone they still walk the zones). No floor hotspots for navigation.
+- Brought back: the tall dark bookcase (rolling ladder, plants spilling off the top; potions and trophy case
+  beside it), two separate desks, more plants with a gentle sway and hanging plants, a darker ceiling.
+- Zones: study desk with the corkboard, calendar, course books and backpack; dropshipping desk with a big
+  whiteboard on the side wall, two green-code monitors and a black mesh chair; the gym moved about 10 ft right
+  (only a hint in the main view) with race photos, a medal hanger, kettlebells, a chalk bucket, a rubber mat, a
+  symbol poster, a gym bag and a sneaker shelf; meditation rug, cushion and candle in front of the window; a big
+  8x8 chessboard on its own stand; a big rug under the bed.

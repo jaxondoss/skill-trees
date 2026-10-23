@@ -33,8 +33,11 @@
   /** The zone to step into from the room view: the last one, the nearest pan stop, or the window. */
   function defaultZone() {
     var R = ROOM.render;
-    if (R.view && R.view.mode === 'pan') return CAM.zoneAtX(R.pan.x, ROOM.zones).id;
-    return R.lastZone || 'window';
+    var zs = ROOM.zonesInView ? ROOM.zonesInView() : ROOM.zones;
+    if (R.view && R.view.mode === 'pan') return CAM.zoneAtX(R.pan.x, zs).id;
+    var last = R.lastZone && ROOM.zoneById(R.lastZone);
+    if (last && (!ROOM.viewOf || ROOM.viewOf(last) === (ROOM.state.view || 'main'))) return last.id;
+    return zs.length ? (zs.filter(function (z) { return z.id === 'window'; })[0] || zs[0]).id : 'window';
   }
 
   function step(dir) {
@@ -96,13 +99,14 @@
     }
     switch (k) {
       case 'ArrowRight':
-        step(1);
+      case 'ArrowLeft': {
+        // In the room the arrows turn between the three views; in a zone they walk the zones.
+        var dir = k === 'ArrowRight' ? 1 : -1;
+        if (!ROOM.state.zone && ROOM.turn && ROOM.viewToward && ROOM.viewToward(ROOM.state.view || 'main', dir)) ROOM.turn(dir);
+        else if (ROOM.state.zone || !ROOM.hasViews || !ROOM.hasViews()) step(dir);
         e.preventDefault();
         return;
-      case 'ArrowLeft':
-        step(-1);
-        e.preventDefault();
-        return;
+      }
       case 'Enter': {
         var a = document.activeElement;
         if (a && a.tagName === 'BUTTON' && a !== document.body) return; // the button handles it
@@ -230,7 +234,7 @@
         vel = b.t > a.t ? ((b.x - a.x) * 1000) / (b.t - a.t) : 0;
       }
       R.pan.v = vel;
-      var stops = ROOM.zones.map(function (z) {
+      var stops = (ROOM.zonesInView ? ROOM.zonesInView() : ROOM.zones).map(function (z) {
         return z.stop;
       });
       R.pan.target = CAM.snapTarget(R.pan.x, vel, stops, CAM.panBounds(v));
@@ -245,7 +249,7 @@
     if (!ROOM.state.zone) {
       var rect = R.canvas.getBoundingClientRect();
       var w = R.worldFromCss(e.clientX - rect.left, e.clientY - rect.top);
-      ROOM.go(CAM.zoneAtX(w.x, ROOM.zones).id);
+      ROOM.go(CAM.zoneAtX(w.x, ROOM.zonesInView ? ROOM.zonesInView() : ROOM.zones).id);
     }
   }
 

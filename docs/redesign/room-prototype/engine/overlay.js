@@ -436,6 +436,40 @@
     return el;
   }
 
+  /* ------------------------------------------------------------------ DOM: side-view chevrons (art pass 5) */
+  // Small pixel chevrons at the far left and right edges: turn to a side view, or back to the centre.
+  var chev = {};
+  function buildChevrons() {
+    if (!ROOM.hasViews || !ROOM.hasViews()) return;
+    [-1, 1].forEach(function (dir) {
+      var b = ensure(dir < 0 ? 'turn-left' : 'turn-right', 'button', document.body, 'turn-chevron');
+      b.type = 'button';
+      b.dataset.dir = String(dir);
+      b.innerHTML =
+        '<svg viewBox="0 0 7 11" width="14" height="22" aria-hidden="true" shape-rendering="crispEdges">' +
+        (dir < 0
+          ? '<path d="M5 0h2v1h-1v1h-1v1h-1v1h-1v1h-1v1h1v1h1v1h1v1h1v1h1v1h-2v-1h-1v-1h-1v-1h-1v-1h-1v-1h-1v-1h1v-1h1v-1h1v-1h1v-1h1z"/>'
+          : '<path d="M0 0h2v1h1v1h1v1h1v1h1v1h1v1h-1v1h-1v1h-1v1h-1v1h-1v1h-2v-1h1v-1h1v-1h1v-1h1v-1h1v-1h-1v-1h-1v-1h-1v-1h-1v-1h-1z"/>') +
+        '</svg>';
+      b.addEventListener('click', function () {
+        if (ROOM.state.panel) return;
+        ROOM.turn(dir);
+      });
+      chev[dir] = b;
+    });
+    updateChevrons();
+  }
+  function updateChevrons() {
+    [-1, 1].forEach(function (dir) {
+      var b = chev[dir];
+      if (!b) return;
+      var to = ROOM.viewToward(ROOM.state.view || 'main', dir);
+      b.hidden = !to;
+      b.setAttribute('aria-label', to === 'main' ? 'Turn back to the centre' : to === 'left' ? 'Turn left: bed and kitchen' : 'Turn right: desks and gym');
+      b.title = b.getAttribute('aria-label');
+    });
+  }
+
   function init(stage) {
     layer = ensure('room-hotspots', 'div', stage);
     dotsNav = ensure('zone-dots', 'nav', document.body);
@@ -445,6 +479,8 @@
     titleCanvas.hidden = true;
     live.setAttribute('aria-live', 'polite');
     buildDots();
+    buildChevrons();
+    ROOM.on('view', updateChevrons);
     ROOM.on('zone', function (d) {
       updateDots();
       updateTitle(); // within ~120 ms of the click, while the dolly runs
