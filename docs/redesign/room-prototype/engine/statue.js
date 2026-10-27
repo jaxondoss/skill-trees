@@ -168,7 +168,8 @@
     var lx = fx + 2;
     var clip = reveal < 1 ? lx + Math.round(lw * reveal) : null;
     text(f, lx, ty, ls, RAMP[2], true, clip);
-    if (clip != null && clip < lx + lw) for (var sy = 0; sy < 5; sy++) px(f, clip, ty + sy, RAMP[3], true);
+    // the engraving tool: one glint at the reveal edge (a full-height line would read as a "1")
+    if (clip != null && clip < lx + lw) px(f, clip, ty + 2, RAMP[3], true);
     text(f, fx + fw - 2 - rw, ty, rs, RAMP[1], true);
     // the bar between them
     var bx = lx + lw + 3, bw = fx + fw - 2 - rw - 3 - bx;
