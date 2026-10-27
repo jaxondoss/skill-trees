@@ -1688,16 +1688,17 @@ def knight_zone():
         f = box3d(KN_X - 1.8, KN_X + 1.8, 0, 1.0, KN_Z - 1.2, KN_Z + 1.0, "BROWN_1", side="INK", top="SLATE_0")
         (ax, ay), (bx, by), (cx2, cy2), (dx, dy) = f["front"]
         R(ax + 1, ay + 1, bx - 1, ay + 1, "SLATE_1")
-        # plaque (tier name only)
-        names = {1: "|*RAW", 2: "||*AWAKENED", 3: "|||*FORGED", 4: "|V*ASCENDANT", 5: "V*SOVEREIGN"}
-        s = names[TIER].replace("V", "V")
-        tw = text_w(s)
-        px0 = int((ax + bx) / 2 - tw / 2) - 2
-        BOX(px0, ay + 3, px0 + tw + 3, ay + 10, "GOLD_DK", hi="GOLD")
-        text(px0 + 2, ay + 4, s, "SUN")
+        # the plaque: a gold frame around a dark engraved field; the engine engraves the level, the progress
+        # bar and UPGRADE into the field (engine/statue.js), so the art leaves it empty
+        px0, px1 = int(ax) + 6, int(bx) - 6
+        py0, py1 = int(ay) + 3, int(ay) + 12
+        BOX(px0, py0, px1, py1, "GOLD_DK", hi="GOLD")
+        R(px0 + 1, py0 + 1, px1 - 1, py1 - 1, "INK_2")
+        PLAQUE.update(x0=px0 + 1, y0=py0 + 1, x1=px1 - 1, y1=py1 - 1)
+        tw = px1 - px0 - 5
         # runes pulsing up the base: cyan marks + vertical lines on the corners
         for i, rx in enumerate(range(int(ax) + 3, int(bx) - 2, 5)):
-            if px0 - 2 <= rx <= px0 + tw + 5:
+            if px0 - 2 <= rx <= px1 + 2:
                 continue
             P(rx, ay + 5 + (i % 2), "ENERGY!")
             P(rx + 1, ay + 6 - (i % 2), "ENERGY!")
@@ -2057,6 +2058,7 @@ def chair_back(X, z, side=-1):
 
 # ---------------------------------------------------------------- scenes per view
 SCENES = {}
+PLAQUE = {}           # the statue plaque's engraved field (master px, inclusive), set while drawing the pedestal
 
 
 def scene(view):
@@ -3948,6 +3950,9 @@ def export_view(view, manifest):
                "w": x1 - x0, "h": y1 - y0, "variants": variants, "view": view}
         if it["kind"] == "hotspot":
             rec["target"], rec["label"] = it["target"], it["label"]
+            if it["id"] == "window.statue" and PLAQUE:
+                # the engraved field the engine draws the level bar into (world px: x, y, w, h)
+                rec["plaque"] = [PLAQUE["x0"] - OX, PLAQUE["y0"] - OY, PLAQUE["x1"] - PLAQUE["x0"] + 1, PLAQUE["y1"] - PLAQUE["y0"] + 1]
             a = arrays[it["keys"][0] if it["keys"][0] in arrays else "base"]
             ys, xs = np.nonzero(a != T)
             if not len(xs):
@@ -4005,7 +4010,8 @@ def export_view(view, manifest):
         if not m.any():
             continue
         if ch == "sway":
-            still = [o for nm in KEEP_PATTERN for o in base["names"].get(nm, [])]
+            # hotspot objects have their own sprites (and the engine draws on them): a sway frame never covers them
+            still = [o for nm in set(KEEP_PATTERN) | hotspot_objects(view) for o in base["names"].get(nm, [])]
             movers = np.setdiff1d(np.unique(base["oid"][m]), still)
             d = m.copy()
             for _ in range(3):

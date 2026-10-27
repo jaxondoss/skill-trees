@@ -66,6 +66,26 @@ body {
   display: none;
 }
 
+/* UPGRADE on the statue plaque (engine/statue.js): the canvas draws the glowing word, the button is the target. */
+#room-hotspots .statue-upgrade {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 10000; /* above every hotspot (overlay.js stacks them at layer * 1000 + size) */
+  outline: none;
+}
+#room-hotspots .statue-upgrade:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+#room-hotspots .statue-upgrade[hidden] {
+  display: none;
+}
+
 /* Zone dots, bottom centre. */
 #zone-dots {
   position: fixed;

@@ -143,3 +143,29 @@ test("v3.4: the arrow keys and chevrons pan round four walls, each view has its 
   await expect.poll(view).toBe("right");
   await expect(page.locator('.hs[data-id="gym.strength"]')).toHaveCount(1);
 });
+
+test("v3.4: the statue's plaque offers UPGRADE at 100%, and the level is saved and never auto-rises", async ({ page }) => {
+  await openRoom(page);
+  const room = () =>
+    page.evaluate(() => {
+      const R = (window as unknown as { ROOM: { statue: { info: () => { level: number; ready: boolean; score: number } } } }).ROOM;
+      return R.statue.info();
+    });
+  // First load stores the score's whole part: no UPGRADE yet.
+  const first = await room();
+  expect(first.level).toBe(Math.floor(first.score));
+  expect(sql(`select statue_level from public.profiles where user_id = '${USER_ID}'`)).toBe(String(first.level));
+  await expect(page.locator(".statue-upgrade")).toBeHidden();
+  // A level two below the score: the bar is full and UPGRADE appears; one press raises it by one.
+  sql(`update public.profiles set statue_level = ${first.level - 2} where user_id = '${USER_ID}'`);
+  await openRoom(page);
+  await settled(page);
+  expect((await room()).ready).toBe(true);
+  const up = page.locator(".statue-upgrade");
+  await expect(up).toBeVisible();
+  await expect(up).toHaveAccessibleName(`Upgrade the statue to level ${first.level - 1}`);
+  await up.click();
+  await expect.poll(() => sql(`select statue_level from public.profiles where user_id = '${USER_ID}'`)).toBe(String(first.level - 1));
+  // The database refuses to lower it.
+  expect(() => sql(`set request.jwt.claim.sub = '${USER_ID}'; update public.profiles set statue_level = 0 where user_id = '${USER_ID}';`)).toThrow(/never drops/);
+});

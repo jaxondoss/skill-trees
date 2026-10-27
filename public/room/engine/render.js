@@ -435,9 +435,10 @@
       }
       blit(f.buf, f.w, f.h, img, dx, dy, tA, tB, f.step, f.x0, f.y0);
       if (f.aux) blitAux(f, d, img, dx, dy);
+      if (d.statue && ROOM.statue) ROOM.statue.draw(f, d, img, dx, dy); // plaque and level-up surge
       if (opts.marks) {
         if (d.dust) ROOM.fx.drawDust(f, img, dx, dy);
-        if (ROOM.fx.drawScreen && (d.item.screen || d.item.plaque)) ROOM.fx.drawScreen(f, d, dx, dy);
+        if (ROOM.fx.drawScreen && d.item.screen) ROOM.fx.drawScreen(f, d, dx, dy);
         if (ROOM.glow) {
           if (opts.outline) ROOM.glow.drawSkillGlow(f, d, img, dx, dy);
           ROOM.glow.drawEmbers(f, d, img, dx, dy);
@@ -657,7 +658,7 @@
       focus: z && z.focus ? { x: z.focus[0], y: z.focus[1], w: z.focus[2], h: z.focus[3] } : null,
       hover: hoverRect(),
       pools: ROOM.glow && ROOM.glow.pools ? ROOM.glow.pools() : null,
-      statueBurst: ROOM.state.statueLight ? 1 : 0,
+      statueBurst: Math.max(ROOM.state.statueLight ? 1 : 0, ROOM.statue ? ROOM.statue.burst(now) : 0),
       flash: ROOM.weather ? ROOM.weather.flash(now) : 0,
       state: weatherLight(),
     };
@@ -717,6 +718,7 @@
     var z = cam.z;
     lastRest = { cam: cam, org: org, offs: r.offs, z: z, x0: r.x0, y0: r.y0, gpu: r.gpu, key: [org.ox, org.oy, z, r.offs.join(','), sceneVersion, ROOM.state.zone, view.Wd, view.Hd].join('|') };
     if (ROOM.overlay) ROOM.overlay.sync(lastRest);
+    if (ROOM.statue) ROOM.statue.sync(lastRest);
   }
 
   /* ------------------------------------------------------------------ dolly */
@@ -868,6 +870,14 @@
   // horizon by cos(a) / cos(phi). Each view involved is drawn once, lit, over its full master (55 degrees each
   // side), and the views hand over at the room corners (45 degrees). 90 degrees takes 640 ms, 180 degrees 900 ms.
   var turn = null;
+  var TURN_IN_MS = 120, TURN_OUT_MS = 160, SEAM_BAND = (10 * Math.PI) / 180;
+  function snapshot() {
+    var c = document.createElement('canvas');
+    c.width = canvas.width;
+    c.height = canvas.height;
+    c.getContext('2d').drawImage(canvas, 0, 0);
+    return c;
+  }
   var pushView = true; // whether the 'view' event asks the router for a history entry
   var TURN_MS = [0, 640, 900];
 
@@ -900,7 +910,8 @@
     var cx = c.getContext('2d', { alpha: false, colorSpace: 'srgb' });
     cx.fillStyle = VOID_CSS;
     cx.fillRect(0, 0, W, H);
-    drawFrame(now, { z: z }, { ox: a.x * z, oy: a.y * z }, { ctx: cx, W: W, H: H }, false);
+    // with the engine marks (LEDs, embers), so nothing pops in or out at either end of the pan
+    drawFrame(now, { z: z }, { ox: a.x * z, oy: a.y * z }, { ctx: cx, W: W, H: H }, true);
     var vp = vc.vp || [CAM.CORE_W / 2, CAM.HORIZON];
     return { c: c, vx: (vp[0] - a.x) * z, vy: (vp[1] - a.y) * z };
   }
@@ -931,10 +942,18 @@
     var srcs = chain.map(function (cv) {
       return masterOf(cv, now, cam.z);
     });
+    // the real rest frames at both ends: the pan starts from the first and settles into the second, so the
+    // frame-wide effects (vignette, bloom, focus) never pop
+    var restA = snapshot();
     applyView(from, true);
     applyView(toView);
     buildScene();
+    renderRest(now);
+    var restB = snapshot();
+    ctx.drawImage(restA, 0, 0);
     turn = {
+      restA: restA,
+      restB: restB,
       srcs: srcs,
       dir: dir,
       steps: steps,
@@ -959,22 +978,48 @@
     ctx.fillRect(0, 0, W, H);
     var th = easeInOut(t / turn.dur) * turn.steps * (Math.PI / 2) * turn.dir;
     var f = turn.f, step = Math.max(2, Math.round(W / 640));
+    var lastK = null;
+    turn.seams = [];
     for (var x = 0; x < W; x += step) {
       var phi = Math.atan((x + step / 2 - turn.vx) / f);
       var a = phi + th;
       var n = Math.round(a / (Math.PI / 2)); // which view owns this direction (0 = start, dir * k = k turns on)
       var k = n * turn.dir;
       if (k < 0 || k > turn.steps) continue;
-      var src = turn.srcs[k];
+      if (lastK !== null && k !== lastK) turn.seams.push(x);
+      lastK = k;
       var la = a - n * (Math.PI / 2);
-      var ca = Math.cos(la), cp = Math.cos(phi);
-      var sx = src.vx + f * Math.tan(la);
-      var sw = (step * cp * cp) / (ca * ca);
-      var sc = ca / cp;
-      var Hs = src.c.height;
-      ctx.drawImage(src.c, Math.max(0, sx - sw / 2), 0, Math.max(1, sw), Hs, x, turn.vy - src.vy * sc, step, Hs * sc);
+      column(turn.srcs[k], la, phi, x, step, f, 1);
+      // near the corner where two views hand over, the neighbour's column fades in (both masters hold valid
+      // pixels 10 degrees past their edge), so the two views' lighting meets as a gradient, not a line
+      var d = Math.PI / 4 - Math.abs(la);
+      if (d < SEAM_BAND) {
+        var n2 = n + (la > 0 ? 1 : -1), k2 = n2 * turn.dir;
+        if (k2 >= 0 && k2 <= turn.steps) column(turn.srcs[k2], a - n2 * (Math.PI / 2), phi, x, step, f, 0.5 * (1 - d / SEAM_BAND));
+      }
     }
+    ctx.globalAlpha = 1;
+    // settle into the real rest frames at both ends
+    if (t < TURN_IN_MS) {
+      ctx.globalAlpha = 1 - t / TURN_IN_MS;
+      ctx.drawImage(turn.restA, 0, 0);
+    } else if (t > turn.dur - TURN_OUT_MS) {
+      // fully the destination by the pan's last 40 ms frame, so landing changes nothing
+      ctx.globalAlpha = Math.min(1, (t - (turn.dur - TURN_OUT_MS)) / (TURN_OUT_MS - 40));
+      ctx.drawImage(turn.restB, 0, 0);
+    }
+    ctx.globalAlpha = 1;
     return true;
+  }
+  // One screen column of a pan: the source column at view angle la, scaled about the horizon by cos(la)/cos(phi).
+  function column(src, la, phi, x, step, f, alpha) {
+    var ca = Math.cos(la), cp = Math.cos(phi);
+    var sx = src.vx + f * Math.tan(la);
+    var sw = (step * cp * cp) / (ca * ca);
+    var sc = ca / cp;
+    var Hs = src.c.height;
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(src.c, Math.max(0, sx - sw / 2), 0, Math.max(1, sw), Hs, x, turn.vy - src.vy * sc, step, Hs * sc);
   }
   function endTurn() {
     turn = null;
@@ -1006,13 +1051,14 @@
       }
     }
     return k + '|' + lightKey(now) + '|' + (ROOM.fx ? ROOM.fx.ambientKey(now) : '') + '|' + (ROOM.glow ? ROOM.glow.ambientKey(now) : '') +
-      '|' + (ROOM.weather ? ROOM.weather.ambientKey(now) : '') + '|' + (gpuOn() && ROOM.gl.ambientKey ? ROOM.gl.ambientKey(now) : '');
+      '|' + (ROOM.weather ? ROOM.weather.ambientKey(now) : '') + '|' + (ROOM.statue ? ROOM.statue.ambientKey(now) : '') + '|' + (gpuOn() && ROOM.gl.ambientKey ? ROOM.gl.ambientKey(now) : '');
   }
   function hasAmbient() {
     if (ROOM.state.reducedMotion) return false;
     for (var i = 0; i < drawables.length; i++) if (drawables[i].frames || drawables[i].item.drift) return true;
     if (lightKey(0) !== '') return true;
     if (ROOM.weather && ROOM.weather.hasAmbient()) return true;
+    if (ROOM.statue && ROOM.statue.hasAmbient()) return true;
     if (gpuOn() && ROOM.gl.hasAmbient && ROOM.gl.hasAmbient()) return true;
     return (ROOM.fx && ROOM.fx.hasAmbient()) || (ROOM.glow && ROOM.glow.hasAmbient());
   }
@@ -1094,7 +1140,7 @@
       dirty = true;
       busy = true;
     }
-    if ((ROOM.weather && ROOM.weather.busy(now)) || (gpuOn() && ROOM.gl.busy && ROOM.gl.busy(now))) {
+    if ((ROOM.statue && ROOM.statue.busy(now)) || (ROOM.weather && ROOM.weather.busy(now)) || (gpuOn() && ROOM.gl.busy && ROOM.gl.busy(now))) {
       dirty = true;
       busy = true;
     }
@@ -1405,7 +1451,7 @@
         camera: view ? restCamera() : null,
         zone: ROOM.state.zone,
         view: ROOM.state.view,
-        turn: turn ? { dir: turn.dir, t: ROOM.now() - turn.t0 } : null,
+        turn: turn ? { dir: turn.dir, t: ROOM.now() - turn.t0, seams: turn.seams || [] } : null,
         dolly: dolly ? { u: lastDollyU, from: dolly.plan.from, to: dolly.plan.to } : null,
         light: { key: light.key, step: light.step },
         offsets: view ? offsetsFor(restCamera().z) : ZERO,

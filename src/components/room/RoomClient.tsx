@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { completeGoal, swapGoal, type ActionResult } from "@/app/actions";
+import { completeGoal, swapGoal, upgradeStatue, type ActionResult } from "@/app/actions";
 import { abandonRelic, achieveRelic, createRelic, saveFocusLine, updateRelicSteps } from "@/app/relic-actions";
 import { addMetric } from "@/app/skill-actions";
 import type { RoomData } from "@/lib/data/room";
@@ -26,6 +26,7 @@ const SCRIPTS = [
   "engine/input.js",
   "engine/fx.js",
   "engine/glow.js",
+  "engine/statue.js",
   "ui/sound.js",
   "ui/strip.js",
   "ui/today.js",
@@ -131,6 +132,7 @@ export function RoomClient({ data }: { data: RoomData }) {
       w.__roomLoading = false;
       room.on("log", (d) => save(completeGoal(String(d.goalId), (d.result as "floor" | "standard" | "stretch" | null) ?? null)));
       room.on("swap", (d) => save(swapGoal(String(d.goalId))));
+      room.on("upgrade", (d) => save(upgradeStatue(Number(d.from))));
       room.on("focus", (d) => save(saveFocusLine(String(d.line ?? ""))));
       room.on("bodyweight", (d) => {
         const id = skillId("strength");

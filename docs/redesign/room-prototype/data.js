@@ -12,7 +12,8 @@ window.ROOM_DATA = {
    "display": 40,
    "tier": 3,
    "numeral": "III",
-   "name": "Forged"
+   "name": "Forged",
+   "level": 40
   },
   "categories": [
    {
@@ -1457,7 +1458,8 @@ window.ROOM_DATA = {
    "display": 15,
    "tier": 1,
    "numeral": "I",
-   "name": "Raw"
+   "name": "Raw",
+   "level": 15
   },
   "categories": [
    {

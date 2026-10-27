@@ -114,8 +114,21 @@ efficient (Haiku/Gemini for grunt work, Claude for thinking).
   `node scripts/room-r6-deliverables.mjs [stills|passes|turn|fps]`. Rollback to R5: copy `art-v3.r5.js` over
   `art-v3.js` and run room-sync (the engine reads both).
 - Notes: `docs/redesign/room-r6/` INTERFACES.md, GL_NOTES.md, TEXTURE_NOTES.md, WEATHER_NOTES.md.
-- NEXT (phase 2, after review): the statue's progress bar and UPGRADE, the turn audit. Phase 3: the calendar
-  wall on the back view.
+- Phase 2 (statue level and turn audit):
+  - The plaque on the knight's pedestal reads "40 [bar] 41": progress from the statue level to the next, in
+    gold ramp steps, flagged emissive for the light model (`engine/statue.js`). The bar follows the overall
+    score both ways; the level is stored (`profiles.statue_level`, migration 0012, trigger: it never drops for
+    a signed-in user) and set to the score's whole part on the first load.
+  - At 100% UPGRADE appears on the plaque and pulses; a real button covers it (44 px, keyboard, named "Upgrade
+    the statue to level N"). Pressing it raises the level by one (`upgradeStatue` checks the score on the
+    server). The moment: a gold band climbs the knight and pedestal, the plaque drains and engraves the new
+    level; at 20, 40, 60, 80 the armour changes under the band and the bell rings. Reduced motion: instant.
+  - The knight's armour (room tier) follows the level's tier, not the raw score. Demo flags: `?score=`,
+    `?level=`.
+  - Turns: the pan starts from the real rest frame and settles into the destination's rest frame (no pop from
+    frame-wide light effects), and adjacent views cross-fade over 10 degrees at each corner.
+    `node scripts/room-turn-audit.mjs` measures all eight turns at golden hour and night.
+- NEXT (phase 3, after review): the calendar wall on the back view.
 
 ## skill-pack
 Added (skills in `.claude/skills/`, sources in `vendor/`): superpowers (minus using-superpowers and its

@@ -5,6 +5,7 @@ import { addDays } from "@/engine/time";
 import { createClient } from "@/lib/supabase/server";
 import type { UserContext } from "./context";
 import { loadDashboardContext } from "./dashboard";
+import { loadStatueLevel } from "./statue";
 import type { MetricRow } from "./rows";
 
 /**
@@ -184,6 +185,7 @@ export async function loadRoomData() {
     .map((a) => ({ name: a.course ? `${a.course}: ${a.name}` : a.name, hours: Math.round((new Date(a.due_at).getTime() - ctx.now.getTime()) / 3_600_000) }))
     .filter((a) => a.hours >= 0 && a.hours <= 7 * 24);
   const todayP = data.todayP === null ? 0 : Math.round(data.todayP);
+  const statue = await loadStatueLevel(supabase, data.overall.score);
 
   return {
     live: true,
@@ -192,7 +194,14 @@ export async function loadRoomData() {
     weekdayLabel: `${WD[wd.getUTCDay()]} ${wd.getUTCDate()} ${MON[wd.getUTCMonth()]}`,
     dayType: DAY_TYPE[ctx.resolved.dayType] ?? "",
     focusLine: data.focusLine ?? "",
-    overall: { score: Math.round(data.overall.score * 10) / 10, display: data.overall.display, tier: data.overall.tier, numeral: data.overall.tierNumeral, name: data.overall.tierName },
+    overall: {
+      score: Math.round(data.overall.score * 10) / 10,
+      display: data.overall.display,
+      tier: data.overall.tier,
+      numeral: data.overall.tierNumeral,
+      name: data.overall.tierName,
+      level: statue.level,
+    },
     categories: data.categories.map((c) => ({ slug: c.slug, name: c.name, score: c.score === null ? null : Math.round(c.score * 10) / 10 })),
     skills,
     goals,

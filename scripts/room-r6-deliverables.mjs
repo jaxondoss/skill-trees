@@ -83,6 +83,63 @@ if (only === "all" || only === "turn") {
   frames.forEach((b, i) => writeFileSync(join(caps, `turn360-${String(i).padStart(3, "0")}.png`), b));
   console.log("turn frames", frames.length);
 }
+if (only === "turns8") {
+  // phase 2: every turn (four walls, both directions) at golden hour and night, 40 ms frames, half size
+  const dir8 = join(caps, "turns");
+  mkdirSync(dir8, { recursive: true });
+  const TURNS = [["front", 1], ["right", 1], ["back", 1], ["left", 1], ["front", -1], ["left", -1], ["back", -1], ["right", -1]];
+  for (const look of ["golden", "night"])
+    for (const [from, dir] of TURNS) {
+      await open(LOOKS[look], from);
+      await page.evaluate((d) => window.ROOM.turn(d), dir);
+      let i = 0;
+      while ((await page.evaluate(() => window.ROOM.render.turning)) && i < 40) {
+        await page.screenshot({ path: join(dir8, `${look}-${from}-${dir > 0 ? "right" : "left"}-${String(i).padStart(2, "0")}.png`), scale: "css" });
+        await page.evaluate(() => window.ROOM.debug.advance(40));
+        i++;
+      }
+      await page.evaluate(() => window.ROOM.debug.advance(16));
+      await page.screenshot({ path: join(dir8, `${look}-${from}-${dir > 0 ? "right" : "left"}-${String(i).padStart(2, "0")}.png`) });
+      console.log("turn", look, from, dir, i, "frames");
+    }
+}
+if (only === "plaque") {
+  // phase 2: the plaque at 0%, 60% and 100% (UPGRADE showing), and the level-up moment
+  const box = async () =>
+    page.evaluate(() => {
+      const d = window.ROOM.render.drawables.find((x) => x.statue && x.item.plaque);
+      const pl = d.item.plaque;
+      const r = window.ROOM.render.cssRectOf({ hit: [pl[0] - 40, pl[1] - 150, pl[2] + 80, pl[3] + 170], layer: d.layer });
+      return { x: Math.max(0, r.left), y: Math.max(0, r.top), width: r.width, height: Math.min(800 - Math.max(0, r.top), r.height) };
+    });
+  for (const [name, score] of [["0", 40.0], ["60", 40.6], ["100", 41.3]]) {
+    await open(`${LOOKS.golden}&level=40&score=${score}`);
+    await page.screenshot({ path: join(stills, `plaque-${name}.png`), clip: await box() });
+  }
+  await page.goto(`${page0}?${LOOKS.golden}&level=40&score=41.3&n=${Math.random()}#/room`);
+  await page.waitForFunction(() => window.ROOM && window.ROOM.debug);
+  await page.waitForTimeout(400);
+  await page.evaluate(() => { window.ROOM.debug.freeze(); window.ROOM.debug.advance(16); });
+  const clip = await box();
+  await page.locator(".statue-upgrade").click();
+  await page.evaluate(() => document.body.classList.add("photo"));
+  for (let i = 0; i < 9; i++) {
+    await page.evaluate(() => window.ROOM.debug.advance(160));
+    await page.screenshot({ path: join(stills, `levelup-${i}.png`), clip });
+  }
+  // a tier-crossing level-up (39 to 40): the armour changes under the gold band
+  await page.goto(`${page0}?${LOOKS.golden}&level=39&score=40.4&n=${Math.random()}#/room`);
+  await page.waitForFunction(() => window.ROOM && window.ROOM.debug);
+  await page.waitForTimeout(400);
+  await page.evaluate(() => { window.ROOM.debug.freeze(); window.ROOM.debug.advance(16); });
+  await page.locator(".statue-upgrade").click();
+  await page.evaluate(() => document.body.classList.add("photo"));
+  for (let i = 0; i < 12; i++) {
+    await page.evaluate(() => window.ROOM.debug.advance(200));
+    await page.screenshot({ path: join(stills, `tierup-${i}.png`), clip });
+  }
+  console.log("plaque, level-up, tier-up");
+}
 if (only === "all" || only === "fps") {
   const rows = [];
   for (const tier of ["ultra", "high", "medium", "low"]) {

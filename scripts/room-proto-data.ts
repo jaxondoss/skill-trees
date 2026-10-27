@@ -132,7 +132,7 @@ const data = {
   weekdayLabel: "TUE 20 OCT",
   dayType: "CLASS HEAVY",
   focusLine: "Win the morning",
-  overall: { score: Math.round(overall * 10) / 10, display: displayScore(overall), tier: tier.tier, numeral: tier.numeral, name: tier.name },
+  overall: { score: Math.round(overall * 10) / 10, display: displayScore(overall), tier: tier.tier, numeral: tier.numeral, name: tier.name, level: Math.floor(overall) },
   categories: categories.map((c) => ({ ...c, score: catScores[c.slug] === null ? null : Math.round((catScores[c.slug] as number) * 10) / 10 })),
   skills,
   goals,
@@ -146,7 +146,7 @@ const data = {
 const fresh = {
   ...data,
   label: "FRESH ACCOUNT (EMPTY LISTS)",
-  overall: { score: 15, display: 15, tier: 1, numeral: "I", name: "Raw" },
+  overall: { score: 15, display: 15, tier: 1, numeral: "I", name: "Raw", level: 15 },
   categories: categories.map((c) => ({ ...c, score: c.slug === "athletics" ? 15 : 15 })),
   skills: (skills as { status: string }[]).map((s) => ({ ...s, score: s.status === "active" ? 15 : 0, display: s.status === "active" ? 15 : 0, level: 0, consistency: 50, levelName: "foundation", neglected: false, steps: [], goals: [] })),
   goals: [],

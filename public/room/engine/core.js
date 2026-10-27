@@ -193,13 +193,31 @@
   if (query.get('motion') === '0') reduced = true;
   var day = parseDay(query.get('date') || ROOM.data.today) || new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
 
+  /* ------------------------------------------------------------------ the statue's level (v3.4) */
+  // The plaque shows progress from the level to the next; the level only rises when UPGRADE is pressed at 100%,
+  // and never drops. The knight's armour follows the level's tier: I..V from 0, 20, 40, 60, 80.
+  // Demo flags: ?score=40.6 (overall score) and ?level=40.
+  (function () {
+    var o = ROOM.data.overall;
+    if (!o) return;
+    if (query.has('score') && isFinite(+query.get('score'))) o.score = +query.get('score');
+    if (query.has('level') && isFinite(+query.get('level'))) o.level = Math.max(0, Math.min(100, Math.floor(+query.get('level'))));
+  })();
+  ROOM.levelOf = function () {
+    var o = ROOM.data.overall || {};
+    return o.level != null ? o.level : Math.max(0, Math.min(100, Math.floor(+o.score || 0)));
+  };
+  ROOM.tierOfLevel = function (level) {
+    return Math.max(1, Math.min(5, 1 + Math.floor(level / 20)));
+  };
+
   ROOM.state = {
     zone: null,
     view: 'front', // which of the four views is on screen (see ROOM.turn)
     night: query.has('night') ? query.get('night') === '1' : hour >= 22 || hour < 5,
     season: ROOM.seasonOf(day),
     holiday: ROOM.holidayOf(day),
-    roomTier: query.has('tier') ? +query.get('tier') : (ROOM.data.overall && ROOM.data.overall.tier) || 1,
+    roomTier: query.has('tier') ? +query.get('tier') : ROOM.tierOfLevel(ROOM.levelOf()),
     reducedMotion: reduced,
     muted: false,
     inspect: false,
@@ -217,11 +235,11 @@
     ledOverrides: {}, // skill slug -> 'off'|'pending'|'half'|'full'|'blink' (demo drawer)
   };
 
-  // The room tier follows data.overall.tier, unless something (the drawer, ?tier=) set it by hand.
-  // When the data's own tier changes, it wins again.
-  var lastDataTier = ROOM.data.overall && ROOM.data.overall.tier;
+  // The room tier follows the statue level's tier, unless something (the drawer, ?tier=) set it by hand.
+  // When the level's tier changes, it wins again.
+  var lastDataTier = ROOM.tierOfLevel(ROOM.levelOf());
   ROOM.on('data', function () {
-    var t = ROOM.data.overall && ROOM.data.overall.tier;
+    var t = ROOM.tierOfLevel(ROOM.levelOf());
     if (t !== lastDataTier) {
       lastDataTier = t;
       if (t) ROOM.state.roomTier = t;

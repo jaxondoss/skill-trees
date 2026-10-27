@@ -192,6 +192,12 @@
     "feature": "overall"
    },
    "label": "FORGE",
+   "plaque": [
+    128,
+    273,
+    72,
+    8
+   ],
    "led": [
     204,
     290
@@ -1767,7 +1773,7 @@
    "x": 0,
    "y": -59,
    "w": 556,
-   "h": 383,
+   "h": 345,
    "variants": {
     "base": "art-r6/front/window/plants-sway.base.png",
     "night": "art-r6/front/window/plants-sway.night.png"
@@ -2879,7 +2885,7 @@
    "x": 0,
    "y": -39,
    "w": 556,
-   "h": 333,
+   "h": 332,
    "variants": {
     "base": "art-r6/right/gym/plants-sway.base.png",
     "night": "art-r6/right/gym/plants-sway.night.png"

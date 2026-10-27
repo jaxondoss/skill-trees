@@ -168,3 +168,21 @@ do $$ begin
 end $$;
 commit;
 \echo 'Integration table checks passed'
+
+-- The statue level only goes up.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', 'cccccccc-0000-0000-0000-000000000003', true) \g /dev/null
+do $$ begin
+  update public.profiles set statue_level = 40;
+  update public.profiles set statue_level = 41;
+  assert (select statue_level from public.profiles) = 41, 'statue level raised';
+  begin
+    update public.profiles set statue_level = 40;
+    raise exception 'statue level dropped';
+  exception when sqlstate 'P0001' then
+    if sqlerrm not like 'The statue level never drops%' then raise; end if;
+  end;
+end $$;
+commit;
+\echo 'Statue level checks passed'

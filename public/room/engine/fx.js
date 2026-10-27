@@ -8,7 +8,7 @@
  *   the one slow pulse.
  * - Screens drawn after the LUT: the Today CRT (dim amber, blinking cursor until the first log, then
  *   today's bar), the stats CRT (alternates the overall score "72 OVR" and the streak with a flame),
- *   the statue plaque (5 tier pips and the in-tier bar).
+ *   (the statue plaque moved to engine/statue.js).
  * - Dust on neglected skills: the object one step darker plus BROWN_2/ROSE_0 speckles on its top edge.
  * - Light motes for the logging loop (row -> LED -> statue), queued, never blocking input.
  * - The statue's gold pulse: palette cycling GOLD_DK > GOLD > SUN on its GOLD pixels.
@@ -225,18 +225,7 @@
         if (str.length < 3) glyph(f, gx2, sy + 7, 'D', C.GOLD, false);
       }
     }
-    if (it.plaque && d.statue && ROOM.data.overall) {
-      var pl = it.plaque, px0 = pl[0] + ox, py0 = pl[1] + oy;
-      var tier = Math.max(1, Math.min(5, ROOM.data.overall.tier || 1));
-      var disp = ROOM.data.overall.display || 0;
-      var into = tier >= 5 ? Math.min(1, (disp - 80) / 20) : Math.max(0, Math.min(1, (disp - (tier - 1) * 20) / 20));
-      for (var i = 0; i < 5; i++)
-        for (var a = 0; a < 3; a++)
-          for (var b = 0; b < 2; b++) R.plot(f, px0 + 4 + i * 4 + a, py0 + 8 + b, i < tier ? C.GOLD : C.INK);
-      var bx0 = px0 + 25, bw2 = pl[2] - 29, bf = Math.round(bw2 * into);
-      for (var e = 0; e < bw2; e++)
-        for (var g2 = 0; g2 < 2; g2++) R.plot(f, bx0 + e, py0 + 8 + g2, e < bf ? C.GOLD : C.INK);
-    }
+    // the statue plaque is engine/statue.js (level, progress bar, UPGRADE)
   }
 
   /* ------------------------------------------------------------------ dust */

@@ -3,8 +3,11 @@
 import { refresh } from "next/cache";
 import { computeStreak } from "@/engine/completion";
 import { scheduledToday, swapCandidate } from "@/engine/goalEngine";
+import { MAX_LEVEL, canUpgrade } from "@/engine/statue";
 import type { Tier } from "@/engine/types";
 import { loadGoals, loadProfile, loadUserContext, todayFor } from "@/lib/data/context";
+import { loadDashboardContext } from "@/lib/data/dashboard";
+import { loadStatueLevel } from "@/lib/data/statue";
 import { createClient } from "@/lib/supabase/server";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -242,4 +245,24 @@ export async function getDayDetail(day: string): Promise<DayDetail> {
       color: color.get(skill.get(g.skill_id)?.category_id ?? "") ?? "#8E8A84",
     })),
   };
+}
+
+/**
+ * UPGRADE on the statue's plaque: raises the level by one when the overall score has reached the next level.
+ * `from` is the level the room showed; a stale room is refused instead of skipping a level.
+ */
+export async function upgradeStatue(from: number): Promise<ActionResult> {
+  if (!Number.isInteger(from) || from < 0 || from >= MAX_LEVEL) return fail("Unknown level.");
+  const { data } = await loadDashboardContext();
+  const supabase = await createClient();
+  const uid = await userId(supabase);
+  if (!uid) return fail("Sign in again.");
+  const { level, stored } = await loadStatueLevel(supabase, data.overall.score);
+  if (!stored) return fail("The statue level needs migration 0012.");
+  if (level !== from) return fail("The statue changed. Reload the room.");
+  if (!canUpgrade(data.overall.score, level)) return fail("Not there yet. Keep going.");
+  const { error } = await supabase.from("profiles").update({ statue_level: level + 1 }).eq("user_id", uid).eq("statue_level", level);
+  if (error) return fail(error.message);
+  refresh();
+  return { ok: true };
 }
