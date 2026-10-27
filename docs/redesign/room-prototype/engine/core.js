@@ -45,37 +45,72 @@
     return null;
   };
 
-  /* ------------------------------------------------------------------ views (art pass 5) */
-  // The room has three views: main (the knight and the window), left (bed, kitchen), right (desks, gym).
-  // Items carry "view" (default main) and zones their view; zones.json views.<v> holds each view's frame
-  // (art, core, horizon) and its smooth light. Art without views (older bundles) is all "main".
-  ROOM.VIEWS = ['left', 'main', 'right'];
+  /* ------------------------------------------------------------------ views (art pass 6) */
+  // One square room seen from its centre: four 90 degree views, front (the knight and the window), right (desks,
+  // gym), back (the calendar wall), left (bed, kitchen). Turning right cycles front, right, back, left. Items carry
+  // "view" and zones their view; zones.json views.<v> holds each view's frame (art, core, horizon, vp, yaw, f) and
+  // its lighting. Older bundles: "main" is the front view, and a bundle without views is all front.
+  ROOM.VIEWS = ['front', 'right', 'back', 'left'];
+  function normView(v) {
+    return !v || v === 'main' ? 'front' : v;
+  }
+  ROOM.normView = normView;
   ROOM.viewOf = function (thing) {
-    return (thing && thing.view) || 'main';
+    return normView(thing && thing.view);
   };
   /** The frame and light of a view (falls back to the top-level zones.json frame). */
   ROOM.viewConf = function (v) {
     var Z = ROOM.art.zones || {};
-    return (Z.views && Z.views[v]) || Z;
+    var V = Z.views || {};
+    v = normView(v);
+    return V[v] || (v === 'front' && V.main) || Z;
+  };
+  /** The views this bundle has, in turning order. */
+  ROOM.viewList = function () {
+    var V = (ROOM.art.zones || {}).views || {};
+    var out = ROOM.VIEWS.filter(function (v) {
+      return !!V[v] || (v === 'front' && !!V.main);
+    });
+    return out.length ? out : ['front'];
   };
   ROOM.hasViews = function () {
-    var Z = ROOM.art.zones || {};
-    return !!(Z.views && Z.views.left && Z.views.right);
+    return ROOM.viewList().length > 1;
   };
   /** Zones that live in a view (default: the current one). */
   ROOM.zonesInView = function (v) {
-    v = v || (ROOM.state && ROOM.state.view) || 'main';
+    v = normView(v || (ROOM.state && ROOM.state.view));
     return ROOM.zones.filter(function (z) {
       return ROOM.viewOf(z) === v;
     });
   };
-  /** The view a turn in direction dir (-1 left, +1 right) leads to from view v, or null. */
+  /** The view a turn in direction dir (-1 left, +1 right) leads to from view v, or null. A four-view room
+   *  wraps around; an older three-view bundle (left, main, right) stops at the side views. */
   ROOM.viewToward = function (v, dir) {
-    if (!ROOM.hasViews()) return null;
-    if (v === 'main') return dir < 0 ? 'left' : 'right';
-    if (v === 'left' && dir > 0) return 'main';
-    if (v === 'right' && dir < 0) return 'main';
-    return null;
+    var list = ROOM.viewList();
+    if (list.length < 2) return null;
+    v = normView(v);
+    var i = list.indexOf(v);
+    if (i < 0) return null;
+    if (list.length === 4) return list[(i + (dir > 0 ? 1 : 3)) % 4];
+    // three views (front, right, left): left - front - right
+    var line = ['left', 'front', 'right'].filter(function (x) {
+      return list.indexOf(x) >= 0;
+    });
+    var j = line.indexOf(v) + (dir > 0 ? 1 : -1);
+    return j >= 0 && j < line.length ? line[j] : null;
+  };
+  /** Turning direction (+1 right, -1 left) of the shortest turn from view a to view b (0 when equal). */
+  ROOM.turnDir = function (a, b) {
+    a = normView(a);
+    b = normView(b);
+    if (a === b) return 0;
+    var list = ROOM.viewList();
+    if (list.length === 4) {
+      var d = (list.indexOf(b) - list.indexOf(a) + 4) % 4;
+      return d === 3 ? -1 : 1;
+    }
+    var line = ['left', 'front', 'right'];
+    return line.indexOf(b) > line.indexOf(a) ? 1 : -1;
   };
 
   // Colour name -> palette index, and index -> name.
@@ -160,7 +195,7 @@
 
   ROOM.state = {
     zone: null,
-    view: 'main', // which of the three views is on screen (see ROOM.turn)
+    view: 'front', // which of the four views is on screen (see ROOM.turn)
     night: query.has('night') ? query.get('night') === '1' : hour >= 22 || hour < 5,
     season: ROOM.seasonOf(day),
     holiday: ROOM.holidayOf(day),

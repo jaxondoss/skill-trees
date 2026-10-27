@@ -451,7 +451,7 @@
     smoothPools = [];
     // Lamp pools: the lit zone at full strength; at night, completion sets how many lamps are on.
     var lz = litZone();
-    if (lz && ROOM.viewOf && ROOM.viewOf(zoneOf(lz)) !== (ROOM.state.view || 'main')) lz = null; // lamp in another view
+    if (lz && ROOM.viewOf && ROOM.viewOf(zoneOf(lz)) !== ROOM.normView(ROOM.state.view)) lz = null; // lamp in another view
     if (lz !== lamp.zone) lamp = { zone: lz, t0: now };
     var zones = ROOM.zonesInView ? ROOM.zonesInView() : ROOM.zones;
     if (ROOM.state.night) {

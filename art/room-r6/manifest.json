@@ -1,0 +1,3877 @@
+{
+ "part": "room-r6",
+ "items": [
+  {
+   "id": "shell.sky",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 0,
+   "x": 246,
+   "y": 58,
+   "w": 200,
+   "h": 154,
+   "variants": {
+    "base": "art-r6/front/shell/sky.base.png",
+    "night": "art-r6/front/shell/sky.night.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "shell.outside",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 1,
+   "x": 246,
+   "y": 61,
+   "w": 200,
+   "h": 152,
+   "variants": {
+    "base": "art-r6/front/shell/outside.base.png",
+    "night": "art-r6/front/shell/outside.night.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "shell.window",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 224,
+   "y": 48,
+   "w": 244,
+   "h": 186,
+   "variants": {
+    "base": "art-r6/front/shell/window.base.png",
+    "night": "art-r6/front/shell/window.base.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "shell.l2",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 556,
+   "h": 268,
+   "variants": {
+    "base": "art-r6/front/shell/l2.base.png",
+    "night": "art-r6/front/shell/l2.base.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "shell.l3",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": -104,
+   "w": 556,
+   "h": 117,
+   "variants": {
+    "base": "art-r6/front/shell/l3.base.png",
+    "night": "art-r6/front/shell/l3.night.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "shell.l4",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/shell/l4.base.png",
+    "night": "art-r6/front/shell/l4.base.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "shell.l5",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": 268,
+   "w": 556,
+   "h": 188,
+   "variants": {
+    "base": "art-r6/front/shell/l5.base.png",
+    "night": "art-r6/front/shell/l5.base.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "shell.front-margin",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 5,
+   "x": -122,
+   "y": -104,
+   "w": 800,
+   "h": 560,
+   "variants": {
+    "base": "art-r6/front/shell/front-margin.base.png",
+    "night": "art-r6/front/shell/front-margin.night.png"
+   },
+   "view": "front",
+   "note": "the neighbour views' pixels beyond 45 degrees"
+  },
+  {
+   "id": "shell.front-strings",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 5,
+   "x": 0,
+   "y": -104,
+   "w": 556,
+   "h": 127,
+   "variants": {
+    "base": "art-r6/front/shell/front-strings.base.png",
+    "night": "art-r6/front/shell/front-strings.night.png"
+   },
+   "view": "front",
+   "note": "strings of bulbs along the beams",
+   "castsShadow": false
+  },
+  {
+   "id": "shell.front-hangers",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 5,
+   "x": 11,
+   "y": -59,
+   "w": 494,
+   "h": 99,
+   "variants": {
+    "base": "art-r6/front/shell/front-hangers.base.png"
+   },
+   "view": "front",
+   "note": "hanging plants",
+   "castsShadow": false
+  },
+  {
+   "id": "shell.front-corners",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 3,
+   "x": 0,
+   "y": 122,
+   "w": 556,
+   "h": 164,
+   "variants": {
+    "base": "art-r6/front/shell/front-corners.base.png"
+   },
+   "view": "front",
+   "note": "the corner pieces this view shares with its neighbours"
+  },
+  {
+   "id": "window.statue",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 121,
+   "y": 111,
+   "w": 98,
+   "h": 183,
+   "variants": {
+    "t1": "art-r6/front/window/statue.t1.png",
+    "t2": "art-r6/front/window/statue.t2.png",
+    "t3": "art-r6/front/window/statue.t3.png",
+    "t4": "art-r6/front/window/statue.t4.png",
+    "t5": "art-r6/front/window/statue.t5.png",
+    "base": "art-r6/front/window/statue.t1.png"
+   },
+   "view": "front",
+   "target": {
+    "feature": "overall"
+   },
+   "label": "FORGE",
+   "led": [
+    204,
+    290
+   ],
+   "hit": [
+    121,
+    111,
+    98,
+    183
+   ],
+   "note": "the knight on its rune pedestal; plaque shows the tier name"
+  },
+  {
+   "id": "window.tapestry",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 141,
+   "y": 34,
+   "w": 84,
+   "h": 152,
+   "variants": {
+    "base": "art-r6/front/window/tapestry.base.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "library.sign",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 470,
+   "y": 35,
+   "w": 44,
+   "h": 16,
+   "variants": {
+    "base": "art-r6/front/library/sign.base.png",
+    "t1": "art-r6/front/library/sign.base.png",
+    "t5": "art-r6/front/library/sign.base.png"
+   },
+   "view": "front",
+   "note": "FORGE neon",
+   "castsShadow": false
+  },
+  {
+   "id": "window.relic",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 351,
+   "y": 35,
+   "w": 17,
+   "h": 15,
+   "variants": {
+    "base": "art-r6/front/window/relic.base.png",
+    "active": "art-r6/front/window/relic.active.png",
+    "hot": "art-r6/front/window/relic.hot.png",
+    "gold": "art-r6/front/window/relic.gold.png"
+   },
+   "view": "front",
+   "target": {
+    "feature": "relic-window"
+   },
+   "label": "RELIC",
+   "led": [
+    364,
+    46
+   ],
+   "hit": [
+    351,
+    35,
+    17,
+    15
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "window.candles",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 248,
+   "y": 204,
+   "w": 26,
+   "h": 9,
+   "variants": {
+    "base": "art-r6/front/window/candles.base.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "window.vinyl",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 3,
+   "x": 298,
+   "y": 234,
+   "w": 111,
+   "h": 52,
+   "variants": {
+    "base": "art-r6/front/window/vinyl.base.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "window.plant",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 218,
+   "y": 230,
+   "w": 17,
+   "h": 48,
+   "variants": {
+    "base": "art-r6/front/window/plant.base.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "window.today",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 304,
+   "y": 191,
+   "w": 61,
+   "h": 55,
+   "variants": {
+    "base": "art-r6/front/window/today.base.png"
+   },
+   "view": "front",
+   "target": {
+    "feature": "today"
+   },
+   "label": "TODAY",
+   "led": [
+    361,
+    242
+   ],
+   "hit": [
+    304,
+    191,
+    61,
+    55
+   ],
+   "screen": [
+    309,
+    199,
+    47,
+    42
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "window.stats",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 359,
+   "y": 204,
+   "w": 46,
+   "h": 41,
+   "variants": {
+    "base": "art-r6/front/window/stats.base.png"
+   },
+   "view": "front",
+   "target": {
+    "feature": "stats"
+   },
+   "label": "STATS",
+   "led": [
+    401,
+    241
+   ],
+   "hit": [
+    359,
+    204,
+    46,
+    41
+   ],
+   "screen": [
+    367,
+    211,
+    34,
+    29
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "window.rug",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 5,
+   "x": 0,
+   "y": 298,
+   "w": 213,
+   "h": 100,
+   "variants": {
+    "base": "art-r6/front/window/rug.base.png",
+    "t1": "art-r6/front/window/rug.base.png",
+    "t3": "art-r6/front/window/rug.base.png",
+    "t5": "art-r6/front/window/rug.base.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "library.chess",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 490,
+   "y": 214,
+   "w": 60,
+   "h": 87,
+   "variants": {
+    "s0": "art-r6/front/library/chess.s0.png",
+    "s1": "art-r6/front/library/chess.s1.png",
+    "s2": "art-r6/front/library/chess.s2.png",
+    "base": "art-r6/front/library/chess.s1.png"
+   },
+   "view": "front",
+   "target": {
+    "skill": "chess"
+   },
+   "label": "CHESS",
+   "led": [
+    524,
+    297
+   ],
+   "hit": [
+    490,
+    214,
+    60,
+    87
+   ]
+  },
+  {
+   "id": "window.chess-chairs",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/chess-chairs.base.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "bed.runner",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 4,
+   "x": 321,
+   "y": 312,
+   "w": 108,
+   "h": 25,
+   "variants": {
+    "base": "art-r6/front/bed/runner.base.png",
+    "t3": "art-r6/front/bed/runner.base.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "bed.cushion",
+   "zone": "window",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 363,
+   "y": 303,
+   "w": 54,
+   "h": 21,
+   "variants": {
+    "s0": "art-r6/front/bed/cushion.s0.png",
+    "s1": "art-r6/front/bed/cushion.s1.png",
+    "s2": "art-r6/front/bed/cushion.s2.png",
+    "base": "art-r6/front/bed/cushion.s1.png"
+   },
+   "view": "front",
+   "target": {
+    "skill": "meditation"
+   },
+   "label": "MEDITATION",
+   "led": [
+    380,
+    317
+   ],
+   "hit": [
+    363,
+    303,
+    54,
+    21
+   ]
+  },
+  {
+   "id": "study.pennant",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 468,
+   "y": 77,
+   "w": 65,
+   "h": 23,
+   "variants": {
+    "base": "art-r6/front/study/pennant.base.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "study.photo",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 477,
+   "y": 113,
+   "w": 32,
+   "h": 29,
+   "variants": {
+    "base": "art-r6/front/study/photo.base.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "library.pendant",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 26,
+   "y": -4,
+   "w": 17,
+   "h": 73,
+   "variants": {
+    "base": "art-r6/front/library/pendant.base.png",
+    "night": "art-r6/front/library/pendant.night.png",
+    "t1": "art-r6/front/library/pendant.base.png",
+    "t3": "art-r6/front/library/pendant.base.png",
+    "t5": "art-r6/front/library/pendant.base.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "study.pendant",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 508,
+   "y": -1,
+   "w": 17,
+   "h": 87,
+   "variants": {
+    "base": "art-r6/front/study/pendant.base.png",
+    "night": "art-r6/front/study/pendant.night.png",
+    "t1": "art-r6/front/study/pendant.base.png",
+    "t3": "art-r6/front/study/pendant.base.png",
+    "t5": "art-r6/front/study/pendant.base.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "library.bookshelf",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 4,
+   "y": 44,
+   "w": 108,
+   "h": 261,
+   "variants": {
+    "s0": "art-r6/front/library/bookshelf.s0.png",
+    "s1": "art-r6/front/library/bookshelf.s1.png",
+    "s2": "art-r6/front/library/bookshelf.s2.png",
+    "base": "art-r6/front/library/bookshelf.s1.png"
+   },
+   "view": "front",
+   "target": {
+    "skill": "reading"
+   },
+   "label": "READING",
+   "led": [
+    96,
+    271
+   ],
+   "hit": [
+    4,
+    44,
+    108,
+    261
+   ]
+  },
+  {
+   "id": "library.potions",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 4,
+   "y": 90,
+   "w": 13,
+   "h": 40,
+   "variants": {
+    "base": "art-r6/front/library/potions.base.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "library.archive",
+   "zone": "library",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 100,
+   "y": 161,
+   "w": 44,
+   "h": 120,
+   "variants": {
+    "base": "art-r6/front/library/archive.base.png"
+   },
+   "view": "front",
+   "target": {
+    "feature": "archive"
+   },
+   "label": "ARCHIVE",
+   "led": [
+    117,
+    277
+   ],
+   "hit": [
+    100,
+    161,
+    44,
+    120
+   ]
+  },
+  {
+   "id": "library.books-floor",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 3,
+   "x": 94,
+   "y": 275,
+   "w": 12,
+   "h": 18,
+   "variants": {
+    "base": "art-r6/front/library/books-floor.base.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "window.skylight",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/skylight.base.png",
+    "night": "art-r6/front/window/skylight.night.png",
+    "t1": "art-r6/front/window/skylight.base.png",
+    "t2": "art-r6/front/window/skylight.base.png",
+    "t3": "art-r6/front/window/skylight.base.png",
+    "t4": "art-r6/front/window/skylight.base.png",
+    "t5": "art-r6/front/window/skylight.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "window.downlight-fixture",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/downlight-fixture.base.png",
+    "t1": "art-r6/front/window/downlight-fixture.base.png",
+    "t2": "art-r6/front/window/downlight-fixture.base.png",
+    "t3": "art-r6/front/window/downlight-fixture.base.png",
+    "t4": "art-r6/front/window/downlight-fixture.base.png",
+    "t5": "art-r6/front/window/downlight-fixture.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "window.sill-plant",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/sill-plant.base.png",
+    "t1": "art-r6/front/window/sill-plant.base.png",
+    "t2": "art-r6/front/window/sill-plant.base.png",
+    "t3": "art-r6/front/window/sill-plant.base.png",
+    "t4": "art-r6/front/window/sill-plant.base.png",
+    "t5": "art-r6/front/window/sill-plant.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "window.sill-books",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/sill-books.base.png",
+    "t1": "art-r6/front/window/sill-books.base.png",
+    "t2": "art-r6/front/window/sill-books.base.png",
+    "t3": "art-r6/front/window/sill-books.base.png",
+    "t4": "art-r6/front/window/sill-books.base.png",
+    "t5": "art-r6/front/window/sill-books.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "window.sill-mug",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/sill-mug.base.png",
+    "t1": "art-r6/front/window/sill-mug.base.png",
+    "t2": "art-r6/front/window/sill-mug.base.png",
+    "t3": "art-r6/front/window/sill-mug.base.png",
+    "t4": "art-r6/front/window/sill-mug.base.png",
+    "t5": "art-r6/front/window/sill-mug.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "window.radiator",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/radiator.base.png",
+    "t1": "art-r6/front/window/radiator.base.png",
+    "t2": "art-r6/front/window/radiator.base.png",
+    "t3": "art-r6/front/window/radiator.base.png",
+    "t4": "art-r6/front/window/radiator.base.png",
+    "t5": "art-r6/front/window/radiator.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "window.plantwall",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/plantwall.base.png",
+    "t1": "art-r6/front/window/plantwall.base.png",
+    "t2": "art-r6/front/window/plantwall.base.png",
+    "t3": "art-r6/front/window/plantwall.base.png",
+    "t4": "art-r6/front/window/plantwall.base.png",
+    "t5": "art-r6/front/window/plantwall.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "window.amp",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/amp.base.png",
+    "t1": "art-r6/front/window/amp.base.png",
+    "t2": "art-r6/front/window/amp.base.png",
+    "t3": "art-r6/front/window/amp.base.png",
+    "t4": "art-r6/front/window/amp.base.png",
+    "t5": "art-r6/front/window/amp.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "window.speaker",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/speaker.base.png",
+    "t1": "art-r6/front/window/speaker.base.png",
+    "t2": "art-r6/front/window/speaker.base.png",
+    "t3": "art-r6/front/window/speaker.base.png",
+    "t4": "art-r6/front/window/speaker.base.png",
+    "t5": "art-r6/front/window/speaker.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "window.powerstrip",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/powerstrip.base.png",
+    "t1": "art-r6/front/window/powerstrip.base.png",
+    "t2": "art-r6/front/window/powerstrip.base.png",
+    "t3": "art-r6/front/window/powerstrip.base.png",
+    "t4": "art-r6/front/window/powerstrip.base.png",
+    "t5": "art-r6/front/window/powerstrip.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "window.cables-floor",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/cables-floor.base.png",
+    "t1": "art-r6/front/window/cables-floor.base.png",
+    "t2": "art-r6/front/window/cables-floor.base.png",
+    "t3": "art-r6/front/window/cables-floor.base.png",
+    "t4": "art-r6/front/window/cables-floor.base.png",
+    "t5": "art-r6/front/window/cables-floor.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "window.stringlights",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/stringlights.base.png",
+    "t1": "art-r6/front/window/stringlights.base.png",
+    "t2": "art-r6/front/window/stringlights.base.png",
+    "t3": "art-r6/front/window/stringlights.base.png",
+    "t4": "art-r6/front/window/stringlights.base.png",
+    "t5": "art-r6/front/window/stringlights.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "window.cables-ceiling",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/window/cables-ceiling.base.png",
+    "t1": "art-r6/front/window/cables-ceiling.base.png",
+    "t2": "art-r6/front/window/cables-ceiling.base.png",
+    "t3": "art-r6/front/window/cables-ceiling.base.png",
+    "t4": "art-r6/front/window/cables-ceiling.base.png",
+    "t5": "art-r6/front/window/cables-ceiling.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "library.stringlights",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/library/stringlights.base.png",
+    "t1": "art-r6/front/library/stringlights.base.png",
+    "t2": "art-r6/front/library/stringlights.base.png",
+    "t3": "art-r6/front/library/stringlights.base.png",
+    "t4": "art-r6/front/library/stringlights.base.png",
+    "t5": "art-r6/front/library/stringlights.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "study.stringlights",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/study/stringlights.base.png",
+    "t1": "art-r6/front/study/stringlights.base.png",
+    "t2": "art-r6/front/study/stringlights.base.png",
+    "t3": "art-r6/front/study/stringlights.base.png",
+    "t4": "art-r6/front/study/stringlights.base.png",
+    "t5": "art-r6/front/study/stringlights.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.pothos",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/kitchen/pothos.base.png",
+    "t1": "art-r6/front/kitchen/pothos.base.png",
+    "t2": "art-r6/front/kitchen/pothos.base.png",
+    "t3": "art-r6/front/kitchen/pothos.base.png",
+    "t4": "art-r6/front/kitchen/pothos.base.png",
+    "t5": "art-r6/front/kitchen/pothos.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "library.pothos",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/library/pothos.base.png",
+    "t1": "art-r6/front/library/pothos.base.png",
+    "t2": "art-r6/front/library/pothos.base.png",
+    "t3": "art-r6/front/library/pothos.base.png",
+    "t4": "art-r6/front/library/pothos.base.png",
+    "t5": "art-r6/front/library/pothos.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "study.pothos",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/study/pothos.base.png",
+    "t1": "art-r6/front/study/pothos.base.png",
+    "t2": "art-r6/front/study/pothos.base.png",
+    "t3": "art-r6/front/study/pothos.base.png",
+    "t4": "art-r6/front/study/pothos.base.png",
+    "t5": "art-r6/front/study/pothos.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "library.bookcase",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/library/bookcase.base.png",
+    "t1": "art-r6/front/library/bookcase.base.png",
+    "t2": "art-r6/front/library/bookcase.base.png",
+    "t3": "art-r6/front/library/bookcase.base.png",
+    "t4": "art-r6/front/library/bookcase.base.png",
+    "t5": "art-r6/front/library/bookcase.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "library.shelf-plant",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/library/shelf-plant.base.png",
+    "t1": "art-r6/front/library/shelf-plant.base.png",
+    "t2": "art-r6/front/library/shelf-plant.base.png",
+    "t3": "art-r6/front/library/shelf-plant.base.png",
+    "t4": "art-r6/front/library/shelf-plant.base.png",
+    "t5": "art-r6/front/library/shelf-plant.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "library.globe",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/library/globe.base.png",
+    "t1": "art-r6/front/library/globe.base.png",
+    "t2": "art-r6/front/library/globe.base.png",
+    "t3": "art-r6/front/library/globe.base.png",
+    "t4": "art-r6/front/library/globe.base.png",
+    "t5": "art-r6/front/library/globe.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "library.snakeplant",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/library/snakeplant.base.png",
+    "t1": "art-r6/front/library/snakeplant.base.png",
+    "t2": "art-r6/front/library/snakeplant.base.png",
+    "t3": "art-r6/front/library/snakeplant.base.png",
+    "t4": "art-r6/front/library/snakeplant.base.png",
+    "t5": "art-r6/front/library/snakeplant.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "library.clock",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/library/clock.base.png",
+    "t1": "art-r6/front/library/clock.base.png",
+    "t2": "art-r6/front/library/clock.base.png",
+    "t3": "art-r6/front/library/clock.base.png",
+    "t4": "art-r6/front/library/clock.base.png",
+    "t5": "art-r6/front/library/clock.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "library.poster",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/library/poster.base.png",
+    "t1": "art-r6/front/library/poster.base.png",
+    "t2": "art-r6/front/library/poster.base.png",
+    "t3": "art-r6/front/library/poster.base.png",
+    "t4": "art-r6/front/library/poster.base.png",
+    "t5": "art-r6/front/library/poster.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "library.armchair",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/library/armchair.base.png",
+    "t1": "art-r6/front/library/armchair.base.png",
+    "t2": "art-r6/front/library/armchair.base.png",
+    "t3": "art-r6/front/library/armchair.base.png",
+    "t4": "art-r6/front/library/armchair.base.png",
+    "t5": "art-r6/front/library/armchair.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "library.floorlamp",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/library/floorlamp.base.png",
+    "t1": "art-r6/front/library/floorlamp.base.png",
+    "t2": "art-r6/front/library/floorlamp.base.png",
+    "t3": "art-r6/front/library/floorlamp.base.png",
+    "t4": "art-r6/front/library/floorlamp.base.png",
+    "t5": "art-r6/front/library/floorlamp.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "library.stool",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/library/stool.base.png",
+    "t1": "art-r6/front/library/stool.base.png",
+    "t2": "art-r6/front/library/stool.base.png",
+    "t3": "art-r6/front/library/stool.base.png",
+    "t4": "art-r6/front/library/stool.base.png",
+    "t5": "art-r6/front/library/stool.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "study.shelf",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/study/shelf.base.png",
+    "t1": "art-r6/front/study/shelf.base.png",
+    "t2": "art-r6/front/study/shelf.base.png",
+    "t3": "art-r6/front/study/shelf.base.png",
+    "t4": "art-r6/front/study/shelf.base.png",
+    "t5": "art-r6/front/study/shelf.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "study.speaker",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/study/speaker.base.png",
+    "t1": "art-r6/front/study/speaker.base.png",
+    "t2": "art-r6/front/study/speaker.base.png",
+    "t3": "art-r6/front/study/speaker.base.png",
+    "t4": "art-r6/front/study/speaker.base.png",
+    "t5": "art-r6/front/study/speaker.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "study.clock",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/study/clock.base.png",
+    "t1": "art-r6/front/study/clock.base.png",
+    "t2": "art-r6/front/study/clock.base.png",
+    "t3": "art-r6/front/study/clock.base.png",
+    "t4": "art-r6/front/study/clock.base.png",
+    "t5": "art-r6/front/study/clock.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "study.bin",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/study/bin.base.png",
+    "t1": "art-r6/front/study/bin.base.png",
+    "t2": "art-r6/front/study/bin.base.png",
+    "t3": "art-r6/front/study/bin.base.png",
+    "t4": "art-r6/front/study/bin.base.png",
+    "t5": "art-r6/front/study/bin.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.pendant",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/kitchen/pendant.base.png",
+    "night": "art-r6/front/kitchen/pendant.night.png",
+    "t1": "art-r6/front/kitchen/pendant.base.png",
+    "t2": "art-r6/front/kitchen/pendant.base.png",
+    "t3": "art-r6/front/kitchen/pendant.base.png",
+    "t4": "art-r6/front/kitchen/pendant.base.png",
+    "t5": "art-r6/front/kitchen/pendant.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.spices",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/kitchen/spices.base.png",
+    "t1": "art-r6/front/kitchen/spices.base.png",
+    "t2": "art-r6/front/kitchen/spices.base.png",
+    "t3": "art-r6/front/kitchen/spices.base.png",
+    "t4": "art-r6/front/kitchen/spices.base.png",
+    "t5": "art-r6/front/kitchen/spices.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.board",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/kitchen/board.base.png",
+    "t1": "art-r6/front/kitchen/board.base.png",
+    "t2": "art-r6/front/kitchen/board.base.png",
+    "t3": "art-r6/front/kitchen/board.base.png",
+    "t4": "art-r6/front/kitchen/board.base.png",
+    "t5": "art-r6/front/kitchen/board.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "bed.charger",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/bed/charger.base.png",
+    "t1": "art-r6/front/bed/charger.base.png",
+    "t2": "art-r6/front/bed/charger.base.png",
+    "t3": "art-r6/front/bed/charger.base.png",
+    "t4": "art-r6/front/bed/charger.base.png",
+    "t5": "art-r6/front/bed/charger.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "bed.slippers",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/bed/slippers.base.png",
+    "t1": "art-r6/front/bed/slippers.base.png",
+    "t2": "art-r6/front/bed/slippers.base.png",
+    "t3": "art-r6/front/bed/slippers.base.png",
+    "t4": "art-r6/front/bed/slippers.base.png",
+    "t5": "art-r6/front/bed/slippers.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "bed.hamper",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/bed/hamper.base.png",
+    "t1": "art-r6/front/bed/hamper.base.png",
+    "t2": "art-r6/front/bed/hamper.base.png",
+    "t3": "art-r6/front/bed/hamper.base.png",
+    "t4": "art-r6/front/bed/hamper.base.png",
+    "t5": "art-r6/front/bed/hamper.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "bed.stringlights",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/bed/stringlights.base.png",
+    "night": "art-r6/front/bed/stringlights.night.png",
+    "t1": "art-r6/front/bed/stringlights.base.png",
+    "t2": "art-r6/front/bed/stringlights.base.png",
+    "t3": "art-r6/front/bed/stringlights.base.png",
+    "t4": "art-r6/front/bed/stringlights.base.png",
+    "t5": "art-r6/front/bed/stringlights.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "computer.router",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/computer/router.base.png",
+    "t1": "art-r6/front/computer/router.base.png",
+    "t2": "art-r6/front/computer/router.base.png",
+    "t3": "art-r6/front/computer/router.base.png",
+    "t4": "art-r6/front/computer/router.base.png",
+    "t5": "art-r6/front/computer/router.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "computer.speakers",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/computer/speakers.base.png",
+    "t1": "art-r6/front/computer/speakers.base.png",
+    "t2": "art-r6/front/computer/speakers.base.png",
+    "t3": "art-r6/front/computer/speakers.base.png",
+    "t4": "art-r6/front/computer/speakers.base.png",
+    "t5": "art-r6/front/computer/speakers.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "computer.can",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/computer/can.base.png",
+    "t1": "art-r6/front/computer/can.base.png",
+    "t2": "art-r6/front/computer/can.base.png",
+    "t3": "art-r6/front/computer/can.base.png",
+    "t4": "art-r6/front/computer/can.base.png",
+    "t5": "art-r6/front/computer/can.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "computer.cables",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/computer/cables.base.png",
+    "t1": "art-r6/front/computer/cables.base.png",
+    "t2": "art-r6/front/computer/cables.base.png",
+    "t3": "art-r6/front/computer/cables.base.png",
+    "t4": "art-r6/front/computer/cables.base.png",
+    "t5": "art-r6/front/computer/cables.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "computer.mug",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/computer/mug.base.png",
+    "t1": "art-r6/front/computer/mug.base.png",
+    "t2": "art-r6/front/computer/mug.base.png",
+    "t3": "art-r6/front/computer/mug.base.png",
+    "t4": "art-r6/front/computer/mug.base.png",
+    "t5": "art-r6/front/computer/mug.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "gym.light",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/gym/light.base.png",
+    "night": "art-r6/front/gym/light.night.png",
+    "t1": "art-r6/front/gym/light.base.png",
+    "t2": "art-r6/front/gym/light.base.png",
+    "t3": "art-r6/front/gym/light.base.png",
+    "t4": "art-r6/front/gym/light.base.png",
+    "t5": "art-r6/front/gym/light.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "gym.rope",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/gym/rope.base.png",
+    "t1": "art-r6/front/gym/rope.base.png",
+    "t2": "art-r6/front/gym/rope.base.png",
+    "t3": "art-r6/front/gym/rope.base.png",
+    "t4": "art-r6/front/gym/rope.base.png",
+    "t5": "art-r6/front/gym/rope.base.png"
+   },
+   "view": "front",
+   "note": "placeholder: an earlier room's id with no piece in this room",
+   "castsShadow": false
+  },
+  {
+   "id": "shell.crop.speaker",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/shell/crop.speaker.base.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "shell.crop.boxes",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/shell/crop.boxes.base.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "shell.crop.plant",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/shell/crop.plant.base.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "shell.crop.cables",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 6,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/front/shell/crop.cables.base.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "window.crt-flicker",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 4,
+   "x": 7,
+   "y": 272,
+   "w": 507,
+   "h": 44,
+   "variants": {
+    "base": "art-r6/front/window/crt-flicker.base.png",
+    "night": "art-r6/front/window/crt-flicker.night.png"
+   },
+   "view": "front",
+   "anim": {
+    "frames": [
+     "art-r6/front/window/crt-flicker.base.png",
+     "art-r6/front/window/crt-flicker.base.png",
+     "art-r6/front/window/crt-flicker.f1.png",
+     "art-r6/front/window/crt-flicker.base.png",
+     "art-r6/front/window/crt-flicker.f2.png",
+     "art-r6/front/window/crt-flicker.base.png",
+     "art-r6/front/window/crt-flicker.base.png",
+     "art-r6/front/window/crt-flicker.f1.png"
+    ],
+    "night": [
+     "art-r6/front/window/crt-flicker.night.png",
+     "art-r6/front/window/crt-flicker.night.png",
+     "art-r6/front/window/crt-flicker.n1.png",
+     "art-r6/front/window/crt-flicker.night.png",
+     "art-r6/front/window/crt-flicker.n2.png",
+     "art-r6/front/window/crt-flicker.night.png",
+     "art-r6/front/window/crt-flicker.night.png",
+     "art-r6/front/window/crt-flicker.n1.png"
+    ],
+    "fps": 8
+   },
+   "note": "moving light (crt): anim frames over the base"
+  },
+  {
+   "id": "library.potions-bubbles",
+   "zone": "library",
+   "kind": "decor",
+   "layer": 4,
+   "x": 7,
+   "y": 87,
+   "w": 507,
+   "h": 229,
+   "variants": {
+    "base": "art-r6/front/library/potions-bubbles.base.png",
+    "night": "art-r6/front/library/potions-bubbles.night.png"
+   },
+   "view": "front",
+   "anim": {
+    "frames": [
+     "art-r6/front/library/potions-bubbles.base.png",
+     "art-r6/front/library/potions-bubbles.f1.png",
+     "art-r6/front/library/potions-bubbles.f2.png"
+    ],
+    "night": [
+     "art-r6/front/library/potions-bubbles.night.png",
+     "art-r6/front/library/potions-bubbles.n1.png",
+     "art-r6/front/library/potions-bubbles.n2.png"
+    ],
+    "fps": 3
+   },
+   "note": "moving light (potions): anim frames over the base"
+  },
+  {
+   "id": "window.candle",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 4,
+   "x": 7,
+   "y": 272,
+   "w": 507,
+   "h": 44,
+   "variants": {
+    "base": "art-r6/front/window/candle.base.png",
+    "night": "art-r6/front/window/candle.night.png"
+   },
+   "view": "front",
+   "anim": {
+    "frames": [
+     "art-r6/front/window/candle.base.png",
+     "art-r6/front/window/candle.f1.png",
+     "art-r6/front/window/candle.base.png",
+     "art-r6/front/window/candle.f2.png",
+     "art-r6/front/window/candle.f1.png",
+     "art-r6/front/window/candle.base.png"
+    ],
+    "night": [
+     "art-r6/front/window/candle.night.png",
+     "art-r6/front/window/candle.n1.png",
+     "art-r6/front/window/candle.night.png",
+     "art-r6/front/window/candle.n2.png",
+     "art-r6/front/window/candle.n1.png",
+     "art-r6/front/window/candle.night.png"
+    ],
+    "fps": 6
+   },
+   "note": "moving light (candle): anim frames over the base"
+  },
+  {
+   "id": "window.plants-sway",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 5,
+   "x": 0,
+   "y": -59,
+   "w": 556,
+   "h": 383,
+   "variants": {
+    "base": "art-r6/front/window/plants-sway.base.png",
+    "night": "art-r6/front/window/plants-sway.night.png"
+   },
+   "view": "front",
+   "anim": {
+    "frames": [
+     "art-r6/front/window/plants-sway.base.png",
+     "art-r6/front/window/plants-sway.f1.png",
+     "art-r6/front/window/plants-sway.f2.png",
+     "art-r6/front/window/plants-sway.f3.png"
+    ],
+    "night": [
+     "art-r6/front/window/plants-sway.night.png",
+     "art-r6/front/window/plants-sway.n1.png",
+     "art-r6/front/window/plants-sway.n2.png",
+     "art-r6/front/window/plants-sway.n3.png"
+    ],
+    "fps": 2
+   },
+   "note": "moving light (sway): anim frames over the base"
+  },
+  {
+   "id": "centre.dog",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 4,
+   "x": 419,
+   "y": 348,
+   "w": 39,
+   "h": 18,
+   "variants": {
+    "base": "art-r6/front/centre/dog.base.png",
+    "alert": "art-r6/front/centre/dog.alert.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "window.clouds",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 0,
+   "x": 188,
+   "y": 63,
+   "w": 251,
+   "h": 121,
+   "variants": {
+    "base": "art-r6/front/window/clouds.base.png",
+    "night": "art-r6/front/window/clouds.night.png"
+   },
+   "view": "front",
+   "castsShadow": false,
+   "drift": {
+    "mode": "wrap",
+    "speed": 2.0,
+    "span": 277,
+    "clip": [
+     242,
+     58,
+     208,
+     155
+    ]
+   },
+   "material": "sky"
+  },
+  {
+   "id": "window.birds",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 0,
+   "x": 193,
+   "y": 86,
+   "w": 22,
+   "h": 8,
+   "variants": {
+    "base": "art-r6/front/window/birds.base.png",
+    "night": "art-r6/front/window/birds.night.png"
+   },
+   "view": "front",
+   "castsShadow": false,
+   "anim": {
+    "frames": [
+     "art-r6/front/window/birds.base.png",
+     "art-r6/front/window/birds.f1.png"
+    ],
+    "fps": 4
+   },
+   "drift": {
+    "mode": "pass",
+    "period": 23.0,
+    "phase": 0.45,
+    "span": 267,
+    "ampY": 6,
+    "freqY": 7,
+    "clip": [
+     242,
+     58,
+     208,
+     155
+    ]
+   },
+   "material": "sky"
+  },
+  {
+   "id": "window.tram",
+   "zone": "window",
+   "kind": "decor",
+   "layer": 1,
+   "x": 202,
+   "y": 183,
+   "w": 35,
+   "h": 25,
+   "variants": {
+    "base": "art-r6/front/window/tram.base.png",
+    "night": "art-r6/front/window/tram.night.png"
+   },
+   "view": "front",
+   "castsShadow": false,
+   "drift": {
+    "mode": "pass",
+    "period": 18.0,
+    "phase": 0.43,
+    "span": 287,
+    "ampY": 0,
+    "freqY": 0,
+    "clip": [
+     242,
+     58,
+     208,
+     155
+    ]
+   },
+   "material": "metal_painted"
+  },
+  {
+   "id": "window.statue-downlight",
+   "zone": "window",
+   "kind": "overlay",
+   "layer": 4,
+   "x": 7,
+   "y": 272,
+   "w": 507,
+   "h": 44,
+   "variants": {
+    "base": "art-r6/front/window/statue-downlight.base.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "window.statue-closeup",
+   "zone": "window",
+   "kind": "overlay",
+   "layer": 6,
+   "x": 112,
+   "y": 46,
+   "w": 140,
+   "h": 270,
+   "variants": {
+    "t1": "art-r6/front/window/statue-closeup.t1.png",
+    "t2": "art-r6/front/window/statue-closeup.t2.png",
+    "t3": "art-r6/front/window/statue-closeup.t3.png",
+    "t4": "art-r6/front/window/statue-closeup.t4.png",
+    "t5": "art-r6/front/window/statue-closeup.t5.png",
+    "base": "art-r6/front/window/statue-closeup.t1.png"
+   },
+   "view": "front"
+  },
+  {
+   "id": "library.on",
+   "zone": "library",
+   "kind": "overlay",
+   "layer": 3,
+   "x": 64,
+   "y": 160,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r6/front/library/on.base.png",
+    "night": "art-r6/front/library/on.night.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "window.on",
+   "zone": "window",
+   "kind": "overlay",
+   "layer": 2,
+   "x": 332,
+   "y": 218,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r6/front/window/on.base.png",
+    "night": "art-r6/front/window/on.night.png"
+   },
+   "view": "front",
+   "castsShadow": false
+  },
+  {
+   "id": "shell.right-l2",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 556,
+   "h": 268,
+   "variants": {
+    "base": "art-r6/right/shell/right-l2.base.png",
+    "night": "art-r6/right/shell/right-l2.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "shell.right-l3",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": -104,
+   "w": 556,
+   "h": 118,
+   "variants": {
+    "base": "art-r6/right/shell/right-l3.base.png",
+    "night": "art-r6/right/shell/right-l3.night.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "shell.right-l4",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/right/shell/right-l4.base.png",
+    "night": "art-r6/right/shell/right-l4.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "shell.right-l5",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": 268,
+   "w": 556,
+   "h": 188,
+   "variants": {
+    "base": "art-r6/right/shell/right-l5.base.png",
+    "night": "art-r6/right/shell/right-l5.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "shell.right-margin",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 5,
+   "x": -122,
+   "y": -104,
+   "w": 800,
+   "h": 560,
+   "variants": {
+    "base": "art-r6/right/shell/right-margin.base.png",
+    "night": "art-r6/right/shell/right-margin.night.png"
+   },
+   "view": "right",
+   "note": "the neighbour views' pixels beyond 45 degrees"
+  },
+  {
+   "id": "shell.right-strings",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 5,
+   "x": 0,
+   "y": -88,
+   "w": 140,
+   "h": 106,
+   "variants": {
+    "base": "art-r6/right/shell/right-strings.base.png",
+    "night": "art-r6/right/shell/right-strings.night.png"
+   },
+   "view": "right",
+   "note": "strings of bulbs along the beams",
+   "castsShadow": false
+  },
+  {
+   "id": "shell.right-hangers",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 5,
+   "x": 208,
+   "y": -39,
+   "w": 344,
+   "h": 100,
+   "variants": {
+    "base": "art-r6/right/shell/right-hangers.base.png"
+   },
+   "view": "right",
+   "note": "hanging plants",
+   "castsShadow": false
+  },
+  {
+   "id": "gym.plant",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 3,
+   "x": 0,
+   "y": 122,
+   "w": 556,
+   "h": 163,
+   "variants": {
+    "base": "art-r6/right/gym/plant.base.png"
+   },
+   "view": "right",
+   "note": "the corner pieces this view shares with its neighbours"
+  },
+  {
+   "id": "study.academics",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 54,
+   "y": 117,
+   "w": 44,
+   "h": 49,
+   "variants": {
+    "s0": "art-r6/right/study/academics.s0.png",
+    "s1": "art-r6/right/study/academics.s1.png",
+    "s2": "art-r6/right/study/academics.s2.png",
+    "alert": "art-r6/right/study/academics.alert.png",
+    "base": "art-r6/right/study/academics.s1.png"
+   },
+   "view": "right",
+   "target": {
+    "skill": "academics"
+   },
+   "label": "ACADEMICS",
+   "led": [
+    94,
+    162
+   ],
+   "hit": [
+    54,
+    117,
+    44,
+    49
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "study.time",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 103,
+   "y": 112,
+   "w": 25,
+   "h": 52,
+   "variants": {
+    "s0": "art-r6/right/study/time.s0.png",
+    "s1": "art-r6/right/study/time.s1.png",
+    "s2": "art-r6/right/study/time.s2.png",
+    "base": "art-r6/right/study/time.s1.png"
+   },
+   "view": "right",
+   "target": {
+    "skill": "time-blocking"
+   },
+   "label": "TIME BLOCKING",
+   "led": [
+    124,
+    160
+   ],
+   "hit": [
+    103,
+    112,
+    25,
+    52
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "study.desk",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 5,
+   "y": 217,
+   "w": 119,
+   "h": 76,
+   "variants": {
+    "base": "art-r6/right/study/desk.base.png",
+    "t1": "art-r6/right/study/desk.base.png",
+    "t3": "art-r6/right/study/desk.base.png",
+    "t5": "art-r6/right/study/desk.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "study.lamp",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 44,
+   "y": 200,
+   "w": 21,
+   "h": 23,
+   "variants": {
+    "base": "art-r6/right/study/lamp.base.png",
+    "night": "art-r6/right/study/lamp.night.png",
+    "t1": "art-r6/right/study/lamp.base.png",
+    "t2": "art-r6/right/study/lamp.base.png",
+    "t5": "art-r6/right/study/lamp.base.png"
+   },
+   "view": "right",
+   "castsShadow": false
+  },
+  {
+   "id": "study.courses",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 72,
+   "y": 208,
+   "w": 25,
+   "h": 13,
+   "variants": {
+    "base": "art-r6/right/study/courses.base.png"
+   },
+   "view": "right",
+   "target": {
+    "feature": "courses"
+   },
+   "label": "COURSES",
+   "led": [
+    93,
+    211
+   ],
+   "hit": [
+    72,
+    208,
+    25,
+    13
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "study.journal",
+   "zone": "study",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 59,
+   "y": 223,
+   "w": 17,
+   "h": 6,
+   "variants": {
+    "base": "art-r6/right/study/journal.base.png"
+   },
+   "view": "right",
+   "target": {
+    "feature": "journal"
+   },
+   "label": "JOURNAL",
+   "led": [
+    72,
+    224
+   ],
+   "hit": [
+    59,
+    221,
+    17,
+    11
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "study.mug",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 91,
+   "y": 210,
+   "w": 7,
+   "h": 14,
+   "variants": {
+    "base": "art-r6/right/study/mug.base.png"
+   },
+   "view": "right",
+   "castsShadow": false
+  },
+  {
+   "id": "study.headphones",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 102,
+   "y": 212,
+   "w": 9,
+   "h": 10,
+   "variants": {
+    "base": "art-r6/right/study/headphones.base.png"
+   },
+   "view": "right",
+   "castsShadow": false
+  },
+  {
+   "id": "study.chair",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 4,
+   "x": 18,
+   "y": 220,
+   "w": 23,
+   "h": 89,
+   "variants": {
+    "base": "art-r6/right/study/chair.base.png",
+    "t1": "art-r6/right/study/chair.base.png",
+    "t3": "art-r6/right/study/chair.base.png",
+    "t5": "art-r6/right/study/chair.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "study.backpack",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 3,
+   "x": 100,
+   "y": 262,
+   "w": 19,
+   "h": 24,
+   "variants": {
+    "base": "art-r6/right/study/backpack.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "study.plant",
+   "zone": "study",
+   "kind": "decor",
+   "layer": 2,
+   "x": 1,
+   "y": 240,
+   "w": 5,
+   "h": 12,
+   "variants": {
+    "base": "art-r6/right/study/plant.base.png"
+   },
+   "view": "right",
+   "castsShadow": false
+  },
+  {
+   "id": "computer.board",
+   "zone": "computer",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 133,
+   "y": 91,
+   "w": 108,
+   "h": 79,
+   "variants": {
+    "s0": "art-r6/right/computer/board.s0.png",
+    "s1": "art-r6/right/computer/board.s1.png",
+    "s2": "art-r6/right/computer/board.s2.png",
+    "base": "art-r6/right/computer/board.s1.png"
+   },
+   "view": "right",
+   "target": {
+    "skill": "dropshipping"
+   },
+   "label": "DROPSHIPPING",
+   "led": [
+    237,
+    166
+   ],
+   "hit": [
+    133,
+    91,
+    108,
+    79
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "computer.shelf",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 136,
+   "y": 54,
+   "w": 85,
+   "h": 28,
+   "variants": {
+    "base": "art-r6/right/computer/shelf.base.png"
+   },
+   "view": "right",
+   "castsShadow": false
+  },
+  {
+   "id": "computer.desk",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 107,
+   "y": 215,
+   "w": 124,
+   "h": 82,
+   "variants": {
+    "base": "art-r6/right/computer/desk.base.png",
+    "t1": "art-r6/right/computer/desk.base.png",
+    "t3": "art-r6/right/computer/desk.base.png",
+    "t5": "art-r6/right/computer/desk.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "computer.led",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 128,
+   "y": 235,
+   "w": 37,
+   "h": 51,
+   "variants": {
+    "base": "art-r6/right/computer/led.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "computer.ai",
+   "zone": "computer",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 132,
+   "y": 172,
+   "w": 89,
+   "h": 56,
+   "variants": {
+    "base": "art-r6/right/computer/ai.base.png",
+    "s0": "art-r6/right/computer/ai.base.png",
+    "s1": "art-r6/right/computer/ai.base.png",
+    "s2": "art-r6/right/computer/ai.base.png"
+   },
+   "view": "right",
+   "target": {
+    "skill": "ai-building"
+   },
+   "label": "AI BUILDING",
+   "led": [
+    217,
+    207
+   ],
+   "hit": [
+    132,
+    172,
+    89,
+    56
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "computer.focus",
+   "zone": "computer",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 134,
+   "y": 170,
+   "w": 6,
+   "h": 5,
+   "variants": {
+    "base": "art-r6/right/computer/focus.base.png"
+   },
+   "view": "right",
+   "target": {
+    "feature": "focus"
+   },
+   "label": "FOCUS",
+   "led": [
+    136,
+    171
+   ],
+   "hit": [
+    132,
+    167,
+    11,
+    11
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "computer.headset",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 202,
+   "y": 222,
+   "w": 17,
+   "h": 7,
+   "variants": {
+    "base": "art-r6/right/computer/headset.base.png"
+   },
+   "view": "right",
+   "castsShadow": false
+  },
+  {
+   "id": "computer.money",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 2,
+   "x": 287,
+   "y": 235,
+   "w": 32,
+   "h": 34,
+   "variants": {
+    "g0": "art-r6/right/computer/money.g0.png",
+    "g1": "art-r6/right/computer/money.g1.png",
+    "g2": "art-r6/right/computer/money.g2.png",
+    "g3": "art-r6/right/computer/money.g3.png",
+    "base": "art-r6/right/computer/money.g2.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "computer.chair",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 4,
+   "x": 135,
+   "y": 211,
+   "w": 33,
+   "h": 104,
+   "variants": {
+    "base": "art-r6/right/computer/chair.base.png",
+    "t1": "art-r6/right/computer/chair.base.png",
+    "t3": "art-r6/right/computer/chair.base.png",
+    "t5": "art-r6/right/computer/chair.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "computer.boxes",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 229,
+   "y": 228,
+   "w": 30,
+   "h": 57,
+   "variants": {
+    "base": "art-r6/right/computer/boxes.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "gym.mat",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 275,
+   "y": 269,
+   "w": 281,
+   "h": 81,
+   "variants": {
+    "base": "art-r6/right/gym/mat.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "gym.timer",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 296,
+   "y": 71,
+   "w": 56,
+   "h": 19,
+   "variants": {
+    "base": "art-r6/right/gym/timer.base.png"
+   },
+   "view": "right",
+   "castsShadow": false
+  },
+  {
+   "id": "gym.trophies",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 367,
+   "y": 97,
+   "w": 93,
+   "h": 35,
+   "variants": {
+    "base": "art-r6/right/gym/trophies.base.png",
+    "t1": "art-r6/right/gym/trophies.base.png",
+    "t3": "art-r6/right/gym/trophies.base.png",
+    "t5": "art-r6/right/gym/trophies.base.png"
+   },
+   "view": "right",
+   "castsShadow": false
+  },
+  {
+   "id": "gym.medals",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 324,
+   "y": 103,
+   "w": 130,
+   "h": 55,
+   "variants": {
+    "g0": "art-r6/right/gym/medals.g0.png",
+    "g1": "art-r6/right/gym/medals.g1.png",
+    "g2": "art-r6/right/gym/medals.g2.png",
+    "g3": "art-r6/right/gym/medals.g3.png",
+    "base": "art-r6/right/gym/medals.g2.png"
+   },
+   "view": "right",
+   "castsShadow": false
+  },
+  {
+   "id": "gym.tiles",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 2,
+   "x": 467,
+   "y": 89,
+   "w": 40,
+   "h": 69,
+   "variants": {
+    "base": "art-r6/right/gym/tiles.base.png",
+    "t1": "art-r6/right/gym/tiles.base.png",
+    "t3": "art-r6/right/gym/tiles.base.png",
+    "t5": "art-r6/right/gym/tiles.base.png"
+   },
+   "view": "right",
+   "castsShadow": false
+  },
+  {
+   "id": "gym.relic",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 514,
+   "y": 112,
+   "w": 33,
+   "h": 32,
+   "variants": {
+    "base": "art-r6/right/gym/relic.base.png",
+    "active": "art-r6/right/gym/relic.active.png",
+    "hot": "art-r6/right/gym/relic.hot.png",
+    "gold": "art-r6/right/gym/relic.gold.png"
+   },
+   "view": "right",
+   "target": {
+    "feature": "relic-right"
+   },
+   "label": "RELIC",
+   "led": [
+    543,
+    134
+   ],
+   "hit": [
+    514,
+    112,
+    33,
+    32
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "gym.strength",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 3,
+   "x": 258,
+   "y": 127,
+   "w": 136,
+   "h": 167,
+   "variants": {
+    "s0": "art-r6/right/gym/strength.s0.png",
+    "s1": "art-r6/right/gym/strength.s1.png",
+    "s2": "art-r6/right/gym/strength.s2.png",
+    "base": "art-r6/right/gym/strength.s1.png"
+   },
+   "view": "right",
+   "target": {
+    "skill": "strength"
+   },
+   "label": "STRENGTH",
+   "led": [
+    364,
+    290
+   ],
+   "hit": [
+    258,
+    127,
+    136,
+    167
+   ]
+  },
+  {
+   "id": "gym.kettlebell",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 3,
+   "x": 370,
+   "y": 268,
+   "w": 38,
+   "h": 15,
+   "variants": {
+    "base": "art-r6/right/gym/kettlebell.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "gym.chalk",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 3,
+   "x": 379,
+   "y": 294,
+   "w": 11,
+   "h": 13,
+   "variants": {
+    "base": "art-r6/right/gym/chalk.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "gym.running",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 397,
+   "y": 216,
+   "w": 63,
+   "h": 64,
+   "variants": {
+    "base": "art-r6/right/gym/running.base.png",
+    "s0": "art-r6/right/gym/running.base.png",
+    "s1": "art-r6/right/gym/running.base.png",
+    "s2": "art-r6/right/gym/running.base.png"
+   },
+   "view": "right",
+   "target": {
+    "skill": "running"
+   },
+   "label": "RUNNING",
+   "led": [
+    456,
+    276
+   ],
+   "hit": [
+    397,
+    216,
+    63,
+    64
+   ]
+  },
+  {
+   "id": "gym.bag",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 3,
+   "x": 440,
+   "y": 282,
+   "w": 27,
+   "h": 18,
+   "variants": {
+    "base": "art-r6/right/gym/bag.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "gym.bike",
+   "zone": "gym",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 431,
+   "y": 206,
+   "w": 101,
+   "h": 72,
+   "variants": {
+    "base": "art-r6/right/gym/bike.base.png",
+    "awake": "art-r6/right/gym/bike.awake.png",
+    "s0": "art-r6/right/gym/bike.base.png",
+    "s1": "art-r6/right/gym/bike.base.png",
+    "s2": "art-r6/right/gym/bike.base.png"
+   },
+   "view": "right",
+   "target": {
+    "skill": "triathlon"
+   },
+   "label": "TRIATHLON",
+   "led": [
+    525,
+    266
+   ],
+   "hit": [
+    431,
+    206,
+    101,
+    72
+   ]
+  },
+  {
+   "id": "gym.roller",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 4,
+   "x": 313,
+   "y": 313,
+   "w": 31,
+   "h": 9,
+   "variants": {
+    "base": "art-r6/right/gym/roller.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "gym.bottle",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 3,
+   "x": 490,
+   "y": 285,
+   "w": 7,
+   "h": 14,
+   "variants": {
+    "base": "art-r6/right/gym/bottle.base.png"
+   },
+   "view": "right"
+  },
+  {
+   "id": "computer.terminal",
+   "zone": "computer",
+   "kind": "decor",
+   "layer": 3,
+   "x": 136,
+   "y": 175,
+   "w": 391,
+   "h": 119,
+   "variants": {
+    "base": "art-r6/right/computer/terminal.base.png",
+    "night": "art-r6/right/computer/terminal.night.png"
+   },
+   "view": "right",
+   "anim": {
+    "frames": [
+     "art-r6/right/computer/terminal.base.png",
+     "art-r6/right/computer/terminal.f1.png",
+     "art-r6/right/computer/terminal.f2.png",
+     "art-r6/right/computer/terminal.f3.png"
+    ],
+    "night": [
+     "art-r6/right/computer/terminal.night.png",
+     "art-r6/right/computer/terminal.n1.png",
+     "art-r6/right/computer/terminal.n2.png",
+     "art-r6/right/computer/terminal.n3.png"
+    ],
+    "fps": 3
+   },
+   "note": "moving light (terminal): anim frames over the base"
+  },
+  {
+   "id": "gym.timer-led",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 3,
+   "x": 284,
+   "y": 74,
+   "w": 243,
+   "h": 220,
+   "variants": {
+    "base": "art-r6/right/gym/timer-led.base.png",
+    "night": "art-r6/right/gym/timer-led.night.png"
+   },
+   "view": "right",
+   "anim": {
+    "frames": [
+     "art-r6/right/gym/timer-led.base.png",
+     "art-r6/right/gym/timer-led.f1.png",
+     "art-r6/right/gym/timer-led.f2.png",
+     "art-r6/right/gym/timer-led.f3.png"
+    ],
+    "night": [
+     "art-r6/right/gym/timer-led.night.png",
+     "art-r6/right/gym/timer-led.n1.png",
+     "art-r6/right/gym/timer-led.n2.png",
+     "art-r6/right/gym/timer-led.n3.png"
+    ],
+    "fps": 2
+   },
+   "note": "moving light (timer): anim frames over the base"
+  },
+  {
+   "id": "gym.plants-sway",
+   "zone": "gym",
+   "kind": "decor",
+   "layer": 5,
+   "x": 0,
+   "y": -39,
+   "w": 556,
+   "h": 333,
+   "variants": {
+    "base": "art-r6/right/gym/plants-sway.base.png",
+    "night": "art-r6/right/gym/plants-sway.night.png"
+   },
+   "view": "right",
+   "anim": {
+    "frames": [
+     "art-r6/right/gym/plants-sway.base.png",
+     "art-r6/right/gym/plants-sway.f1.png",
+     "art-r6/right/gym/plants-sway.f2.png",
+     "art-r6/right/gym/plants-sway.f3.png"
+    ],
+    "night": [
+     "art-r6/right/gym/plants-sway.night.png",
+     "art-r6/right/gym/plants-sway.n1.png",
+     "art-r6/right/gym/plants-sway.n2.png",
+     "art-r6/right/gym/plants-sway.n3.png"
+    ],
+    "fps": 2
+   },
+   "note": "moving light (sway): anim frames over the base"
+  },
+  {
+   "id": "study.on",
+   "zone": "study",
+   "kind": "overlay",
+   "layer": 2,
+   "x": 56,
+   "y": 207,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r6/right/study/on.base.png",
+    "night": "art-r6/right/study/on.night.png"
+   },
+   "view": "right",
+   "castsShadow": false
+  },
+  {
+   "id": "computer.on",
+   "zone": "computer",
+   "kind": "overlay",
+   "layer": 2,
+   "x": 175,
+   "y": 192,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r6/right/computer/on.base.png",
+    "night": "art-r6/right/computer/on.night.png"
+   },
+   "view": "right",
+   "castsShadow": false
+  },
+  {
+   "id": "gym.on",
+   "zone": "gym",
+   "kind": "overlay",
+   "layer": 2,
+   "x": 323,
+   "y": 80,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r6/right/gym/on.base.png",
+    "night": "art-r6/right/gym/on.night.png"
+   },
+   "view": "right",
+   "castsShadow": false
+  },
+  {
+   "id": "shell.back-l2",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 556,
+   "h": 268,
+   "variants": {
+    "base": "art-r6/back/shell/back-l2.base.png",
+    "night": "art-r6/back/shell/back-l2.base.png"
+   },
+   "view": "back"
+  },
+  {
+   "id": "shell.back-l3",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": -104,
+   "w": 556,
+   "h": 117,
+   "variants": {
+    "base": "art-r6/back/shell/back-l3.base.png",
+    "night": "art-r6/back/shell/back-l3.night.png"
+   },
+   "view": "back"
+  },
+  {
+   "id": "shell.back-l4",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/back/shell/back-l4.base.png",
+    "night": "art-r6/back/shell/back-l4.base.png"
+   },
+   "view": "back"
+  },
+  {
+   "id": "shell.back-l5",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": 268,
+   "w": 556,
+   "h": 188,
+   "variants": {
+    "base": "art-r6/back/shell/back-l5.base.png",
+    "night": "art-r6/back/shell/back-l5.base.png"
+   },
+   "view": "back"
+  },
+  {
+   "id": "shell.back-margin",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 5,
+   "x": -122,
+   "y": -104,
+   "w": 800,
+   "h": 560,
+   "variants": {
+    "base": "art-r6/back/shell/back-margin.base.png",
+    "night": "art-r6/back/shell/back-margin.night.png"
+   },
+   "view": "back",
+   "note": "the neighbour views' pixels beyond 45 degrees"
+  },
+  {
+   "id": "shell.back-strings",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 5,
+   "x": 136,
+   "y": -104,
+   "w": 285,
+   "h": 123,
+   "variants": {
+    "base": "art-r6/back/shell/back-strings.base.png",
+    "night": "art-r6/back/shell/back-strings.night.png"
+   },
+   "view": "back",
+   "note": "strings of bulbs along the beams",
+   "castsShadow": false
+  },
+  {
+   "id": "shell.back-hangers",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 5,
+   "x": 311,
+   "y": -29,
+   "w": 13,
+   "h": 74,
+   "variants": {
+    "base": "art-r6/back/shell/back-hangers.base.png"
+   },
+   "view": "back",
+   "note": "hanging plants",
+   "castsShadow": false
+  },
+  {
+   "id": "shell.back-corners",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 3,
+   "x": 0,
+   "y": 169,
+   "w": 556,
+   "h": 117,
+   "variants": {
+    "base": "art-r6/back/shell/back-corners.base.png"
+   },
+   "view": "back",
+   "note": "the corner pieces this view shares with its neighbours"
+  },
+  {
+   "id": "shell.back-sway",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 5,
+   "x": 0,
+   "y": -29,
+   "w": 556,
+   "h": 315,
+   "variants": {
+    "base": "art-r6/back/shell/back-sway.base.png",
+    "night": "art-r6/back/shell/back-sway.night.png"
+   },
+   "view": "back",
+   "anim": {
+    "frames": [
+     "art-r6/back/shell/back-sway.base.png",
+     "art-r6/back/shell/back-sway.f1.png",
+     "art-r6/back/shell/back-sway.f2.png",
+     "art-r6/back/shell/back-sway.f3.png"
+    ],
+    "night": [
+     "art-r6/back/shell/back-sway.night.png",
+     "art-r6/back/shell/back-sway.n1.png",
+     "art-r6/back/shell/back-sway.n2.png",
+     "art-r6/back/shell/back-sway.n3.png"
+    ],
+    "fps": 2
+   },
+   "note": "moving light (sway): anim frames over the base"
+  },
+  {
+   "id": "shell.left-l2",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 556,
+   "h": 268,
+   "variants": {
+    "base": "art-r6/left/shell/left-l2.base.png",
+    "night": "art-r6/left/shell/left-l2.base.png"
+   },
+   "view": "left"
+  },
+  {
+   "id": "shell.left-l3",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": -104,
+   "w": 556,
+   "h": 118,
+   "variants": {
+    "base": "art-r6/left/shell/left-l3.base.png",
+    "night": "art-r6/left/shell/left-l3.night.png"
+   },
+   "view": "left"
+  },
+  {
+   "id": "shell.left-l4",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": 0,
+   "w": 1,
+   "h": 1,
+   "variants": {
+    "base": "art-r6/left/shell/left-l4.base.png",
+    "night": "art-r6/left/shell/left-l4.base.png"
+   },
+   "view": "left"
+  },
+  {
+   "id": "shell.left-l5",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 2,
+   "x": 0,
+   "y": 268,
+   "w": 556,
+   "h": 188,
+   "variants": {
+    "base": "art-r6/left/shell/left-l5.base.png",
+    "night": "art-r6/left/shell/left-l5.base.png"
+   },
+   "view": "left"
+  },
+  {
+   "id": "shell.left-margin",
+   "zone": "shell",
+   "kind": "shell",
+   "layer": 5,
+   "x": -122,
+   "y": -104,
+   "w": 800,
+   "h": 560,
+   "variants": {
+    "base": "art-r6/left/shell/left-margin.base.png",
+    "night": "art-r6/left/shell/left-margin.night.png"
+   },
+   "view": "left",
+   "note": "the neighbour views' pixels beyond 45 degrees"
+  },
+  {
+   "id": "shell.left-strings",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 5,
+   "x": 417,
+   "y": -87,
+   "w": 139,
+   "h": 105,
+   "variants": {
+    "base": "art-r6/left/shell/left-strings.base.png",
+    "night": "art-r6/left/shell/left-strings.night.png"
+   },
+   "view": "left",
+   "note": "strings of bulbs along the beams",
+   "castsShadow": false
+  },
+  {
+   "id": "shell.left-hangers",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 5,
+   "x": 61,
+   "y": -29,
+   "w": 262,
+   "h": 94,
+   "variants": {
+    "base": "art-r6/left/shell/left-hangers.base.png"
+   },
+   "view": "left",
+   "note": "hanging plants",
+   "castsShadow": false
+  },
+  {
+   "id": "shell.left-corners",
+   "zone": "shell",
+   "kind": "decor",
+   "layer": 3,
+   "x": 0,
+   "y": 143,
+   "w": 556,
+   "h": 143,
+   "variants": {
+    "base": "art-r6/left/shell/left-corners.base.png"
+   },
+   "view": "left",
+   "note": "the corner pieces this view shares with its neighbours"
+  },
+  {
+   "id": "bed.frame",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 4,
+   "x": 322,
+   "y": 197,
+   "w": 205,
+   "h": 118,
+   "variants": {
+    "base": "art-r6/left/bed/frame.base.png",
+    "t1": "art-r6/left/bed/frame.base.png",
+    "t2": "art-r6/left/bed/frame.base.png",
+    "t5": "art-r6/left/bed/frame.base.png"
+   },
+   "view": "left"
+  },
+  {
+   "id": "bed.bed",
+   "zone": "bed",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 478,
+   "y": 226,
+   "w": 12,
+   "h": 9,
+   "variants": {
+    "base": "art-r6/left/bed/bed.base.png",
+    "s0": "art-r6/left/bed/bed.base.png",
+    "s1": "art-r6/left/bed/bed.base.png",
+    "s2": "art-r6/left/bed/bed.base.png"
+   },
+   "view": "left",
+   "target": {
+    "skill": "sleep"
+   },
+   "label": "SLEEP",
+   "led": [
+    486,
+    231
+   ],
+   "hit": [
+    478,
+    225,
+    12,
+    11
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "bed.nightstand",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 3,
+   "x": 465,
+   "y": 229,
+   "w": 50,
+   "h": 54,
+   "variants": {
+    "base": "art-r6/left/bed/nightstand.base.png"
+   },
+   "view": "left"
+  },
+  {
+   "id": "bed.shelf",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 334,
+   "y": 142,
+   "w": 55,
+   "h": 42,
+   "variants": {
+    "base": "art-r6/left/bed/shelf.base.png"
+   },
+   "view": "left",
+   "castsShadow": false
+  },
+  {
+   "id": "bed.globe",
+   "zone": "bed",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 363,
+   "y": 130,
+   "w": 15,
+   "h": 16,
+   "variants": {
+    "base": "art-r6/left/bed/globe.base.png",
+    "s0": "art-r6/left/bed/globe.base.png",
+    "s1": "art-r6/left/bed/globe.base.png",
+    "s2": "art-r6/left/bed/globe.base.png"
+   },
+   "view": "left",
+   "target": {
+    "skill": "visualization"
+   },
+   "label": "VISUALIZATION",
+   "led": [
+    371,
+    142
+   ],
+   "hit": [
+    363,
+    130,
+    15,
+    16
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "bed.sconce",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 488,
+   "y": 223,
+   "w": 7,
+   "h": 10,
+   "variants": {
+    "base": "art-r6/left/bed/sconce.base.png",
+    "night": "art-r6/left/bed/sconce.night.png"
+   },
+   "view": "left",
+   "castsShadow": false
+  },
+  {
+   "id": "bed.poster",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 385,
+   "y": 125,
+   "w": 55,
+   "h": 45,
+   "variants": {
+    "base": "art-r6/left/bed/poster.base.png",
+    "t1": "art-r6/left/bed/poster.base.png",
+    "t3": "art-r6/left/bed/poster.base.png",
+    "t5": "art-r6/left/bed/poster.base.png"
+   },
+   "view": "left",
+   "castsShadow": false
+  },
+  {
+   "id": "bed.rug",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 4,
+   "x": 283,
+   "y": 269,
+   "w": 251,
+   "h": 60,
+   "variants": {
+    "base": "art-r6/left/bed/rug.base.png"
+   },
+   "view": "left"
+  },
+  {
+   "id": "kitchen.microwave",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 259,
+   "y": 143,
+   "w": 59,
+   "h": 154,
+   "variants": {
+    "base": "art-r6/left/kitchen/microwave.base.png"
+   },
+   "view": "left"
+  },
+  {
+   "id": "kitchen.table",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 168,
+   "y": 139,
+   "w": 79,
+   "h": 29,
+   "variants": {
+    "base": "art-r6/left/kitchen/table.base.png",
+    "t1": "art-r6/left/kitchen/table.base.png",
+    "t3": "art-r6/left/kitchen/table.base.png",
+    "t5": "art-r6/left/kitchen/table.base.png"
+   },
+   "view": "left",
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.switch",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 171,
+   "y": 157,
+   "w": 72,
+   "h": 2,
+   "variants": {
+    "base": "art-r6/left/kitchen/switch.base.png",
+    "night": "art-r6/left/kitchen/switch.night.png"
+   },
+   "view": "left",
+   "note": "the under-shelf light strip",
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.door",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 264,
+   "y": 91,
+   "w": 47,
+   "h": 43,
+   "variants": {
+    "s0": "art-r6/left/kitchen/door.s0.png",
+    "s1": "art-r6/left/kitchen/door.s1.png",
+    "s2": "art-r6/left/kitchen/door.s2.png",
+    "base": "art-r6/left/kitchen/door.s1.png"
+   },
+   "view": "left",
+   "target": {
+    "skill": "college-integration"
+   },
+   "label": "COLLEGE INTEGRATION",
+   "led": [
+    307,
+    130
+   ],
+   "hit": [
+    264,
+    91,
+    47,
+    43
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.doormat",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 163,
+   "y": 207,
+   "w": 16,
+   "h": 10,
+   "variants": {
+    "base": "art-r6/left/kitchen/doormat.base.png",
+    "alert": "art-r6/left/kitchen/doormat.alert.png"
+   },
+   "view": "left",
+   "target": {
+    "feature": "review"
+   },
+   "label": "REVIEW",
+   "led": [
+    174,
+    213
+   ],
+   "hit": [
+    163,
+    207,
+    16,
+    11
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.settings",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 149,
+   "y": 181,
+   "w": 11,
+   "h": 21,
+   "variants": {
+    "base": "art-r6/left/kitchen/settings.base.png"
+   },
+   "view": "left",
+   "target": {
+    "feature": "settings"
+   },
+   "label": "SETTINGS",
+   "led": [
+    156,
+    198
+   ],
+   "hit": [
+    149,
+    181,
+    11,
+    21
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.relic",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 219,
+   "y": 89,
+   "w": 28,
+   "h": 31,
+   "variants": {
+    "base": "art-r6/left/kitchen/relic.base.png",
+    "active": "art-r6/left/kitchen/relic.active.png",
+    "hot": "art-r6/left/kitchen/relic.hot.png",
+    "gold": "art-r6/left/kitchen/relic.gold.png"
+   },
+   "view": "left",
+   "target": {
+    "feature": "relic-left"
+   },
+   "label": "RELIC",
+   "led": [
+    243,
+    114
+   ],
+   "hit": [
+    219,
+    89,
+    28,
+    31
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.counter",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 145,
+   "y": 177,
+   "w": 115,
+   "h": 116,
+   "variants": {
+    "base": "art-r6/left/kitchen/counter.base.png",
+    "t1": "art-r6/left/kitchen/counter.base.png",
+    "t3": "art-r6/left/kitchen/counter.base.png",
+    "t5": "art-r6/left/kitchen/counter.base.png"
+   },
+   "view": "left"
+  },
+  {
+   "id": "kitchen.food",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 186,
+   "y": 201,
+   "w": 21,
+   "h": 16,
+   "variants": {
+    "s0": "art-r6/left/kitchen/food.s0.png",
+    "s1": "art-r6/left/kitchen/food.s1.png",
+    "s2": "art-r6/left/kitchen/food.s2.png",
+    "base": "art-r6/left/kitchen/food.s1.png"
+   },
+   "view": "left",
+   "target": {
+    "skill": "food"
+   },
+   "label": "FOOD",
+   "led": [
+    200,
+    213
+   ],
+   "hit": [
+    186,
+    201,
+    21,
+    16
+   ],
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.water",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 216,
+   "y": 198,
+   "w": 9,
+   "h": 18,
+   "variants": {
+    "g0": "art-r6/left/kitchen/water.g0.png",
+    "g1": "art-r6/left/kitchen/water.g1.png",
+    "g2": "art-r6/left/kitchen/water.g2.png",
+    "g3": "art-r6/left/kitchen/water.g3.png",
+    "base": "art-r6/left/kitchen/water.g2.png"
+   },
+   "view": "left",
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.kettle",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 237,
+   "y": 197,
+   "w": 18,
+   "h": 19,
+   "variants": {
+    "base": "art-r6/left/kitchen/kettle.base.png"
+   },
+   "view": "left",
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.gut",
+   "zone": "kitchen",
+   "kind": "hotspot",
+   "layer": 4,
+   "x": 96,
+   "y": 267,
+   "w": 89,
+   "h": 52,
+   "variants": {
+    "s0": "art-r6/left/kitchen/gut.s0.png",
+    "s1": "art-r6/left/kitchen/gut.s1.png",
+    "s2": "art-r6/left/kitchen/gut.s2.png",
+    "base": "art-r6/left/kitchen/gut.s1.png"
+   },
+   "view": "left",
+   "target": {
+    "skill": "gut-health"
+   },
+   "label": "GUT HEALTH",
+   "led": [
+    162,
+    301
+   ],
+   "hit": [
+    96,
+    267,
+    89,
+    52
+   ]
+  },
+  {
+   "id": "kitchen.stool",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 4,
+   "x": 197,
+   "y": 249,
+   "w": 17,
+   "h": 61,
+   "variants": {
+    "base": "art-r6/left/kitchen/stool.base.png"
+   },
+   "view": "left"
+  },
+  {
+   "id": "kitchen.clock",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 136,
+   "y": 96,
+   "w": 15,
+   "h": 15,
+   "variants": {
+    "base": "art-r6/left/kitchen/clock.base.png"
+   },
+   "view": "left",
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.hooks",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 2,
+   "x": 13,
+   "y": 145,
+   "w": 36,
+   "h": 39,
+   "variants": {
+    "base": "art-r6/left/kitchen/hooks.base.png"
+   },
+   "view": "left",
+   "castsShadow": false
+  },
+  {
+   "id": "kitchen.shoes",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 11,
+   "y": 274,
+   "w": 17,
+   "h": 12,
+   "variants": {
+    "base": "art-r6/left/kitchen/shoes.base.png",
+    "t1": "art-r6/left/kitchen/shoes.base.png",
+    "t3": "art-r6/left/kitchen/shoes.base.png"
+   },
+   "view": "left"
+  },
+  {
+   "id": "kitchen.entry",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 14,
+   "y": 124,
+   "w": 113,
+   "h": 169,
+   "variants": {
+    "base": "art-r6/left/kitchen/entry.base.png"
+   },
+   "view": "left",
+   "note": "the room's entry door and mat"
+  },
+  {
+   "id": "bed.globe-glow",
+   "zone": "bed",
+   "kind": "decor",
+   "layer": 2,
+   "x": 364,
+   "y": 131,
+   "w": 14,
+   "h": 14,
+   "variants": {
+    "base": "art-r6/left/bed/globe-glow.base.png",
+    "night": "art-r6/left/bed/globe-glow.night.png"
+   },
+   "view": "left",
+   "castsShadow": false,
+   "anim": {
+    "frames": [
+     "art-r6/left/bed/globe-glow.base.png",
+     "art-r6/left/bed/globe-glow.f1.png",
+     "art-r6/left/bed/globe-glow.f2.png",
+     "art-r6/left/bed/globe-glow.f1.png"
+    ],
+    "night": [
+     "art-r6/left/bed/globe-glow.night.png",
+     "art-r6/left/bed/globe-glow.n1.png",
+     "art-r6/left/bed/globe-glow.n2.png",
+     "art-r6/left/bed/globe-glow.n1.png"
+    ],
+    "fps": 4
+   },
+   "note": "moving light (globe): anim frames over the base"
+  },
+  {
+   "id": "kitchen.kettle-led",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 3,
+   "x": 249,
+   "y": 197,
+   "w": 6,
+   "h": 18,
+   "variants": {
+    "base": "art-r6/left/kitchen/kettle-led.base.png",
+    "night": "art-r6/left/kitchen/kettle-led.night.png"
+   },
+   "view": "left",
+   "castsShadow": false,
+   "anim": {
+    "frames": [
+     "art-r6/left/kitchen/kettle-led.base.png",
+     "art-r6/left/kitchen/kettle-led.f1.png",
+     "art-r6/left/kitchen/kettle-led.f2.png"
+    ],
+    "night": [
+     "art-r6/left/kitchen/kettle-led.night.png",
+     "art-r6/left/kitchen/kettle-led.n1.png",
+     "art-r6/left/kitchen/kettle-led.n2.png"
+    ],
+    "fps": 3
+   },
+   "note": "moving light (kettle): anim frames over the base"
+  },
+  {
+   "id": "kitchen.plants-sway",
+   "zone": "kitchen",
+   "kind": "decor",
+   "layer": 5,
+   "x": 0,
+   "y": -29,
+   "w": 556,
+   "h": 485,
+   "variants": {
+    "base": "art-r6/left/kitchen/plants-sway.base.png",
+    "night": "art-r6/left/kitchen/plants-sway.night.png"
+   },
+   "view": "left",
+   "anim": {
+    "frames": [
+     "art-r6/left/kitchen/plants-sway.base.png",
+     "art-r6/left/kitchen/plants-sway.f1.png",
+     "art-r6/left/kitchen/plants-sway.f2.png",
+     "art-r6/left/kitchen/plants-sway.f3.png"
+    ],
+    "night": [
+     "art-r6/left/kitchen/plants-sway.night.png",
+     "art-r6/left/kitchen/plants-sway.n1.png",
+     "art-r6/left/kitchen/plants-sway.n2.png",
+     "art-r6/left/kitchen/plants-sway.n3.png"
+    ],
+    "fps": 2
+   },
+   "note": "moving light (sway): anim frames over the base"
+  },
+  {
+   "id": "kitchen.on",
+   "zone": "kitchen",
+   "kind": "overlay",
+   "layer": 2,
+   "x": 206,
+   "y": 157,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r6/left/kitchen/on.base.png",
+    "night": "art-r6/left/kitchen/on.night.png"
+   },
+   "view": "left",
+   "castsShadow": false
+  },
+  {
+   "id": "bed.on",
+   "zone": "bed",
+   "kind": "overlay",
+   "layer": 2,
+   "x": 370,
+   "y": 137,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r6/left/bed/on.base.png",
+    "night": "art-r6/left/bed/on.night.png"
+   },
+   "view": "left",
+   "castsShadow": false
+  }
+ ]
+}

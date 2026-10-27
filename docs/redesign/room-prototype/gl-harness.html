@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GPU Light Harness</title>
+  <meta name="description" content="Standalone test page for the FORGE WebGL2 lighting compositor (engine/gl.js, engine/light.js).">
+  <style>
+    :root { color-scheme: dark; --bg: #0c0a0c; --panel: #17141a; --ink: #e9dfcf; --mute: #9a8f84; --line: #2c2630; --acc: #f39041; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 13px/1.4 system-ui, sans-serif; }
+    main { display: grid; grid-template-columns: 1fr 300px; gap: 12px; padding: 12px; }
+    #stage { overflow: auto; background: #000; border: 1px solid var(--line); min-height: 300px; }
+    #out { display: block; image-rendering: pixelated; }
+    aside { background: var(--panel); border: 1px solid var(--line); padding: 10px; max-height: calc(100vh - 24px); overflow: auto; }
+    fieldset { border: 1px solid var(--line); margin: 0 0 10px; padding: 6px 8px; }
+    legend { color: var(--acc); }
+    label { display: grid; grid-template-columns: 92px 1fr 44px; align-items: center; gap: 6px; margin: 3px 0; }
+    label.check { grid-template-columns: auto 1fr; }
+    output { color: var(--mute); text-align: right; font-variant-numeric: tabular-nums; }
+    select, button { background: #221d26; color: var(--ink); border: 1px solid var(--line); padding: 3px 6px; }
+    button { cursor: pointer; margin: 2px 2px 2px 0; }
+    pre { white-space: pre-wrap; font-size: 11px; color: var(--mute); max-height: 300px; overflow: auto; }
+    #status { color: var(--mute); padding: 6px 12px; }
+    @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div id="status">Loading</div>
+  <main>
+    <div id="stage"><canvas id="out" width="16" height="16" aria-label="Lit room preview"></canvas></div>
+    <aside>
+      <fieldset><legend>Scene</legend>
+        <label>View <select id="view"><option value="main">main (front)</option><option value="left">left</option><option value="right">right</option><option value="back">back (left art stand-in)</option></select><span></span></label>
+        <label>Region <select id="region"><option value="core">core</option><option value="art">full art</option></select><span></span></label>
+        <label>Zoom <input id="z" type="range" min="1" max="5" step="1" value="3"><output></output></label>
+        <label>Hover <select id="hover"><option value="">none</option></select><span></span></label>
+        <label>Focus <select id="focus"><option value="">none</option></select><span></span></label>
+        <label class="check"><input id="dim" type="checkbox"> DIM</label>
+        <label class="check"><input id="leds" type="checkbox" checked> LED test marks (6 states)</label>
+      </fieldset>
+      <fieldset><legend>Time and progress</legend>
+        <label class="check"><input id="useClock" type="checkbox"> Real clock (New Orleans)</label>
+        <label>Elevation <input id="el" type="range" min="-20" max="60" step="0.5" value="10"><output></output></label>
+        <label class="check"><input id="rising" type="checkbox"> Morning (rising sun)</label>
+        <label>Azimuth off <input id="az" type="range" min="-100" max="100" step="1" value="-10"><output></output></label>
+        <label>Completion % <input id="p" type="range" min="0" max="100" step="1" value="100"><output></output></label>
+        <label>Flash <input id="flash" type="range" min="0" max="1.8" step="0.1" value="0"><output></output></label>
+      </fieldset>
+      <fieldset><legend>Renderer</legend>
+        <label>Tier <select id="tier"><option>ultra</option><option selected>high</option><option>medium</option><option>low</option><option>off</option></select><span></span></label>
+        <label>Debug <select id="debug"><option>final</option><option>albedo</option><option>light</option><option>depth</option><option>flags</option><option>shadow</option><option>refl</option><option>bloom</option></select><span></span></label>
+        <label class="check"><input id="retro" type="checkbox"> Retro palette snap</label>
+        <label class="check"><input id="reduced" type="checkbox"> Reduced motion</label>
+        <label class="check"><input id="animate" type="checkbox"> Animate</label>
+        <button id="lose" type="button">Lose context</button><button id="perf" type="button">Measure tiers</button>
+      </fieldset>
+      <fieldset id="gains"><legend>Effect gains</legend></fieldset>
+      <fieldset><legend>Info</legend><pre id="info"></pre></fieldset>
+      <details><summary>Lighting block (bootstrapped)</summary><pre id="lighting"></pre></details>
+    </aside>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="art-v3.js"></script>
+  <script src="engine/core.js"></script>
+  <script src="engine/decode.js"></script>
+  <script src="engine/light.js"></script>
+  <script src="engine/gl.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var ROOM = window.ROOM, D = ROOM.decode, C = ROOM.C, LT = ROOM.light;
+    var $ = function (id) { return document.getElementById(id); };
+    var q = new URLSearchParams(location.search);
+    ROOM.state.night = false; // the GPU path has no painted night twins
+    ROOM.invalidate = function () { schedule(); };
+
+    /* ---------------------------------------------------------------- controls from the query */
+    ['view', 'region', 'z', 'el', 'az', 'p', 'tier', 'debug', 'flash', 'hover', 'focus'].forEach(function (k) {
+      var qk = k === 'debug' ? 'light' : k === 'tier' ? 'gltier' : k;
+      if (q.has(qk) && $(k)) $(k).value = q.get(qk);
+    });
+    if (q.get('rising') === '1') $('rising').checked = true;
+    if (q.get('clock') === '1') $('useClock').checked = true;
+    if (q.get('retro') === '1') $('retro').checked = true;
+    if (q.get('motion') === '0') $('reduced').checked = true;
+    if (q.get('dim') === '1') $('dim').checked = true;
+    if (q.get('leds') === '0') $('leds').checked = false;
+
+    var GAIN_KEYS = Object.keys(ROOM.gl.gains);
+    GAIN_KEYS.forEach(function (k) {
+      var l = document.createElement('label');
+      l.innerHTML = k + ' <input type="range" min="0" max="2" step="0.05" value="1" data-gain="' + k + '"><output>1</output>';
+      $('gains').appendChild(l);
+      var v = q.get('g_' + k);
+      if (v != null) l.querySelector('input').value = v;
+    });
+
+    /* ---------------------------------------------------------------- compositing the view */
+    var EMISSIVE_ITEM = /stringlights|sign|terminal|led|globe-glow|candle|pendant|lamp|downlight|screen|timer|\.on$|neon|skylight|potions-bubbles|today|stats|\.ai$|focus/;
+    var EMISSIVE_COLORS = ['SUN', 'CREAM', 'GLOW', 'CRT_0', 'CRT_1', 'ENERGY', 'ENERGY_HI', 'PLUM_3', 'LEAF_3', 'VIOLET', 'SLATE_2'].map(function (n) { return C[n]; });
+    var NORIM_ITEM = /poster|calendar|pennant|photo|board|academics|time|clock|tapestry|stats|today|hooks|cables|rug|mat$|doormat/;
+    var FLOOR_ITEM = /rug|\.mat$|doormat|runner/;
+    var LEAF_COLORS = ['LEAF_0', 'LEAF_1', 'LEAF_2', 'LEAF_3'].map(function (n) { return C[n]; });
+    var SEAM_COLORS = ['PLASTER_0', 'VOID'].map(function (n) { return C[n]; });
+    var FRAME_COLORS = ['INK', 'BROWN_2', 'OAK_DK', 'OAK_1', 'BROWN_1', 'OAK_0'].map(function (n) { return C[n]; });
+
+    function artView() { var v = $('view').value; return v === 'back' ? 'left' : v; }
+
+    /** Composite the current view into {buf, aux} the way render.js will (INTERFACES section 5). */
+    function composite() {
+      var v = artView();
+      var vc = ROOM.viewConf(v);
+      var region = $('region').value;
+      var x0, y0, w, h;
+      if (region === 'art') { x0 = vc.art.x; y0 = vc.art.y; w = vc.art.w; h = vc.art.h; }
+      else { x0 = 0; y0 = 0; w = vc.core.w + 1; h = vc.core.h + 1; }
+      var buf = new Uint8Array(w * h).fill(C.VOID);
+      var aux = new Uint8Array(w * h * 3);
+      var top = vc.art.y, bot = vc.art.y + vc.art.h;
+      var list = [];
+      ROOM.state.view = v;
+      ROOM.art.items.forEach(function (it, order) {
+        if ((it.view || 'main') !== v) return;
+        var key = ROOM.variantOf(it);
+        if (!key) return;
+        var img = D.get(it.variants[key]);
+        if (!img || img.w < 2) return;
+        var b = img.bounds || [0, 0, img.w, img.h];
+        list.push({ it: it, img: img, order: order, layer: Math.max(0, Math.min(6, it.layer | 0)), shell: it.kind === 'shell', contact: it.y + b[1] + b[3] });
+      });
+      list.sort(function (a, b) { return a.layer - b.layer || (b.shell ? 1 : 0) - (a.shell ? 1 : 0) || a.contact - b.contact || a.order - b.order; });
+      var hoverId = $('hover').value;
+      list.forEach(function (d) {
+        var it = d.it, img = d.img, id = it.id;
+        var kind = 'obj';
+        if (d.shell) {
+          if (/l5$/.test(id)) kind = 'floor';
+          else if (/l3$/.test(id)) kind = 'ceiling';
+          else if (/sky|outside/.test(id)) kind = 'window';
+          else if (/right-window$/.test(id)) kind = 'sidewindow';
+          else kind = 'wall';
+        } else if (it.drift || /^window\.(clouds|birds|tram)/.test(id)) kind = 'window';
+        else if (FLOOR_ITEM.test(id)) kind = 'floor';
+        var depthObj = LT.depthOf(d.contact, top, bot);
+        var emItem = EMISSIVE_ITEM.test(id);
+        var noRim = NORIM_ITEM.test(id) || it.kind === 'overlay';
+        var hov = hoverId && id === hoverId;
+        var leafy = /pothos|plant|snakeplant|sway/.test(id);
+        for (var y = 0; y < img.h; y++) {
+          var by = it.y + y - y0;
+          if (by < 0 || by >= h) continue;
+          for (var x = 0; x < img.w; x++) {
+            var c = img.px[y * img.w + x];
+            if (c === 255) continue;
+            var bx = it.x + x - x0;
+            if (bx < 0 || bx >= w) continue;
+            var i = by * w + bx;
+            buf[i] = c;
+            var dep = 0, fl = 0;
+            if (kind === 'floor') {
+              dep = LT.depthOf(it.y + y, top, bot);
+              fl = 2;
+              if (SEAM_COLORS.indexOf(c) >= 0) fl |= 4;
+            } else if (kind === 'ceiling') dep = 255;
+            else if (kind === 'window') { dep = 0; fl = 8; }
+            else if (kind === 'sidewindow') { dep = 0; fl = FRAME_COLORS.indexOf(c) >= 0 ? 0 : 8; }
+            else if (kind === 'wall') dep = 0;
+            else {
+              dep = depthObj;
+              if (emItem && EMISSIVE_COLORS.indexOf(c) >= 0) fl |= 1;
+              if (/statue/.test(id) && (c === C.ENERGY || c === C.ENERGY_HI)) fl |= 1;
+              if (leafy && LEAF_COLORS.indexOf(c) >= 0) fl |= 32;
+              if (noRim) fl |= 128;
+              if (hov) fl |= 64;
+            }
+            aux[i * 3] = dep;
+            aux[i * 3 + 1] = fl;
+            aux[i * 3 + 2] = 0;
+          }
+        }
+      });
+      // Engine marks: the six LED states on the first hotspots in view (2x2 px each, flagged bit 4).
+      if ($('leds').checked) {
+        var states = [C.INK, C.SLATE_1, C.AMBER, C.LEAF_3, C.CRT_1, C.GOLD];
+        var hs = list.filter(function (d) { return d.it.kind === 'hotspot'; }).slice(0, 6);
+        hs.forEach(function (d, k) {
+          var b = d.img.bounds || [0, 0, d.img.w, d.img.h];
+          var lx = d.it.led ? d.it.led[0] : d.it.x + b[0] + b[2] - 3, ly = d.it.led ? d.it.led[1] : d.it.y + b[1] + 1;
+          for (var yy = 0; yy < 2; yy++) for (var xx = 0; xx < 2; xx++) {
+            var bx = lx + xx - x0, by = ly + yy - y0;
+            if (bx < 0 || by < 0 || bx >= w || by >= h) continue;
+            var i = by * w + bx;
+            buf[i] = states[k % 6];
+            aux[i * 3 + 1] = 16;
+          }
+        });
+      }
+      return { buf: buf, aux: aux, w: w, h: h, x0: x0, y0: y0, list: list, vc: vc };
+    }
+
+    /* ---------------------------------------------------------------- lighting and state */
+    var comp = null, compKey = '', sceneVersion = 0;
+    var lightingByView = {};
+    function lightingFor(view) {
+      if (!lightingByView[view]) {
+        var v = view === 'back' ? 'left' : view;
+        var conf = view === 'back' ? { core: ROOM.viewConf('left').core, art: ROOM.viewConf('left').art } : ROOM.viewConf(v);
+        var L = LT.lightingFromV33(conf, view, ROOM.art.items);
+        if (view === 'back') L.floor.backLine = 197;
+        // The statue position for the burst (main view)
+        var st = ROOM.itemById('window.statue');
+        if (view === 'main' && st) L.statue = [st.x + st.w / 2, st.y + st.h * 0.35];
+        lightingByView[view] = L;
+      }
+      return lightingByView[view];
+    }
+    function currentState() {
+      var p = +$('p').value;
+      if ($('useClock').checked) return LT.state(Date.now(), { p: p });
+      return LT.state(Date.now(), { p: p, rising: $('rising').checked, flags: { el: +$('el').value, az: (LT.NOLA.facing + +$('az').value + 360) % 360 } });
+    }
+
+    /* ---------------------------------------------------------------- draw */
+    var out = $('out'), octx = out.getContext('2d', { alpha: false });
+    var pending = 0, frames = 0, last = performance.now();
+    function schedule() { if (!pending) pending = requestAnimationFrame(draw); }
+    function readControls() {
+      document.querySelectorAll('[data-gain]').forEach(function (inp) {
+        ROOM.gl.gains[inp.dataset.gain] = +inp.value;
+        inp.nextElementSibling.textContent = (+inp.value).toFixed(2);
+      });
+      document.querySelectorAll('aside label > input[type=range]').forEach(function (inp) {
+        if (!inp.dataset.gain && inp.nextElementSibling) inp.nextElementSibling.textContent = inp.value;
+      });
+      ROOM.state.reducedMotion = $('reduced').checked;
+      ROOM.gl.debug = $('debug').value;
+      ROOM.gl.retro = $('retro').checked;
+      if (ROOM.gl.tier !== $('tier').value) ROOM.gl.setTier($('tier').value);
+    }
+    function draw() {
+      pending = 0;
+      readControls();
+      var view = $('view').value;
+      var key = [view, $('region').value, $('hover').value, $('leds').checked].join('|');
+      if (key !== compKey) { comp = composite(); compKey = key; sceneVersion++; fillSelects(); }
+      ROOM.gl.setView(view, lightingFor(view));
+      var z = +$('z').value;
+      var st = currentState();
+      var f = { buf: comp.buf, aux: comp.aux, w: comp.w, h: comp.h, x0: comp.x0, y0: comp.y0, now: performance.now(), z: z, sceneVersion: sceneVersion };
+      var hv = $('hover').value ? hoverRect($('hover').value) : null;
+      var fz = $('focus').value ? ROOM.zoneById($('focus').value) : null;
+      var t0 = performance.now();
+      var c = ROOM.gl.frame(f, { view: view, state: st, dim: $('dim').checked, flash: +$('flash').value, hover: hv, focus: fz ? { x: fz.focus[0], y: fz.focus[1], w: fz.focus[2], h: fz.focus[3] } : null });
+      var dt = performance.now() - t0;
+      out.width = Math.round(comp.w * z);
+      out.height = Math.round(comp.h * z);
+      octx.imageSmoothingEnabled = false;
+      if (c) octx.drawImage(c, 0, 0);
+      else {
+        // Canvas2D fallback stand-in: the indexed buffer (render.js adds drawLight on top in the app).
+        var im = new ImageData(comp.w, comp.h), pal = ROOM.art.palette.colors;
+        for (var i = 0; i < comp.buf.length; i++) {
+          var hx = pal[comp.buf[i]] ? pal[comp.buf[i]][1] : '#000000';
+          im.data[i * 4] = parseInt(hx.slice(1, 3), 16); im.data[i * 4 + 1] = parseInt(hx.slice(3, 5), 16); im.data[i * 4 + 2] = parseInt(hx.slice(5, 7), 16); im.data[i * 4 + 3] = 255;
+        }
+        var tmp = document.createElement('canvas'); tmp.width = comp.w; tmp.height = comp.h; tmp.getContext('2d').putImageData(im, 0, 0);
+        octx.drawImage(tmp, 0, 0, out.width, out.height);
+      }
+      frames++;
+      var s = ROOM.gl.stats();
+      $('info').textContent = [
+        'frame() ' + dt.toFixed(1) + ' ms (' + (c ? 'GPU' : 'null: Canvas2D fallback') + ')',
+        'tier ' + s.tier + (s.autoTier ? ' (auto)' : '') + '  timing ' + s.method + ' p50 ' + (s.p50 || 0).toFixed(2) + ' p95 ' + (s.p95 || 0).toFixed(2),
+        'lights ' + s.lights + ' of ' + s.dynamicCandidates + ' dynamic, ' + s.lightmapLights + ' baked',
+        'mask rebuild ' + (s.maskMs || 0).toFixed(1) + ' ms',
+        'keyframe ' + st.keyframe + '  el ' + st.elevation.toFixed(1) + '  az ' + st.azimuth.toFixed(0) + '  direct ' + st.direct.toFixed(2) + '  w ' + st.w.toFixed(2),
+        'key ' + st.keyIntensity.toFixed(2) + '  shafts ' + st.shafts.toFixed(2) + '  bloom ' + st.bloom.toFixed(2) + '  lamps ' + st.practicals.lamps.toFixed(2),
+        'buffer ' + comp.w + 'x' + comp.h + ' at (' + comp.x0 + ', ' + comp.y0 + ')  z ' + z,
+        'caps ' + JSON.stringify(s.caps),
+      ].join('\n');
+      $('status').textContent = 'View ' + view + ', ' + st.keyframe + ', ' + Math.round(+$('p').value) + '% today';
+      window.__lastFrameMs = dt;
+      if ($('animate').checked) schedule();
+    }
+    function hoverRect(id) {
+      for (var i = 0; i < comp.list.length; i++) {
+        var d = comp.list[i];
+        if (d.it.id === id) { var b = d.img.bounds || [0, 0, d.img.w, d.img.h]; return { x: d.it.x + b[0], y: d.it.y + b[1], w: b[2], h: b[3] }; }
+      }
+      return null;
+    }
+    var lastSelView = '';
+    function fillSelects() {
+      var v = artView();
+      if (lastSelView === v) return;
+      lastSelView = v;
+      var hsel = $('hover'), keep = hsel.value;
+      hsel.length = 1;
+      comp.list.forEach(function (d) { if (d.it.kind === 'hotspot') hsel.add(new Option(d.it.id, d.it.id)); });
+      hsel.value = keep;
+      var fsel = $('focus'), fk = fsel.value;
+      fsel.length = 1;
+      ROOM.zonesInView(v).forEach(function (z) { fsel.add(new Option(z.id, z.id)); });
+      fsel.value = fk;
+      $('lighting').textContent = JSON.stringify(lightingFor($('view').value), null, 1);
+    }
+
+    document.querySelectorAll('aside input, aside select').forEach(function (el) {
+      el.addEventListener('input', schedule);
+      el.addEventListener('change', schedule);
+    });
+    $('lose').addEventListener('click', function () {
+      var gl = ROOM.gl.canvas && ROOM.gl.canvas.getContext('webgl2');
+      var ext = gl && gl.getExtension('WEBGL_lose_context');
+      if (!ext) return;
+      ext.loseContext();
+      schedule();
+      setTimeout(function () { ext.restoreContext(); }, 1200);
+    });
+
+    /**
+     * Measure each tier: n continuous frames per tier. Records the sync-readpixels (or timer query) p50/p95 from
+     * ROOM.gl.stats() and the mean rAF delta. Resolves to {tier: {p50, p95, raf, method}}.
+     */
+    window.runPerf = function (n) {
+      n = n || 60;
+      var tiers = ['ultra', 'high', 'medium', 'low'], res = {};
+      var anim = $('animate').checked;
+      $('animate').checked = false;
+      return tiers.reduce(function (pr, t) {
+        return pr.then(function () {
+          return new Promise(function (done) {
+            $('tier').value = t;
+            ROOM.gl.setTier(t);
+            ROOM.gl.resetTiming();
+            var k = 0, t0 = 0, ds = [];
+            function step(ts) {
+              if (k === 0) t0 = ts; else ds.push(ts - t0);
+              t0 = ts;
+              readControls();
+              draw();
+              ds.length;
+              if (++k <= n) requestAnimationFrame(step);
+              else {
+                var s = ROOM.gl.stats();
+                var sorted = s.samples.slice().sort(function (a, b) { return a - b; });
+                ds.sort(function (a, b) { return a - b; });
+                res[t] = { p50: sorted[Math.floor(sorted.length / 2)], p95: sorted[Math.floor(sorted.length * 0.95)], rafMedian: ds[Math.floor(ds.length / 2)], rafP95: ds[Math.floor(ds.length * 0.95)], method: s.method, frames: s.frames };
+                done();
+              }
+            }
+            requestAnimationFrame(step);
+          });
+        });
+      }, Promise.resolve()).then(function () {
+        $('animate').checked = anim;
+        $('info').textContent = JSON.stringify(res, null, 1);
+        window.__perf = res;
+        return res;
+      });
+    };
+    $('perf').addEventListener('click', function () { window.runPerf(60); });
+
+    window.H = { draw: draw, composite: composite, lightingFor: lightingFor, currentState: currentState, schedule: schedule };
+    ROOM.gl.init({ tier: $('tier').value, auto: false });
+    draw();
+    window.__ready = true;
+  })();
+  </script>
+</body>
+</html>

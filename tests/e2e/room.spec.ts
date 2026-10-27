@@ -11,6 +11,12 @@ async function openRoom(page: Page, path = "/") {
   await page.goto(path);
   await page.waitForFunction(() => Boolean((window as unknown as { ROOM?: { debug?: unknown } }).ROOM?.debug));
 }
+// Hotspots are switched off while the camera moves (dolly or pan); wait for it to land before clicking one.
+const settled = (page: Page) =>
+  page.waitForFunction(() => {
+    const r = (window as unknown as { ROOM: { render: { dolly: unknown; turning: boolean } } }).ROOM.render;
+    return !r.dolly && !r.turning;
+  });
 const roomState = (page: Page) => page.evaluate(() => (window as unknown as { ROOM: { state: Record<string, unknown> } }).ROOM.state);
 
 test.beforeEach(async ({ page }) => {
@@ -30,8 +36,9 @@ test("the room loads at /, keys 1-7 step into each zone with its own URL, and Ba
   await page.goBack();
   await expect(page).toHaveURL(/\/room\/computer$/);
   await expect.poll(async () => (await roomState(page)).zone).toBe("computer");
+  // Out of a zone the room stays in that zone's view, and every view but the front has its own URL.
   await page.keyboard.press("Escape");
-  await expect(page).toHaveURL("http://localhost:3200/");
+  await expect(page).toHaveURL(/\/room\/right$/);
   await expect.poll(async () => (await roomState(page)).zone).toBe(null);
   // A zone URL opens straight into the zone.
   await openRoom(page, "/room/gym");
@@ -72,6 +79,7 @@ test("a skill hotspot opens its panel, and holding Shift shows the nameplates", 
   // Art pass 4: the chess table stands in the window zone (key 4); its id stays library.chess.
   await page.keyboard.press("4");
   await expect(page).toHaveURL(/\/room\/window$/);
+  await settled(page);
   await page.locator('.hs[data-id="library.chess"]').click({ force: true });
   const panel = page.locator(".ui-panel");
   await expect(panel).toBeVisible();
@@ -89,6 +97,7 @@ test("a relic can be set on an empty mount and is saved", async ({ page }) => {
   await openRoom(page);
   await page.keyboard.press("4");
   await expect(page).toHaveURL(/\/room\/window$/);
+  await settled(page);
   await page.locator('.hs[data-id="window.relic"]').click({ force: true });
   const panel = page.locator(".ui-panel");
   await panel.locator('[data-k="relic-Chess 1500"]').click();
@@ -101,29 +110,36 @@ test("a relic can be set on an empty mount and is saved", async ({ page }) => {
   expect(await page.evaluate(() => (window as unknown as { ROOM: { data: { relics: { slots: Record<string, { title: string } | null> } } } }).ROOM.data.relics.slots.window?.title)).toBe("Chess 1500");
 });
 
-test("art pass 5: the arrow keys and edge chevrons turn to the side views, and a side zone turns there", async ({ page }) => {
+test("v3.4: the arrow keys and chevrons pan round four walls, each view has its own URL, and a zone turns to its wall", async ({ page }) => {
   await openRoom(page);
   const view = async () => {
-    // a view counts once its walk-and-turn has finished
+    // a view counts once its pan has finished
     const turning = await page.evaluate(() => (window as unknown as { ROOM: { render: { turning: boolean } } }).ROOM.render.turning);
     return turning ? "turning" : (await roomState(page)).view;
   };
-  expect(await view()).toBe("main");
+  expect(await view()).toBe("front");
   await expect(page.locator("#turn-left")).toBeVisible();
   await expect(page.locator("#turn-right")).toBeVisible();
-  await page.keyboard.press("ArrowLeft");
-  await expect.poll(view).toBe("left");
-  await expect(page.locator("#turn-left")).toBeHidden();
+  // right, back, left, front: a full turn
+  for (const [to, url] of [["right", /\/room\/right$/], ["back", /\/room\/back$/], ["left", /\/room\/left$/]] as const) {
+    await page.keyboard.press("ArrowRight");
+    await expect.poll(view).toBe(to);
+    await expect(page).toHaveURL(url);
+  }
   await expect(page.locator('.hs[data-id="bed.bed"]')).toHaveCount(1);
   await page.locator("#turn-right").click();
-  await expect.poll(view).toBe("main");
-  await page.keyboard.press("ArrowRight");
+  await expect.poll(view).toBe("front");
+  await expect(page).toHaveURL("http://localhost:3200/");
+  await page.keyboard.press("ArrowLeft");
+  await expect.poll(view).toBe("left");
+  await page.goBack();
+  await expect.poll(view).toBe("front");
+  // A view URL opens on that wall.
+  await openRoom(page, "/room/back");
+  expect(await view()).toBe("back");
+  // Key 7 (gym) turns from the back wall to the right one and lands in the zone.
+  await page.keyboard.press("7");
+  await expect(page).toHaveURL(/\/room\/gym$/);
   await expect.poll(view).toBe("right");
   await expect(page.locator('.hs[data-id="gym.strength"]')).toHaveCount(1);
-  await page.keyboard.press("ArrowLeft");
-  await expect.poll(view).toBe("main");
-  // Key 1 (kitchen) turns into the left view and lands in the zone.
-  await page.keyboard.press("1");
-  await expect(page).toHaveURL(/\/room\/kitchen$/);
-  await expect.poll(view).toBe("left");
 });

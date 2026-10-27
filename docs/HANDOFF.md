@@ -68,7 +68,7 @@ efficient (Haiku/Gemini for grunt work, Claude for thinking).
   hologram glitch on tier-up, the dog redrawn in R4 style (it is the R3 sprite re-indexed), lighting slider
   as a real time-of-day feature.
 
-## Art pass 5 (2026-10-23, live)
+## Art pass 5 (2026-10-23, replaced by art pass 6)
 - Three views: main (knight, window), left (bed, kitchen, entry door), right (study desk on the side wall,
   dropshipping desk, gym). Arrow keys or the pixel chevrons at the screen edges play a walk-forward-and-turn
   (~760 ms, `ROOM.turn`); a zone in another view (keys 1-7, a copy hotspot) turns straight into it.
@@ -87,6 +87,35 @@ efficient (Haiku/Gemini for grunt work, Claude for thinking).
 - LATER: the FORGE sign sits above the right view's frame; side-wall objects are drawn per view, so small
   differences between views exist; plant sway runs at 2 fps (art frames); stage art still missing for the
   same items as pass 4.
+
+## Art pass 6, v3.4 phase 1 (2026-10-27, live)
+- One square room (28 x 28 ft, ceiling 13.5 ft) seen from its centre: four 90 degree views, front (window,
+  knight, library), right (study desk, dropship desk, gym), back (calendar wall, an empty shell until phase 3),
+  left (kitchen, entry, bed). Corner pieces (fig, brass lamp, two snake plants), beams, strings and hanging
+  plants are world geometry drawn the same in every view. Each master (800x560) carries 10 degrees of its
+  neighbours in its margins, re-projected exactly (one camera centre).
+- Turning is a pan (`ROOM.turn(dir)`, `ROOM.turnTo(view)`): each frame re-projects the columns of the views'
+  full masters; 90 degrees in 640 ms, 180 in 900 ms. Arrows and chevrons cycle front, right, back, left. URLs:
+  `/room` (front), `/room/right`, `/room/back`, `/room/left`; zones keep `/room/<zone>`.
+- Albedo-only art plus a material ID per pixel (`<sprite>.mat.png`, bundle `images[path].mat`). The WebGL2
+  compositor (`engine/gl.js`, `engine/light.js`; LIGHTING_SPEC phases 1 to 8) lights it from the aux buffer
+  render.js fills (depth, flags, material). The sun follows the real clock (New Orleans); weather cover dims
+  the sun; completion drives key, saturation and warmth. GPU tiers: `?gltier=ultra|high|medium|low`, auto by
+  default; `?gl=off` or no WebGL2 uses the v3.3 LUT ramps and Canvas2D light. Demo flags: `?t=21:30`,
+  `?el=4` (sun elevation), `?p=0..100`, `?light=albedo|light|refl|...`.
+- Live weather (`engine/weather.js`, free Open-Meteo, every 15 min): rain, beads and runs on the glass,
+  snow, fog, storm flashes (safe rates). `?weather=rain&precip=6&wind=12` for demos. Before a paid release the
+  free API (non-commercial) needs a commercial plan or another provider.
+- Textures (`art/room-r6/textures.py`, TEXTURE_SPEC steps 0 to 9) and the texture gate
+  (`art/room-r6/texture_check.py`, run by merge.py, replaces the grain check). Palette: 64 colours, the 27 new
+  ones in `docs/redesign/room-r6/stills/palette-ramps@4x.png` and `swatches@4x.png` for review.
+- Build: `python3 art/room-r6/build.py` (~5 min; `--preview` for quick stills), then
+  `python3 art/room-v3/merge.py --src room-r6` and `node scripts/room-sync.mjs`. Deliverables:
+  `node scripts/room-r6-deliverables.mjs [stills|passes|turn|fps]`. Rollback to R5: copy `art-v3.r5.js` over
+  `art-v3.js` and run room-sync (the engine reads both).
+- Notes: `docs/redesign/room-r6/` INTERFACES.md, GL_NOTES.md, TEXTURE_NOTES.md, WEATHER_NOTES.md.
+- NEXT (phase 2, after review): the statue's progress bar and UPGRADE, the turn audit. Phase 3: the calendar
+  wall on the back view.
 
 ## skill-pack
 Added (skills in `.claude/skills/`, sources in `vendor/`): superpowers (minus using-superpowers and its

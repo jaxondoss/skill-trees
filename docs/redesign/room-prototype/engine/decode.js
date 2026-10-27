@@ -1,7 +1,8 @@
 /* FORGE room prototype: decode ROOM_ART images.
  *
- * Each image in ROOM_ART.images is {w, h, rle}: base64 of byte pairs [count, index], row-major,
- * index 0..31 = palette colour, 255 = transparent. Decoded images are cached by path and carry
+ * Each image in ROOM_ART.images is {w, h, rle, mat?}: base64 of byte pairs [count, index], row-major,
+ * index 0..63 = palette colour, 255 = transparent. mat (art pass 6) is the material ID per pixel in the same
+ * encoding (TEXTURE_SPEC section 4), decoded lazily the first time the renderer asks for it. Decoded images are cached by path and carry
  * the derived data the renderer needs: opaque bounds, the outline ring, and the top edge (dust).
  */
 (function () {
@@ -104,6 +105,21 @@
     return img;
   }
 
+  /** Material IDs (Uint8Array w*h) of an image, or null when the bundle has none for it. */
+  function mat(img) {
+    if (img.mat !== undefined) return img.mat;
+    var src = ROOM.art.images[img.path];
+    img.mat = null;
+    if (src && src.mat) {
+      try {
+        img.mat = decodeRle(src.w, src.h, src.mat);
+      } catch (err) {
+        console.error('ROOM: cannot decode materials of ' + img.path, err);
+      }
+    }
+    return img.mat;
+  }
+
   function ring(img) {
     if (!img.ring) img.ring = outlineRing(img);
     return img.ring;
@@ -113,5 +129,5 @@
     return img.top;
   }
 
-  ROOM.decode = { get: get, decodeRle: decodeRle, ring: ring, top: top, opaque: opaque };
+  ROOM.decode = { get: get, decodeRle: decodeRle, mat: mat, ring: ring, top: top, opaque: opaque };
 })();

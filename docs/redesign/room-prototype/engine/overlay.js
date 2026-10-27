@@ -459,13 +459,14 @@
     });
     updateChevrons();
   }
+  var VIEW_LABEL = { front: 'window and knight', right: 'desks and gym', back: 'calendar wall', left: 'bed and kitchen', main: 'window and knight' };
   function updateChevrons() {
     [-1, 1].forEach(function (dir) {
       var b = chev[dir];
       if (!b) return;
-      var to = ROOM.viewToward(ROOM.state.view || 'main', dir);
+      var to = ROOM.viewToward(ROOM.state.view, dir);
       b.hidden = !to;
-      b.setAttribute('aria-label', to === 'main' ? 'Turn back to the centre' : to === 'left' ? 'Turn left: bed and kitchen' : 'Turn right: desks and gym');
+      b.setAttribute('aria-label', (dir < 0 ? 'Turn left: ' : 'Turn right: ') + (VIEW_LABEL[to] || to));
       b.title = b.getAttribute('aria-label');
     });
   }

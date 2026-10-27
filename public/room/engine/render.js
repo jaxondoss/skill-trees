@@ -29,12 +29,19 @@
  * smooth light (zones.json views.<v>.light: warm wash, glows, oval vignette) is laid over it with canvas
  * gradients ("screen" and "multiply"); that is the one place colours leave the palette. Window drift sprites
  * (clouds, birds, the streetcar) move by time, clipped to the window.
+ *
+ * Art pass 6 (v3.4): one square room, four 90 degree views of one camera (front, right, back, left). The art is
+ * albedo only. Alongside the index buffer the renderer fills f.aux (3 bytes per pixel: depth, flags, material ID,
+ * docs/redesign/room-r6/INTERFACES.md section 5); the WebGL2 compositor (ROOM.gl, engine/gl.js) lights the frame
+ * from those buffers and returns a canvas, and when it is missing or off the v3.3 path (LUT ramps and the Canvas2D
+ * light) draws instead. Live weather (ROOM.weather) paints into the buffer before the engine marks. Turning is a
+ * pan: each frame re-projects the columns of the views' full master renders (exact, one camera centre).
  */
 (function () {
   'use strict';
   var ROOM = window.ROOM;
   var CAM = ROOM.camera;
-  CAM.configure(ROOM.viewConf ? ROOM.viewConf('main') : ROOM.art.zones || {});
+  CAM.configure(ROOM.viewConf ? ROOM.viewConf(ROOM.state.view) : ROOM.art.zones || {});
   var MID_X = CAM.CORE_W / 2;
   var D = ROOM.decode;
   var C = ROOM.C;
@@ -54,6 +61,16 @@
     RGBA[i] = ((255 << 24) | (b << 16) | (g << 8) | r) >>> 0;
   });
   RGBA[T] = 0;
+  // Material table (art/room-r6/materials.json in the bundle): name -> id, and the flags the aux buffer needs.
+  var MATS = (ROOM.art.materials && ROOM.art.materials.materials) || [];
+  var MAT_ID = {};
+  var MAT_EMIT = new Uint8Array(256);
+  MATS.forEach(function (m) {
+    MAT_ID[m.name] = m.id;
+    if (m.emissive > 0) MAT_EMIT[m.id] = 1;
+  });
+  var M_FLOOR = MAT_ID.wood_floor || 3, M_CEIL = MAT_ID.wood_ceiling || 5, M_LEAF = MAT_ID.leaf || 21;
+  var M_GLASS = MAT_ID.glass_window || 17, M_SKY = MAT_ID.sky || 30;
   var VOID_CSS = ROOM.art.palette.colors[C.VOID] ? ROOM.art.palette.colors[C.VOID][1] : '#000';
 
   function identity() {
@@ -73,6 +90,7 @@
   ['R1', 'R2', 'R3', 'R4', 'NIGHT', 'DIM'].forEach(function (k) {
     LUT[k] = lutFrom((ROOM.art.palette.luts || {})[k]);
   });
+  LUT.ID = identity();
   var composed = {};
   // The lighting state is a base ramp (R1..R4 or NIGHT) with DIM optionally applied on top.
   function lutFor(base, dim) {
@@ -102,9 +120,30 @@
   var dimOn = false;
   var light = { key: null, base: null, from: null, to: null, t0: 0, dur: 0, step: 16 };
 
+  /** True when the WebGL2 compositor lights this frame (the art is then drawn as plain albedo). */
+  var gpuReady = false; // set by enableGpu(); cleared for the session when frame() returns null
+  function gpuOn() {
+    return gpuReady && !!ROOM.gl && !ROOM.gl.lost && ROOM.gl.tier !== 'off';
+  }
+  /** Start the WebGL2 compositor when the browser has it (main.js calls this once at boot). */
+  function enableGpu() {
+    if (!ROOM.gl || !ROOM.gl.supported() || !ROOM.gl.init()) return false;
+    // ?night=1 with no clock override: the GPU light shows 11 PM too
+    var q = window.location.search;
+    var L = ROOM.light && ROOM.light.flags;
+    if (L && /[?&]night=1\b/.test(q) && !L.t && L.el == null) L.t = { h: 23, m: 0 };
+    ROOM.gl.setPalette(ROOM.art.palette.colors);
+    if (ROOM.art.materials) ROOM.gl.setMaterials(ROOM.art.materials.materials || ROOM.art.materials);
+    gpuReady = true;
+    invalidate();
+    return true;
+  }
   function lightTarget() {
-    var base = ROOM.state.night ? 'NIGHT' : ROOM.rampOf(ROOM.data.todayP || 0);
-    return { base: base, dim: dimOn, key: base + (dimOn ? '+DIM' : '') };
+    // On the GPU path the sprites go in as albedo (identity) and the compositor applies light and dim itself.
+    var gpu = gpuOn();
+    var base = gpu ? 'ID' : ROOM.state.night ? 'NIGHT' : ROOM.rampOf(ROOM.data.todayP || 0);
+    var dim = dimOn && !gpu;
+    return { base: base, dim: dim, key: base + (dim ? '+DIM' : '') };
   }
   /** Advance the dissolve. Returns true when the frame must be redrawn. */
   function updateLighting(now) {
@@ -121,10 +160,11 @@
       light.from = light.to;
       light.to = lutFor(t.base, t.dim);
       light.dur = t.base !== light.base ? 1200 : 300; // sky 1.2 s, dim 0.3 s
+      if (t.base === 'ID' || light.base === 'ID') light.dur = 0; // switching to or from the GPU path snaps
       light.t0 = now;
       light.key = t.key;
       light.base = t.base;
-      light.step = ROOM.state.reducedMotion ? 16 : 0;
+      light.step = ROOM.state.reducedMotion || !light.dur ? 16 : 0;
       if (light.step === 16) light.from = light.to;
       return true;
     }
@@ -152,9 +192,10 @@
   /** Pick variants, place the dog, sort by layer, shell first, contact y, item order. */
   function buildScene() {
     var list = [];
-    var curView = ROOM.state.view || 'main';
+    var curView = ROOM.normView(ROOM.state.view);
+    var noRim = noRimTest();
     ROOM.art.items.forEach(function (it, order) {
-      if ((it.view || 'main') !== curView) return;
+      if (ROOM.viewOf(it) !== curView) return;
       var key = ROOM.variantOf(it);
       if (!key) return;
       var img = D.get(it.variants[key]);
@@ -179,6 +220,9 @@
         dust: !!(skill && skill.neglected && key !== 'dust'),
         statue: !!(it.target && it.target.feature === 'overall') || (it.kind === 'hotspot' && /statue/.test(it.id)),
         dog: /(^|[.\-_])dog\b/.test(it.id),
+        // aux flags every pixel of this item carries (bit7 no rim), and its fallback material
+        auxFlags: noRim(it.id) ? 128 : 0,
+        mat0: (it.material && MAT_ID[it.material]) || 0,
       };
       // Anim frames replace the base look only (a night or alert variant is a still).
       if (it.anim && it.anim.frames && it.anim.frames.length > 1 && (key === 'base' || !it.variants.base)) {
@@ -231,6 +275,21 @@
     return D.get(d.frames[i]) || d.img;
   }
 
+  /** zones.json views.<v>.lighting.noRim globs ("*poster*") as one test on item ids. */
+  function noRimTest() {
+    var L = (ROOM.viewConf(ROOM.state.view) || {}).lighting;
+    var pats = (L && L.noRim) || [];
+    if (!pats.length) return function () {
+      return false;
+    };
+    var re = new RegExp(pats.map(function (g) {
+      return '^' + g.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.') + '$';
+    }).join('|'));
+    return function (id) {
+      return re.test(id);
+    };
+  }
+
   /* ------------------------------------------------------------------ blitting */
   /**
    * Copy a sprite into an index buffer through two colour tables, skipping transparent pixels.
@@ -263,6 +322,53 @@
           v = src[si + x];
           if (v !== T) dst[di + x] = (BAYER[brow + ((x + dx + bx) & 3)] < step ? tB : tA)[v];
         }
+      }
+    }
+  }
+
+  /**
+   * The aux twin of blit (INTERFACES.md section 5): for every opaque sprite pixel, byte 0 depth, byte 1 flags,
+   * byte 2 material ID. Shell plates sit at depth 0 except the floor (its own row scaled) and the ceiling (255);
+   * objects take their contact row. Materials come from the sprite's mat channel, else the item's material.
+   */
+  function blitAux(f, d, img, dx, dy, clip) {
+    var aux = f.aux;
+    if (!aux) return;
+    var dw = f.w, dh = f.h, sw = img.w, src = img.px;
+    var mat = D.mat ? D.mat(img) : null;
+    var x0 = Math.max(0, -dx), y0 = Math.max(0, -dy);
+    var x1 = Math.min(sw, dw - dx), y1 = Math.min(img.h, dh - dy);
+    if (clip) {
+      x0 = Math.max(x0, clip[0] - dx);
+      y0 = Math.max(y0, clip[1] - dy);
+      x1 = Math.min(x1, clip[2] - dx);
+      y1 = Math.min(y1, clip[3] - dy);
+    }
+    if (x0 >= x1 || y0 >= y1) return;
+    var H = CAM.CORE_H || 352, hz = CAM.HORIZON || H * 0.4;
+    var objDepth = d.shell ? 0 : Math.max(1, Math.min(254, 1 + Math.round((253 * (d.contact - hz)) / Math.max(1, H - hz))));
+    var base = d.auxFlags | (d.id === hoverId || d.id === focusId ? 64 : 0);
+    var m0 = d.mat0;
+    for (var y = y0; y < y1; y++) {
+      var si = y * sw, wy = y + dy + f.y0;
+      var floorDepth = Math.max(1, Math.min(254, 1 + Math.round((253 * (wy - hz)) / Math.max(1, H - hz))));
+      for (var x = x0; x < x1; x++) {
+        if (src[si + x] === T) continue;
+        var m = mat ? mat[si + x] : m0;
+        if (m === T) continue;
+        if (!m) m = m0;
+        var o = ((y + dy) * dw + x + dx) * 3;
+        var fl = base, dep = objDepth;
+        if (MAT_EMIT[m]) fl |= 1;
+        if (m === M_FLOOR && d.shell) {
+          fl |= 2;
+          dep = floorDepth;
+        } else if (m === M_CEIL && d.shell) dep = 255;
+        if (m === M_GLASS || m === M_SKY) fl |= 8;
+        if (m === M_LEAF) fl |= 32;
+        aux[o] = dep;
+        aux[o + 1] = fl;
+        aux[o + 2] = m;
       }
     }
   }
@@ -328,6 +434,7 @@
         continue;
       }
       blit(f.buf, f.w, f.h, img, dx, dy, tA, tB, f.step, f.x0, f.y0);
+      if (f.aux) blitAux(f, d, img, dx, dy);
       if (opts.marks) {
         if (d.dust) ROOM.fx.drawDust(f, img, dx, dy);
         if (ROOM.fx.drawScreen && (d.item.screen || d.item.plaque)) ROOM.fx.drawScreen(f, d, dx, dy);
@@ -364,12 +471,16 @@
     var clip = [c[0] + f.offs[d.layer] - f.x0, c[1] - f.y0, c[0] + c[2] + f.offs[d.layer] - f.x0, c[1] + c[3] - f.y0];
     var o = driftOffset(dr, f.now);
     blit(f.buf, f.w, f.h, img, dx + Math.floor(o.x), dy + o.y, tA, tB, f.step, f.x0, f.y0, clip);
-    if (dr.mode === 'wrap') blit(f.buf, f.w, f.h, img, dx + Math.floor(o.x) - dr.span, dy, tA, tB, f.step, f.x0, f.y0, clip);
+    if (f.aux) blitAux(f, d, img, dx + Math.floor(o.x), dy + o.y, clip);
+    if (dr.mode === 'wrap') {
+      blit(f.buf, f.w, f.h, img, dx + Math.floor(o.x) - dr.span, dy, tA, tB, f.step, f.x0, f.y0, clip);
+      if (f.aux) blitAux(f, d, img, dx + Math.floor(o.x) - dr.span, dy, clip);
+    }
   }
 
   /* ------------------------------------------------------------------ smooth light (art pass 5) */
   function lightSpec() {
-    var vc = ROOM.viewConf ? ROOM.viewConf(ROOM.state.view || 'main') : null;
+    var vc = ROOM.viewConf ? ROOM.viewConf(ROOM.state.view) : null;
     var L = vc && vc.light;
     return L ? (ROOM.state.night ? L.night : L.day) : null;
   }
@@ -385,10 +496,11 @@
    * Lay the view's light over the frame just drawn: tr maps world to device px (x * z + tx).
    * Warm wash and glows use "screen", the oval vignette "multiply"; falloff stops come from the art build.
    */
-  function drawLight(tr, now, dim) {
+  function drawLight(tr, now, dim, target) {
     var spec = lightSpec();
+    var ctx = target ? target.ctx : canvasCtx();
     if (!spec || !ctx) return;
-    var W = canvas.width, H = canvas.height, k = dim ? 0.55 : 1;
+    var W = target ? target.W : canvas.width, H = target ? target.H : canvas.height, k = dim ? 0.55 : 1;
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     ctx.fillStyle = rgba(spec.ambient.rgb, spec.ambient.a * k);
@@ -451,6 +563,9 @@
 
   /* ------------------------------------------------------------------ view and camera */
   var stage, canvas, ctx;
+  function canvasCtx() {
+    return ctx;
+  }
   var view = null;
   var pan = { x: MID_X, v: 0, target: null, dragging: false };
   var panSpeed = 0; // smoothed pan speed (CSS px/s) that drives the phone-pan layer depth
@@ -477,7 +592,7 @@
   }
 
   /* ------------------------------------------------------------------ rest frame */
-  var fb = null, fbW = 0, fbH = 0, fbCanvas = null, fbCtx = null, fbImage = null, fbU32 = null;
+  var fb = null, fbAux = null, fbW = 0, fbH = 0, fbCanvas = null, fbCtx = null, fbImage = null, fbU32 = null;
   var lastRest = null;
 
   function ensureFb(w, h) {
@@ -485,6 +600,7 @@
     fbW = w;
     fbH = h;
     fb = new Uint8Array(w * h);
+    fbAux = new Uint8Array(w * h * 3);
     fbCanvas = fbCanvas || document.createElement('canvas');
     fbCanvas.width = w;
     fbCanvas.height = h;
@@ -493,33 +609,104 @@
     fbU32 = new Uint32Array(fbImage.data.buffer);
   }
 
-  function renderRest(now) {
-    var cam = restCamera();
+  function hoverRect() {
+    var id = hoverId || focusId;
+    if (!id) return null;
+    for (var i = 0; i < drawables.length; i++) {
+      var h = drawables[i].id === id && drawables[i].hit;
+      if (h) return { x: h[0], y: h[1], w: h[2], h: h[3] };
+    }
+    return null;
+  }
+  // How much the sky's cover takes off direct sun: 0 clear .. 0.85 storm (the live weather layer's state).
+  var COVER = { clear: 0, partly: 0.25, overcast: 0.7, fog: 0.75, drizzle: 0.7, rain: 0.8, snow: 0.75, storm: 0.85 };
+  /** The light state for now, with the weather's cloud cover dimming the sun: less key, patch, shafts and
+   *  cast shadow, a little less saturation. The practical lights are untouched. */
+  function weatherLight() {
+    var st = ROOM.light && ROOM.light.current ? ROOM.light.current() : null;
+    var w = ROOM.weather && ROOM.weather.state;
+    if (!st || !w) return st;
+    var k = Math.max(COVER[w.kind] || 0, Math.min(0.7, (w.cloud || 0) / 100 * 0.7));
+    if (!k) return st;
+    var o = {};
+    for (var key in st) o[key] = st[key];
+    var sun = 1 - k * (1 - (st.nightness || 0)); // at night the moon key is already weak
+    ['direct', 'patchIntensity', 'castShadow', 'shafts'].forEach(function (f) {
+      if (typeof o[f] === 'number') o[f] *= sun;
+    });
+    if (typeof o.keyIntensity === 'number') o.keyIntensity *= 1 - 0.55 * k;
+    if (typeof o.saturation === 'number') o.saturation *= 1 - 0.2 * k;
+    if (typeof o.warmth === 'number') o.warmth *= 1 - k;
+    return o;
+  }
+
+  /** Options the GPU compositor takes with each frame (INTERFACES.md section 6). */
+  function gpuOpts(now) {
+    var z = zoneObj();
+    return {
+      dim: dimOn,
+      focus: z && z.focus ? { x: z.focus[0], y: z.focus[1], w: z.focus[2], h: z.focus[3] } : null,
+      hover: hoverRect(),
+      pools: ROOM.glow && ROOM.glow.pools ? ROOM.glow.pools() : null,
+      statueBurst: ROOM.state.statueLight ? 1 : 0,
+      flash: ROOM.weather ? ROOM.weather.flash(now) : 0,
+      state: weatherLight(),
+    };
+  }
+
+  /**
+   * Draw the room at rest into target {ctx, W, H} (device px) for camera cam with device origin org.
+   * The main canvas uses this every frame; the pan draws each view's full master with it once.
+   */
+  function drawFrame(now, cam, org, target, marks) {
     var z = cam.z;
-    var org = CAM.origin(cam, view);
     var x0 = Math.floor(org.ox / z), y0 = Math.floor(org.oy / z);
-    ensureFb(Math.ceil(view.Wd / z) + 1, Math.ceil(view.Hd / z) + 1);
+    ensureFb(Math.ceil(target.W / z) + 1, Math.ceil(target.H / z) + 1);
     fb.fill(C.VOID); // beyond the painted art is VOID
-    var offs = offsetsFor(z);
+    fbAux.fill(0);
+    var offs = marks ? offsetsFor(z) : ZERO;
     var inZone = !!ROOM.state.zone;
-    var f = { buf: fb, w: fbW, h: fbH, x0: x0, y0: y0, offs: offs, now: now, lutA: light.from, lutB: light.to, step: light.step, z: z, cam: cam, org: org };
+    var f = { buf: fb, aux: fbAux, w: fbW, h: fbH, x0: x0, y0: y0, offs: offs, now: now, lutA: light.from, lutB: light.to, step: light.step, z: z, cam: cam, org: org };
     drawItems(
       f,
       function (d) {
         return !(inZone && d.layer === 6); // frame crops are hidden once settled in a zone
       },
-      { marks: true, outline: true }
+      { marks: marks, outline: marks }
     );
-    if (ROOM.glow) ROOM.glow.post(f, dimOn);
-    if (ROOM.fx) ROOM.fx.drawMotes(f);
-    if (ROOM.overlay && !ROOM.state.photo) ROOM.overlay.drawMarks(f);
-    // Expand indices to RGBA and draw once at z.
-    for (var i = 0; i < fb.length; i++) fbU32[i] = RGBA[fb[i]];
-    fbCtx.putImageData(fbImage, 0, 0);
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(fbCanvas, x0 * z - org.ox, y0 * z - org.oy, fbW * z, fbH * z);
-    drawLight({ z: z, tx: -org.ox, ty: -org.oy }, now, dimOn);
-    lastRest = { cam: cam, org: org, offs: offs, z: z, x0: x0, y0: y0, key: [org.ox, org.oy, z, offs.join(','), sceneVersion, ROOM.state.zone, view.Wd, view.Hd].join('|') };
+    if (ROOM.weather) ROOM.weather.draw(f);
+    if (marks) {
+      if (ROOM.glow) ROOM.glow.post(f, dimOn && !gpuOn());
+      if (ROOM.fx) ROOM.fx.drawMotes(f);
+      if (ROOM.overlay && !ROOM.state.photo) ROOM.overlay.drawMarks(f);
+    }
+    var tc = target.ctx;
+    tc.imageSmoothingEnabled = false;
+    var lit = null;
+    if (gpuOn()) {
+      ROOM.gl.setView(ROOM.normView(ROOM.state.view), (ROOM.viewConf(ROOM.state.view) || {}).lighting || null);
+      f.sceneVersion = sceneVersion;
+      lit = ROOM.gl.frame(f, gpuOpts(now));
+      if (!lit && !ROOM.gl.lost && ROOM.gl.tier === 'off') gpuReady = false;
+    }
+    if (lit) {
+      tc.drawImage(lit, 0, 0, fbW * z, fbH * z, x0 * z - org.ox, y0 * z - org.oy, fbW * z, fbH * z);
+    } else {
+      // Expand indices to RGBA and draw once at z, then the Canvas2D light (the v3.3 path).
+      for (var i = 0; i < fb.length; i++) fbU32[i] = RGBA[fb[i]];
+      fbCtx.putImageData(fbImage, 0, 0);
+      tc.drawImage(fbCanvas, x0 * z - org.ox, y0 * z - org.oy, fbW * z, fbH * z);
+      drawLight({ z: z, tx: -org.ox, ty: -org.oy }, now, dimOn, target);
+    }
+    return { offs: offs, x0: x0, y0: y0, gpu: !!lit };
+  }
+
+  function renderRest(now) {
+    var cam = restCamera();
+    var org = CAM.origin(cam, view);
+    var r = drawFrame(now, cam, org, { ctx: ctx, W: view.Wd, H: view.Hd }, true);
+    var z = cam.z;
+    lastRest = { cam: cam, org: org, offs: r.offs, z: z, x0: r.x0, y0: r.y0, gpu: r.gpu, key: [org.ox, org.oy, z, r.offs.join(','), sceneVersion, ROOM.state.zone, view.Wd, view.Hd].join('|') };
     if (ROOM.overlay) ROOM.overlay.sync(lastRest);
   }
 
@@ -666,92 +853,118 @@
     if (a.fn) setTimeout(a.fn, ROOM.state.reducedMotion || !a.item ? 0 : 220);
   }
 
-  /* ------------------------------------------------------------------ turn: walk forward, then turn (art pass 5) */
-  // Under a second: a short push forward with a two-step bob, then a yaw sweep of TURN_YAW between the two
-  // rest frames. A pure yaw keeps vertical lines vertical, so each frame is drawn as vertical strips: the
-  // strip at screen angle phi shows the source column at angle phi + delta, scaled by cos(alpha)/cos(phi).
+  /* ------------------------------------------------------------------ turn: a pan (art pass 6) */
+  // The four views are 90 degree faces of one camera, so a turn is a pure yaw: every screen column at angle phi
+  // shows the column at angle phi + theta of whichever view owns that direction, scaled vertically about the
+  // horizon by cos(a) / cos(phi). Each view involved is drawn once, lit, over its full master (55 degrees each
+  // side), and the views hand over at the room corners (45 degrees). 90 degrees takes 640 ms, 180 degrees 900 ms.
   var turn = null;
-  var TURN_WALK_MS = 300, TURN_SWEEP_MS = 460;
-  var TURN_YAW = Math.PI / 3;
-  var HALF_FOV = Math.PI / 6;
+  var pushView = true; // whether the 'view' event asks the router for a history entry
+  var TURN_MS = [0, 640, 900];
 
   function easeInOut(u) {
     u = Math.max(0, Math.min(1, u));
-    return u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
-  }
-  function snapshot() {
-    var c = document.createElement('canvas');
-    c.width = canvas.width;
-    c.height = canvas.height;
-    c.getContext('2d').drawImage(canvas, 0, 0);
-    return c;
+    return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
   }
   /** Switch the drawn view at once: scene, camera frame, phone pan. */
-  function applyView(v) {
-    if (ROOM.state.view === v) return;
+  function applyView(v, silent) {
+    v = ROOM.normView(v);
+    if (ROOM.normView(ROOM.state.view) === v) return;
     ROOM.state.view = v;
     CAM.configure(ROOM.viewConf(v));
     sceneDirty = true;
     pan.x = CAM.CORE_W / 2;
     pan.v = 0;
     pan.target = null;
-    ROOM.emit('view', { view: v });
+    if (!silent) ROOM.emit('view', { view: v, push: pushView });
   }
-  function viewIndex(v) {
-    return v === 'left' ? -1 : v === 'right' ? 1 : 0;
+  /** Draw view v's full master (art rect) at zoom z into a new canvas; returns {c, vx, vy} (vp in canvas px). */
+  function masterOf(v, now, z) {
+    applyView(v, true);
+    buildScene();
+    var vc = ROOM.viewConf(v);
+    var a = vc.art || { x: -CAM.ART.x0, y: -CAM.ART.y0, w: 800, h: 560 };
+    var W = Math.round(a.w * z), H = Math.round(a.h * z);
+    var c = document.createElement('canvas');
+    c.width = W;
+    c.height = H;
+    var cx = c.getContext('2d', { alpha: false, colorSpace: 'srgb' });
+    cx.fillStyle = VOID_CSS;
+    cx.fillRect(0, 0, W, H);
+    drawFrame(now, { z: z }, { ox: a.x * z, oy: a.y * z }, { ctx: cx, W: W, H: H }, false);
+    var vp = vc.vp || [CAM.CORE_W / 2, CAM.HORIZON];
+    return { c: c, vx: (vp[0] - a.x) * z, vy: (vp[1] - a.y) * z };
   }
   function startTurn(toView, dir) {
     if (dolly) endDolly();
     var now = ROOM.now();
     if (light.key === null) updateLighting(now);
     if (sceneDirty) buildScene();
-    renderRest(now);
-    var A = snapshot();
+    var from = ROOM.normView(ROOM.state.view);
+    toView = ROOM.normView(toView);
+    var list = ROOM.viewList();
+    var steps = 0, v = from, chain = [from];
+    while (v !== toView && steps < 3) {
+      v = ROOM.viewToward(v, dir);
+      if (!v) break;
+      chain.push(v);
+      steps++;
+    }
+    if (v !== toView || list.length < 2) {
+      applyView(toView);
+      return;
+    }
+    var cam = restCamera();
+    var org = CAM.origin(cam, view);
+    var fvc = ROOM.viewConf(from);
+    var vp = fvc.vp || [CAM.CORE_W / 2, CAM.HORIZON];
+    var f = (fvc.f || CAM.CORE_W / 2) * cam.z;
+    var srcs = chain.map(function (cv) {
+      return masterOf(cv, now, cam.z);
+    });
+    applyView(from, true);
     applyView(toView);
     buildScene();
-    renderRest(now);
-    var B = snapshot();
-    ctx.drawImage(A, 0, 0);
-    turn = { A: A, B: B, dir: dir, t0: now };
+    turn = {
+      srcs: srcs,
+      dir: dir,
+      steps: steps,
+      t0: now,
+      dur: TURN_MS[Math.min(2, steps)] || 900,
+      f: f,
+      vx: vp[0] * cam.z - org.ox,
+      vy: vp[1] * cam.z - org.oy,
+    };
     if (ROOM.overlay) ROOM.overlay.setHidden(true);
-  }
-  // One image drawn for camera yaw offset delta (radians, + = the camera turned right of the image), zoom k.
-  function drawYaw(img, delta, k, bob) {
-    var W = canvas.width, H = canvas.height;
-    var f = W / 2 / Math.tan(HALF_FOV);
-    var step = Math.max(2, Math.round(W / 480));
-    for (var x = 0; x < W; x += step) {
-      var phi = Math.atan((x + step / 2 - W / 2) / f);
-      var a = phi + delta;
-      if (Math.abs(a) >= HALF_FOV + 0.02) continue;
-      var ca = Math.cos(a), cp = Math.cos(phi);
-      var xa = W / 2 + f * Math.tan(a);
-      var sx = W / 2 + (xa - W / 2) / k;
-      var sw = (step * (cp * cp)) / (ca * ca) / k;
-      if (sx + sw < 0 || sx > W) continue;
-      var dh = (H * k * ca) / cp;
-      ctx.drawImage(img, Math.max(0, sx - sw / 2), 0, Math.max(1, sw), H, x, H / 2 - dh / 2 + bob, step + 1, dh);
-    }
+    renderTurn(now);
   }
   function renderTurn(now) {
     var t = now - turn.t0;
-    var total = TURN_WALK_MS + TURN_SWEEP_MS;
-    if (t >= total) {
+    if (t >= turn.dur) {
       endTurn();
       return false;
     }
+    var W = canvas.width, H = canvas.height;
     ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = VOID_CSS;
-    ctx.fillRect(0, 0, view.Wd, view.Hd);
-    var walk = Math.min(1, t / TURN_WALK_MS);
-    var kA = 1 + 0.12 * easeInOut(walk);
-    var bob = Math.sin(walk * Math.PI * 2) * 0.008 * view.Hd;
-    var su = (t - TURN_WALK_MS * 0.6) / (total - TURN_WALK_MS * 0.6);
-    var e = easeInOut(su);
-    var th = e * TURN_YAW * turn.dir;
-    var kB = 1 + 0.06 * (1 - e);
-    drawYaw(turn.A, th, kA, bob);
-    drawYaw(turn.B, th - TURN_YAW * turn.dir, kB, bob * (1 - e));
+    ctx.fillRect(0, 0, W, H);
+    var th = easeInOut(t / turn.dur) * turn.steps * (Math.PI / 2) * turn.dir;
+    var f = turn.f, step = Math.max(2, Math.round(W / 640));
+    for (var x = 0; x < W; x += step) {
+      var phi = Math.atan((x + step / 2 - turn.vx) / f);
+      var a = phi + th;
+      var n = Math.round(a / (Math.PI / 2)); // which view owns this direction (0 = start, dir * k = k turns on)
+      var k = n * turn.dir;
+      if (k < 0 || k > turn.steps) continue;
+      var src = turn.srcs[k];
+      var la = a - n * (Math.PI / 2);
+      var ca = Math.cos(la), cp = Math.cos(phi);
+      var sx = src.vx + f * Math.tan(la);
+      var sw = (step * cp * cp) / (ca * ca);
+      var sc = ca / cp;
+      var Hs = src.c.height;
+      ctx.drawImage(src.c, Math.max(0, sx - sw / 2), 0, Math.max(1, sw), Hs, x, turn.vy - src.vy * sc, step, Hs * sc);
+    }
     return true;
   }
   function endTurn() {
@@ -783,12 +996,15 @@
         k += Math.floor(o.x) + ':' + o.y + ',';
       }
     }
-    return k + '|' + lightKey(now) + '|' + (ROOM.fx ? ROOM.fx.ambientKey(now) : '') + '|' + (ROOM.glow ? ROOM.glow.ambientKey(now) : '');
+    return k + '|' + lightKey(now) + '|' + (ROOM.fx ? ROOM.fx.ambientKey(now) : '') + '|' + (ROOM.glow ? ROOM.glow.ambientKey(now) : '') +
+      '|' + (ROOM.weather ? ROOM.weather.ambientKey(now) : '') + '|' + (gpuOn() && ROOM.gl.ambientKey ? ROOM.gl.ambientKey(now) : '');
   }
   function hasAmbient() {
     if (ROOM.state.reducedMotion) return false;
     for (var i = 0; i < drawables.length; i++) if (drawables[i].frames || drawables[i].item.drift) return true;
     if (lightKey(0) !== '') return true;
+    if (ROOM.weather && ROOM.weather.hasAmbient()) return true;
+    if (gpuOn() && ROOM.gl.hasAmbient && ROOM.gl.hasAmbient()) return true;
     return (ROOM.fx && ROOM.fx.hasAmbient()) || (ROOM.glow && ROOM.glow.hasAmbient());
   }
   function scheduleAmbient() {
@@ -822,6 +1038,16 @@
       }
     }
     var busy = false;
+    // On the GPU path the sun clock decides night (night sky, lamps on), unless ?night= says otherwise.
+    if (gpuOn() && ROOM.light && ROOM.light.current && !/[?&]night=/.test(window.location.search)) {
+      var nt = !!ROOM.light.current().night;
+      if (nt !== !!ROOM.state.night) {
+        ROOM.state.night = nt;
+        sceneDirty = true;
+        buildScene();
+        dirty = true;
+      }
+    }
     if (updateLighting(now)) dirty = true;
     if (light.step < 16) busy = true;
 
@@ -856,6 +1082,10 @@
       busy = true;
     }
     if (ROOM.glow && ROOM.glow.busy(now)) {
+      dirty = true;
+      busy = true;
+    }
+    if ((ROOM.weather && ROOM.weather.busy(now)) || (gpuOn() && ROOM.gl.busy && ROOM.gl.busy(now))) {
       dirty = true;
       busy = true;
     }
@@ -970,9 +1200,9 @@
     arrive = opts.item || opts.onArrive ? { item: opts.item || null, fn: opts.onArrive || null } : null;
     if (id !== 'window' && ROOM.state.statueLight) ROOM.state.statueLight = false;
     // A zone in another view: walk and turn straight into it.
-    var toView = zone ? ROOM.viewOf(zone) : ROOM.state.view || 'main';
-    if (toView !== (ROOM.state.view || 'main')) {
-      var dir = viewIndex(toView) > viewIndex(ROOM.state.view) ? 1 : -1;
+    var toView = zone ? ROOM.viewOf(zone) : ROOM.normView(ROOM.state.view);
+    if (toView !== ROOM.normView(ROOM.state.view)) {
+      var dir = ROOM.turnDir(ROOM.state.view, toView);
       ROOM.state.zone = id;
       if (id) lastZone = id;
       if (view && !opts.instant && !ROOM.state.reducedMotion) startTurn(toView, dir);
@@ -1007,7 +1237,7 @@
    */
   ROOM.turn = function (dir, opts) {
     opts = opts || {};
-    var to = ROOM.viewToward ? ROOM.viewToward(ROOM.state.view || 'main', dir) : null;
+    var to = ROOM.viewToward ? ROOM.viewToward(ROOM.state.view, dir) : null;
     if (!to || turn) return false;
     if (dolly) endDolly();
     var prev = ROOM.state.zone;
@@ -1016,6 +1246,26 @@
     ROOM.state.zone = null;
     if (view && !opts.instant && !ROOM.state.reducedMotion) startTurn(to, dir);
     else applyView(to);
+    if (prev) ROOM.emit('zone', { zone: null, from: prev, push: opts.push !== false });
+    invalidate();
+    return true;
+  };
+
+  /** Turn to view v (the shortest way round). opts.push false: no history entry; opts.instant: no pan. */
+  ROOM.turnTo = function (v, opts) {
+    opts = opts || {};
+    v = ROOM.normView(v);
+    var cur = ROOM.normView(ROOM.state.view);
+    if (v === cur || turn || ROOM.viewList().indexOf(v) < 0) return false;
+    if (dolly) endDolly();
+    var prev = ROOM.state.zone;
+    arrive = null;
+    if (ROOM.state.statueLight) ROOM.state.statueLight = false;
+    ROOM.state.zone = null;
+    pushView = opts.push !== false;
+    if (view && !opts.instant && !ROOM.state.reducedMotion) startTurn(v, ROOM.turnDir(cur, v));
+    else applyView(v);
+    pushView = true;
     if (prev) ROOM.emit('zone', { zone: null, from: prev, push: opts.push !== false });
     invalidate();
     return true;
@@ -1065,6 +1315,10 @@
 
   ROOM.render = {
     init: init,
+    enableGpu: enableGpu,
+    get gpu() {
+      return gpuOn();
+    },
     layout: layout,
     invalidate: invalidate,
     BAYER: BAYER,

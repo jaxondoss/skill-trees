@@ -36,7 +36,7 @@
     var zs = ROOM.zonesInView ? ROOM.zonesInView() : ROOM.zones;
     if (R.view && R.view.mode === 'pan') return CAM.zoneAtX(R.pan.x, zs).id;
     var last = R.lastZone && ROOM.zoneById(R.lastZone);
-    if (last && (!ROOM.viewOf || ROOM.viewOf(last) === (ROOM.state.view || 'main'))) return last.id;
+    if (last && (!ROOM.viewOf || ROOM.viewOf(last) === ROOM.normView(ROOM.state.view))) return last.id;
     return zs.length ? (zs.filter(function (z) { return z.id === 'window'; })[0] || zs[0]).id : 'window';
   }
 
@@ -102,7 +102,7 @@
       case 'ArrowLeft': {
         // In the room the arrows turn between the three views; in a zone they walk the zones.
         var dir = k === 'ArrowRight' ? 1 : -1;
-        if (!ROOM.state.zone && ROOM.turn && ROOM.viewToward && ROOM.viewToward(ROOM.state.view || 'main', dir)) ROOM.turn(dir);
+        if (!ROOM.state.zone && ROOM.turn && ROOM.viewToward && ROOM.viewToward(ROOM.state.view, dir)) ROOM.turn(dir);
         else if (ROOM.state.zone || !ROOM.hasViews || !ROOM.hasViews()) step(dir);
         e.preventDefault();
         return;
