@@ -175,3 +175,5 @@ Gate changes made during integration (texture_check.py):
 - Margin plates get the noise limits only. They re-project the neighbour views' walls, which are gated there.
 - Share-based noise limits apply to regions of 100 px or more (`MIN_NOISE`). In a 40 px region, two pixels
   move the share by 5%. The v3.3 grain check used 150 px.
+- Drawn patterns (`PATTERN_SPRITES`, the chess table) skip the noise limits, and the build's cleanup leaves
+  them alone (`KEEP_PATTERN`). A chess board is a checkerboard by design, and cleaning it scrambles the board.

@@ -55,7 +55,9 @@ SPLIT_BASE = (0.55, 0.78)        # base shade share per material region (materia
 MIN_REGION = 40                  # material regions smaller than this are not measured (LEDs, bulbs, glints)
 MIN_NOISE = 100                  # share-based noise limits need a region this big (a few pixels of a 40 px region
                                  # swing the share by 5%+; the v3.3 grain check used 150)
-MIN_RICH = 600                   # richness floors and split apply to regions of 600 px or more
+MIN_RICH = 600
+# drawn patterns: the noise limits measure texture, and a game board is a checkerboard by design
+PATTERN_SPRITES = ("/library/chess.",)                   # richness floors and split apply to regions of 600 px or more
 MIN_SHELL = 20000                # ... and for shell surfaces, to whole surfaces (a wall, the floor, the ceiling)
 MAX3_SHARE = 0.003               # share of 3x3 windows allowed over the class's max3x3
 HOTSPOT_STEPS = 2.0              # silhouette contrast in backdrop ramp steps (TEXTURE_SPEC 5.13)
@@ -283,7 +285,7 @@ def region_report(path, idx, mat, materials, item_kind, view, front_views, lstar
         row = dict(path=path, material=md["name"], cls=md["class"], **{k: v for k, v in mt.items() if k != "d3"})
         rows.append(row)
         tag = f"{path} [{md['name']}]"
-        if cls["iso"] is not None and n >= MIN_NOISE:
+        if cls["iso"] is not None and n >= MIN_NOISE and not any(k in path for k in PATTERN_SPRITES):
             over = float((mt["d3"] > cls["max3x3"]).mean())
             row["over3"] = over
             if mt["iso"] > cls["iso"]:

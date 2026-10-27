@@ -2767,13 +2767,14 @@ def scene_right():
             circ(x + 2, y - 46, 1, "GOLD")
         shadow_ell(x, y, 9, 2)
     with xshift(2.5):
-        with obj("gym-mat"):
+        with obj("gym-mat", mat="plastic"):
+            # rubber floor tiles: dark slate, so the light model still has something to light
             q = [pj(-2.6, 0, 0.1), pj(7.0, 0, 0.1), pj(7.0, 0, 5.4), pj(-2.6, 0, 5.4)]
-            POLY(q, "INK", "VOID")
+            POLY(q, "SLATE_D", "INK")
             for X in (-0.2, 2.2, 4.6):
-                PL([pj(X, 0, 0.1), pj(X, 0, 5.4)], "BROWN_1")
+                PL([pj(X, 0, 0.1), pj(X, 0, 5.4)], "INK_2")
             for z in (1.9, 3.7):
-                PL([pj(-2.6, 0, z), pj(7.0, 0, z)], "BROWN_1")
+                PL([pj(-2.6, 0, z), pj(7.0, 0, z)], "INK_2")
     with xshift(2.5):
         with obj("gym-timer"):
             x0, y0 = pji(-1.6, 9.9, 0)
@@ -3181,6 +3182,8 @@ def apply_textures(view, tier):
     cap_3x3()
 
 
+# drawn patterns the cleanup must not touch (a chess board is a checkerboard by design)
+KEEP_PATTERN = {"chess-table"}
 PASS_THROUGH = {"screen_emissive", "neon", "bulb", "flame", "wet", "sky", "glass_window", "glass_crt", "cork", "soil"}
 BACKDROP = {"plaster", "plaster_venetian", "wood_floor", "wood_ceiling"}
 
@@ -3192,6 +3195,7 @@ def fold_lone(passes=3):
     stays). Lone specks of wall, floor or ceiling caught between parts of an object become that object.
     The emissive, glass, sky and speck materials are left alone."""
     skip = np.isin(G.mat, [MAT[m] for m in PASS_THROUGH])
+    skip |= np.isin(G.oid, [o for o, n in G.names.items() if n in KEEP_PATTERN])
     back = np.isin(G.mat, [MAT[m] for m in BACKDROP])
     h, w = G.img.shape
     for _ in range(passes):
@@ -3251,7 +3255,8 @@ def cap_3x3(passes=6):
     for _ in range(passes):
         reg = G.oid.astype(np.int64) * 256 + G.mat
         changed = 0
-        for r in np.unique(reg[G.oid >= 6]):
+        keep = [o for o, n in G.names.items() if n in KEEP_PATTERN]
+        for r in np.unique(reg[(G.oid >= 6) & ~np.isin(G.oid, keep)]):
             mid = int(r % 256)
             lim = MAT_INFO.get(mid)
             if not lim or mid in emis:
@@ -4000,7 +4005,8 @@ def export_view(view, manifest):
         if not m.any():
             continue
         if ch == "sway":
-            movers = np.unique(base["oid"][m])
+            still = [o for nm in KEEP_PATTERN for o in base["names"].get(nm, [])]
+            movers = np.setdiff1d(np.unique(base["oid"][m]), still)
             d = m.copy()
             for _ in range(3):
                 d = d | np.roll(d, 1, 0) | np.roll(d, -1, 0) | np.roll(d, 1, 1) | np.roll(d, -1, 1)

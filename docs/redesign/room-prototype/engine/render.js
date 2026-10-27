@@ -637,6 +637,15 @@
     if (typeof o.keyIntensity === 'number') o.keyIntensity *= 1 - 0.55 * k;
     if (typeof o.saturation === 'number') o.saturation *= 1 - 0.2 * k;
     if (typeof o.warmth === 'number') o.warmth *= 1 - k;
+    // the light through cloud is grey and cool: the key colour moves toward an overcast sky's
+    var kc = st.keyColor;
+    if (kc && kc.length === 3) {
+      var lum = 0.2126 * kc[0] + 0.7152 * kc[1] + 0.0722 * kc[2];
+      var grey = [lum * 0.86, lum * 0.94, lum * 1.12];
+      o.keyColor = [0, 1, 2].map(function (i) {
+        return kc[i] + (grey[i] - kc[i]) * k;
+      });
+    }
     return o;
   }
 
@@ -1361,6 +1370,7 @@
       return canvas;
     },
     pan: pan,
+    weatherLight: weatherLight,
     setHover: function (id) {
       if (hoverId !== id) {
         hoverId = id;
