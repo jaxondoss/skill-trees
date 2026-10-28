@@ -140,6 +140,39 @@ if (only === "plaque") {
   }
   console.log("plaque, level-up, tier-up");
 }
+if (only === "calendar") {
+  // phase 3: the calendar wall at golden hour and night, a past month (the red to green to gold range), and the day
+  // bar for today and for a clicked past day
+  const wall = async (q) => {
+    await page.goto(`${page0}?${q}&n=${Math.random()}#/room/calendar`);
+    await page.waitForFunction(() => window.ROOM && window.ROOM.debug && window.ROOM.state.zone === "calendar");
+    await page.waitForTimeout(1500);
+  };
+  const dayBar = () =>
+    page.evaluate(() => {
+      const r = window.ROOM.viewConf("back").calendar.day;
+      const c = window.ROOM.render.cssRectOf({ hit: [r[0] - 4, r[1] - 4, r[2] + 8, r[3] + 8], layer: 3 });
+      return { x: Math.max(0, c.left), y: Math.max(0, c.top), width: c.width, height: c.height };
+    });
+  await wall(LOOKS.golden);
+  await page.screenshot({ path: join(stills, "calendar-golden.png") });
+  await page.screenshot({ path: join(stills, "daybar-today.png"), clip: await dayBar() });
+  await page.evaluate(() => window.ROOM.calendar.shiftMonth(-1));
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: join(stills, "calendar-past-month.png") });
+  await page.evaluate(() => window.ROOM.calendar.select(window.ROOM.calendar.month + "-17"));
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: join(stills, "daybar-past-day.png"), clip: await dayBar() });
+  await wall(LOOKS.night);
+  await page.screenshot({ path: join(stills, "calendar-night.png") });
+  // the back view from the room (not zoomed), golden hour
+  await page.goto(`${page0}?${LOOKS.golden}&n=${Math.random()}#/room/back`);
+  await page.waitForFunction(() => window.ROOM && window.ROOM.debug);
+  await page.evaluate(() => document.body.classList.add("photo"));
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: join(stills, "back-golden.png") });
+  console.log("calendar wall");
+}
 if (only === "all" || only === "fps") {
   const rows = [];
   for (const tier of ["ultra", "high", "medium", "low"]) {

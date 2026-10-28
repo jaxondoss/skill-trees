@@ -184,9 +184,16 @@
     var h12 = h % 12 === 0 ? 12 : h % 12;
     return h12 + (m ? ':' + pad(m) : '') + ap;
   }
+  // now, in ms; when the room's data is a sample for another day, the same time of day on that day
+  function nowMs() {
+    var t = Date.now();
+    var real = parts(t).day, today = ROOM.data.today;
+    if (!today || !parseDay(real)) return t;
+    var diff = Math.round((parseDay(today) - parseDay(real)) / 86400000);
+    return Math.abs(diff) > 1 ? t + diff * 86400000 : t;
+  }
   function wallNow() {
-    // the engine clock (frozen in tests) on the owner's wall clock
-    return parts(ROOM.now() < 1e11 ? Date.now() : ROOM.now());
+    return parts(nowMs());
   }
   function todayKey() {
     return ROOM.data.today || wallNow().day;
@@ -275,13 +282,20 @@
     return vc && vc.calendar ? vc.calendar : null;
   }
   // grid geometry of the month board, in world px
-  function monthLayout(r) {
+  // weeks the month spans (5 or 6; 4 for a February that starts on a Sunday)
+  function weeksOf(m) {
+    var first = parseDay(m + '-01');
+    var next = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 1));
+    var days = Math.round((next - first) / 86400000);
+    return Math.ceil((first.getUTCDay() + days) / 7);
+  }
+  function monthLayout(r, m) {
     var x = r[0], y = r[1], w = r[2], h = r[3];
-    var titleH = 13, nowH = 8, headH = 8;
+    var titleH = 13, nowH = 8, headH = 8, weeks = weeksOf(m || curMonth());
     var gy = y + 3 + titleH + nowH + headH;
-    var cw = Math.floor((w - 6) / 7), ch = Math.floor((y + h - 3 - gy) / 6);
+    var cw = Math.floor((w - 6) / 7), ch = Math.floor((y + h - 3 - gy) / weeks);
     var gx = x + Math.floor((w - cw * 7) / 2);
-    return { x: x, y: y, w: w, h: h, gx: gx, gy: gy, cw: cw, ch: ch, titleY: y + 3, nowY: y + 3 + titleH, headY: gy - headH + 1 };
+    return { x: x, y: y, w: w, h: h, gx: gx, gy: gy, cw: cw, ch: ch, weeks: weeks, titleY: y + 3, nowY: y + 3 + titleH, headY: gy - headH + 1 };
   }
   function firstCell(m) {
     var d = parseDay(m + '-01');
@@ -309,7 +323,7 @@
     for (var k = 0; k < 7; k++) text(f, L.gx + k * L.cw + 2, L.headY, 'SMTWTFS'[k], col('SLATE_1'), 1);
     if (!cal()) return;
     var day = firstCell(m);
-    for (var i = 0; i < 42; i++) {
+    for (var i = 0; i < L.weeks * 7; i++) {
       var cx = L.gx + (i % 7) * L.cw, cy = L.gy + ((i / 7) | 0) * L.ch;
       drawCell(f, day, cx, cy, L.cw - 1, L.ch - 1, monthKey(day) === m, today, sel, md, t);
       day = addDays(day, 1);
@@ -349,7 +363,7 @@
       fill = C.INK;
       num = col('SLATE_0');
     }
-    rect(f, x, y, w, h, fill, glow && day !== today);
+    rect(f, x, y, w, h, fill, false);
     if (outline) frame(f, x, y, w, h, outline, glow);
     text(f, x + 2, y + 2, n, num, 1, day === today);
     if (day === today) {
@@ -360,9 +374,13 @@
     if (day === sel) frame(f, x - 1, y - 1, w + 2, h + 2, cream, false);
     // events: all-day bars, then timed events (dot, time, title); "+N" when they do not fit
     var evs = eventsOn(day);
-    var line = 6, top = y + 8, rows = Math.floor((h - 9) / line);
-    if (rows < 1) return;
-    var shown = evs.length > rows ? rows - 1 : evs.length;
+    var line = 6, top = y + 8, rows = Math.max(0, Math.floor((h - 9) / line));
+    var shown = Math.min(rows, evs.length);
+    // what does not fit is counted beside the date
+    if (evs.length > shown) {
+      var more = '+' + (evs.length - shown);
+      text(f, x + w - (day === today ? 6 : 2) - tw(more), y + 2, more, inkOn(fill) === C.INK ? C.INK : col('SLATE_2'), 1);
+    }
     for (var k = 0; k < shown; k++) {
       var ev = evs[k], ec = paletteOf(ev.e.color), ly = top + k * line;
       if (ev.s.allDay || ev.s.startDay !== day) {
@@ -374,11 +392,10 @@
         text(f, x + 4, ly, lbl, inkOn(fill) === C.INK ? C.INK : cream, 1, false, w - 5);
       }
     }
-    if (evs.length > shown) text(f, x + 2, top + shown * line, '+' + (evs.length - shown), inkOn(fill) === C.INK ? C.INK : col('SLATE_2'), 1);
   }
 
   function drawNowNext(f, x, y, w, t) {
-    var now = Date.now(), today = todayKey();
+    var now = nowMs(), today = todayKey();
     var evs = eventsOn(today).concat(eventsOn(addDays(today, 1)));
     var cur = null, next = null;
     evs.forEach(function (x2) {
@@ -564,7 +581,7 @@
       btns.push(b);
       return b;
     };
-    for (var i = 0; i < 42; i++) {
+    for (var i = 0; i < L.weeks * 7; i++) {
       (function (dd, i) {
         if (monthKey(dd) !== curMonth()) return;
         var b = make(describe(dd), function () {
