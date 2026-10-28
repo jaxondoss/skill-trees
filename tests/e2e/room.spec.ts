@@ -169,3 +169,42 @@ test("v3.4: the statue's plaque offers UPGRADE at 100%, and the level is saved a
   // The database refuses to lower it.
   expect(() => sql(`set request.jwt.claim.sub = '${USER_ID}'; update public.profiles set statue_level = 0 where user_id = '${USER_ID}';`)).toThrow(/never drops/);
 });
+
+test("v3.4: the calendar wall on the back view: key 8, every day is a button, the study calendar leads there", async ({ page }) => {
+  await openRoom(page);
+  await page.keyboard.press("8");
+  await expect(page).toHaveURL(/\/room\/calendar$/);
+  await expect.poll(async () => (await roomState(page)).view).toBe("back");
+  await settled(page);
+  // a button per day of the month, named with the day, its completion and its events
+  const days = page.locator(".cal-hit[aria-label*=' events'], .cal-hit[aria-label*=' event,'], .cal-hit[aria-label$=' event']");
+  await expect(days.first()).toBeVisible();
+  expect(await days.count()).toBeGreaterThanOrEqual(28);
+  const today = page.locator(".cal-hit[aria-label*=', today']");
+  await expect(today).toHaveCount(1);
+  await expect(today).toHaveAttribute("aria-pressed", "true");
+  // pick another day: it becomes the selected one
+  const other = days.nth(2);
+  await other.click();
+  await expect.poll(() => other.getAttribute("aria-pressed")).toBe("true");
+  // ADD opens Google Calendar (a link, no in-app form)
+  await expect(page.locator("a.cal-hit")).toHaveAttribute("href", /^https:\/\/calendar\.google\.com\/calendar\/r\/eventedit\?dates=\d{8}\/\d{8}$/);
+  // the study desk's wall calendar leads back to the wall
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("5");
+  await expect(page).toHaveURL(/\/room\/study$/);
+  await settled(page);
+  await page.locator('.hs[data-id="study.time"]').click({ force: true });
+  await expect(page).toHaveURL(/\/room\/calendar$/);
+});
+
+test("v3.4: Time Blocking is retired: archived with its history, and the room has no object for it", async ({ page }) => {
+  // the e2e reset re-activates every skill; apply the retirement as migration 0013 does
+  sql(`update public.skills set status = 'archived', archived_at = now() where user_id = '${USER_ID}' and slug = 'time-blocking'`);
+  await openRoom(page);
+  const items = await page.evaluate(() =>
+    (window as unknown as { ROOM: { art: { items: { target?: { skill?: string } }[] } } }).ROOM.art.items.filter((i) => i.target?.skill === "time-blocking").length,
+  );
+  expect(items).toBe(0);
+  expect(sql(`select status from public.skills where user_id = '${USER_ID}' and slug = 'time-blocking'`)).toBe("archived");
+});

@@ -4670,6 +4670,70 @@
       "id": "back-0",
       "type": "point",
       "pos": [
+       97.5,
+       79.5
+      ],
+      "rgb": [
+       255,
+       176,
+       96
+      ],
+      "intensity": 0.81,
+      "radius": 145.2,
+      "when": "always"
+     },
+     {
+      "id": "back-1",
+      "type": "point",
+      "pos": [
+       207.3,
+       79.5
+      ],
+      "rgb": [
+       255,
+       176,
+       96
+      ],
+      "intensity": 0.81,
+      "radius": 145.2,
+      "when": "always"
+     },
+     {
+      "id": "back-2",
+      "type": "point",
+      "pos": [
+       317.0,
+       79.5
+      ],
+      "rgb": [
+       255,
+       176,
+       96
+      ],
+      "intensity": 0.81,
+      "radius": 145.2,
+      "when": "always"
+     },
+     {
+      "id": "back-3",
+      "type": "point",
+      "pos": [
+       448.7,
+       79.5
+      ],
+      "rgb": [
+       255,
+       176,
+       96
+      ],
+      "intensity": 0.81,
+      "radius": 145.2,
+      "when": "always"
+     },
+     {
+      "id": "back-4",
+      "type": "point",
+      "pos": [
        348.8,
        18.2
       ],
@@ -4683,7 +4747,7 @@
       "when": "always"
      },
      {
-      "id": "back-1",
+      "id": "back-5",
       "type": "point",
       "pos": [
        359.1,
@@ -4699,7 +4763,7 @@
       "when": "always"
      },
      {
-      "id": "back-2",
+      "id": "back-6",
       "type": "point",
       "pos": [
        372.9,
@@ -4715,7 +4779,7 @@
       "when": "always"
      },
      {
-      "id": "back-3",
+      "id": "back-7",
       "type": "point",
       "pos": [
        392.5,
@@ -4731,7 +4795,7 @@
       "when": "always"
      },
      {
-      "id": "back-4",
+      "id": "back-8",
       "type": "point",
       "pos": [
        422.1,
@@ -4747,7 +4811,7 @@
       "when": "always"
      },
      {
-      "id": "back-5",
+      "id": "back-9",
       "type": "point",
       "pos": [
        472.6,
@@ -4763,7 +4827,7 @@
       "when": "always"
      },
      {
-      "id": "back-6",
+      "id": "back-10",
       "type": "point",
       "pos": [
        577.4,
@@ -4779,7 +4843,7 @@
       "when": "always"
      },
      {
-      "id": "back-7",
+      "id": "back-11",
       "type": "point",
       "pos": [
        926.7,
@@ -4795,7 +4859,7 @@
       "when": "always"
      },
      {
-      "id": "back-8",
+      "id": "back-12",
       "type": "point",
       "pos": [
        204.6,
@@ -4811,7 +4875,7 @@
       "when": "always"
      },
      {
-      "id": "back-9",
+      "id": "back-13",
       "type": "point",
       "pos": [
        193.4,
@@ -4827,7 +4891,7 @@
       "when": "always"
      },
      {
-      "id": "back-10",
+      "id": "back-14",
       "type": "point",
       "pos": [
        178.2,
@@ -4843,7 +4907,7 @@
       "when": "always"
      },
      {
-      "id": "back-11",
+      "id": "back-15",
       "type": "point",
       "pos": [
        156.4,
@@ -4859,7 +4923,7 @@
       "when": "always"
      },
      {
-      "id": "back-12",
+      "id": "back-16",
       "type": "point",
       "pos": [
        122.3,
@@ -4875,7 +4939,7 @@
       "when": "always"
      },
      {
-      "id": "back-13",
+      "id": "back-17",
       "type": "point",
       "pos": [
        61.8,
@@ -4891,7 +4955,7 @@
       "when": "always"
      },
      {
-      "id": "back-14",
+      "id": "back-18",
       "type": "point",
       "pos": [
        -75.8,
@@ -4924,6 +4988,70 @@
       "id": "back-0",
       "type": "point",
       "pos": [
+       97.5,
+       79.5
+      ],
+      "rgb": [
+       255,
+       176,
+       96
+      ],
+      "intensity": 0.81,
+      "radius": 145.2,
+      "when": "always"
+     },
+     {
+      "id": "back-1",
+      "type": "point",
+      "pos": [
+       207.3,
+       79.5
+      ],
+      "rgb": [
+       255,
+       176,
+       96
+      ],
+      "intensity": 0.81,
+      "radius": 145.2,
+      "when": "always"
+     },
+     {
+      "id": "back-2",
+      "type": "point",
+      "pos": [
+       317.0,
+       79.5
+      ],
+      "rgb": [
+       255,
+       176,
+       96
+      ],
+      "intensity": 0.81,
+      "radius": 145.2,
+      "when": "always"
+     },
+     {
+      "id": "back-3",
+      "type": "point",
+      "pos": [
+       448.7,
+       79.5
+      ],
+      "rgb": [
+       255,
+       176,
+       96
+      ],
+      "intensity": 0.81,
+      "radius": 145.2,
+      "when": "always"
+     },
+     {
+      "id": "back-4",
+      "type": "point",
+      "pos": [
        348.8,
        18.2
       ],
@@ -4937,7 +5065,7 @@
       "when": "always"
      },
      {
-      "id": "back-1",
+      "id": "back-5",
       "type": "point",
       "pos": [
        359.1,
@@ -4953,7 +5081,7 @@
       "when": "always"
      },
      {
-      "id": "back-2",
+      "id": "back-6",
       "type": "point",
       "pos": [
        372.9,
@@ -4969,7 +5097,7 @@
       "when": "always"
      },
      {
-      "id": "back-3",
+      "id": "back-7",
       "type": "point",
       "pos": [
        392.5,
@@ -4985,7 +5113,7 @@
       "when": "always"
      },
      {
-      "id": "back-4",
+      "id": "back-8",
       "type": "point",
       "pos": [
        422.1,
@@ -5001,7 +5129,7 @@
       "when": "always"
      },
      {
-      "id": "back-5",
+      "id": "back-9",
       "type": "point",
       "pos": [
        472.6,
@@ -5017,7 +5145,7 @@
       "when": "always"
      },
      {
-      "id": "back-6",
+      "id": "back-10",
       "type": "point",
       "pos": [
        577.4,
@@ -5033,7 +5161,7 @@
       "when": "always"
      },
      {
-      "id": "back-7",
+      "id": "back-11",
       "type": "point",
       "pos": [
        926.7,
@@ -5049,7 +5177,7 @@
       "when": "always"
      },
      {
-      "id": "back-8",
+      "id": "back-12",
       "type": "point",
       "pos": [
        204.6,
@@ -5065,7 +5193,7 @@
       "when": "always"
      },
      {
-      "id": "back-9",
+      "id": "back-13",
       "type": "point",
       "pos": [
        193.4,
@@ -5081,7 +5209,7 @@
       "when": "always"
      },
      {
-      "id": "back-10",
+      "id": "back-14",
       "type": "point",
       "pos": [
        178.2,
@@ -5097,7 +5225,7 @@
       "when": "always"
      },
      {
-      "id": "back-11",
+      "id": "back-15",
       "type": "point",
       "pos": [
        156.4,
@@ -5113,7 +5241,7 @@
       "when": "always"
      },
      {
-      "id": "back-12",
+      "id": "back-16",
       "type": "point",
       "pos": [
        122.3,
@@ -5129,7 +5257,7 @@
       "when": "always"
      },
      {
-      "id": "back-13",
+      "id": "back-17",
       "type": "point",
       "pos": [
        61.8,
@@ -5145,7 +5273,7 @@
       "when": "always"
      },
      {
-      "id": "back-14",
+      "id": "back-18",
       "type": "point",
       "pos": [
        -75.8,
@@ -5173,6 +5301,54 @@
       "a": 0.06
      },
      "glows": [
+      {
+       "x": 97.5,
+       "y": 79.5,
+       "rx": 84.0,
+       "ry": 132.0,
+       "rgb": [
+        255,
+        176,
+        96
+       ],
+       "a": 0.18
+      },
+      {
+       "x": 207.3,
+       "y": 79.5,
+       "rx": 84.0,
+       "ry": 132.0,
+       "rgb": [
+        255,
+        176,
+        96
+       ],
+       "a": 0.18
+      },
+      {
+       "x": 317.0,
+       "y": 79.5,
+       "rx": 84.0,
+       "ry": 132.0,
+       "rgb": [
+        255,
+        176,
+        96
+       ],
+       "a": 0.18
+      },
+      {
+       "x": 448.7,
+       "y": 79.5,
+       "rx": 84.0,
+       "ry": 132.0,
+       "rgb": [
+        255,
+        176,
+        96
+       ],
+       "a": 0.18
+      },
       {
        "x": 348.8,
        "y": 18.2,
@@ -5409,6 +5585,54 @@
      },
      "glows": [
       {
+       "x": 97.5,
+       "y": 79.5,
+       "rx": 84.0,
+       "ry": 132.0,
+       "rgb": [
+        255,
+        176,
+        96
+       ],
+       "a": 0.261
+      },
+      {
+       "x": 207.3,
+       "y": 79.5,
+       "rx": 84.0,
+       "ry": 132.0,
+       "rgb": [
+        255,
+        176,
+        96
+       ],
+       "a": 0.261
+      },
+      {
+       "x": 317.0,
+       "y": 79.5,
+       "rx": 84.0,
+       "ry": 132.0,
+       "rgb": [
+        255,
+        176,
+        96
+       ],
+       "a": 0.261
+      },
+      {
+       "x": 448.7,
+       "y": 79.5,
+       "rx": 84.0,
+       "ry": 132.0,
+       "rgb": [
+        255,
+        176,
+        96
+       ],
+       "a": 0.261
+      },
+      {
        "x": 348.8,
        "y": 18.2,
        "rx": 10.8,
@@ -5633,6 +5857,20 @@
       1.0
      ]
     }
+   },
+   "calendar": {
+    "month": [
+     74,
+     67,
+     293,
+     141
+    ],
+    "day": [
+     386,
+     67,
+     63,
+     141
+    ]
    }
   },
   "left": {
@@ -7548,6 +7786,33 @@
     80,
     24
    ]
+  },
+  {
+   "id": "calendar",
+   "n": 8,
+   "name": "CALENDAR",
+   "view": "back",
+   "focus": [
+    51,
+    19,
+    421,
+    237
+   ],
+   "stop": 262,
+   "phoneStop": 262,
+   "hotspots": [
+    "calendar.board",
+    "calendar.daybar"
+   ],
+   "territory": {
+    "x0": -122,
+    "x1": 678
+   },
+   "light": [
+    215,
+    18,
+    24
+   ]
   }
  ],
  "shell": {
@@ -7613,7 +7878,6 @@
   "running": "gym",
   "sleep": "bed",
   "strength": "gym",
-  "time-blocking": "study",
   "triathlon": "gym",
   "visualization": "bed"
  }

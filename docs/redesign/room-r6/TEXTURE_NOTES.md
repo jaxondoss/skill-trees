@@ -177,3 +177,5 @@ Gate changes made during integration (texture_check.py):
   move the share by 5%. The v3.3 grain check used 150 px.
 - Drawn patterns (`PATTERN_SPRITES`, the chess table) skip the noise limits, and the build's cleanup leaves
   them alone (`KEEP_PATTERN`). A chess board is a checkerboard by design, and cleaning it scrambles the board.
+- Wall, floor or ceiling inside an object sprite (the backdrop seen between swaying leaves) is skipped: sway
+  frames copy those pixels from the shell plate, which is gated as a whole.

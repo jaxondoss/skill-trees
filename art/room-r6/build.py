@@ -25,6 +25,7 @@ import json
 import math
 import os
 import random
+import re
 import sys
 from contextlib import contextmanager
 
@@ -2562,7 +2563,7 @@ def scene_right():
         R(x0 + 1, y0 + 1, x1 - 1, y0 + 7, "CRT_0")
         P(x0 + 5, y0 - 1, "INK")
         P(x1 - 5, y0 - 1, "INK")
-        cs = stg("study.time")
+        cs = 2  # a full month: the wall calendar is decor now and opens the calendar wall
         cw = (x1 - x0 - 4) // 5
         for i in range(5):
             for j in range(5):
@@ -2973,9 +2974,131 @@ def scene_right():
 
 
 # ================================================================ back wall (placeholder shell in phase 1; the calendar wall is phase 3)
+# the calendar wall (v3.4 phase 3): the engine draws the month and the day bar into these fields (engine/calendar.js)
+CAL = {}
+CAL_BOARD = (-10.4, 4.6, 2.9, 10.3)       # local X0, X1, Y0, Y1 of the month board
+CAL_BAR = (5.3, 8.7, 2.9, 10.3)           # the day-schedule bar
+PENDANTS = (-7.4, -2.9, 1.6, 7.0)         # four black dome pendants over the wall (local X), at z 2.6
+
+
+def cal_panel(name, X0, X1, Y0, Y1):
+    """A wooden frame around a dark field on the back wall; returns the field (master px, inclusive)."""
+    with obj(name, mat={"default": "wood_furniture", "INK_2": "metal_painted", "VOID": "metal_painted"}):
+        x0, y0 = pji(X0, Y1, 0)
+        x1, y1 = pji(X1, Y0, 0)
+        BOX(x0, y0, x1, y1, "OAK_1", hi="OAK_2", sh="OAK_0")
+        R(x0 + 3, y0 + 3, x1 - 3, y1 - 3, "INK_2")
+        # mounting rail and two brass screws
+        P(x0 + 1, y0 + 1, "GOLD")
+        P(x1 - 1, y0 + 1, "GOLD")
+    return (x0 + 3, y0 + 3, x1 - 3, y1 - 3)
+
+
+def paint_can(X, z, h, body, lid, drip):
+    """A round can: body, a lid ellipse with its paint colour, a drip down the front."""
+    a, b = pj(X - 0.38, h, z + 0.38), pj(X + 0.38, 0, z + 0.38)
+    R(a[0], a[1], b[0], b[1], body)
+    L(a[0], a[1], a[0], b[1], "SLATE_0")
+    L(b[0], a[1], b[0], b[1], "INK")
+    L(a[0], b[1], b[0], b[1], "INK")
+    ELL(a[0] - 1, a[1] - 3, b[0] + 1, a[1] + 2, "SLATE_2", "INK")
+    ELL(a[0] + 1, a[1] - 2, b[0] - 1, a[1] + 1, lid)
+    L(a[0] + 2, a[1] + 2, a[0] + 2, a[1] + 6, drip)
+
+
+def olive_tree(X, z):
+    with obj("olive-tree", mat={"default": "leaf", "TERRA_0": "terracotta", "TERRA_1": "terracotta", "TERRA_2": "terracotta",
+                                "OAK_0": "wood_furniture", "OAK_DK": "wood_furniture"}):
+        box3d(X - 0.8, X + 0.8, 0, 1.6, z - 0.8, z + 0.8, "TERRA_1", side="TERRA_0", top="SOIL" if "SOIL" in N else "OAK_DK")
+        # a twisting grey-brown trunk, then a loose crown of small silver-green leaves
+        pts = [(X, 1.6), (X + 0.25, 3.0), (X - 0.15, 4.4), (X + 0.2, 5.6), (X + 0.05, 6.4)]
+        for (xa, ya), (xb, yb) in zip(pts, pts[1:]):
+            p0, p1 = pj(xa, ya, z), pj(xb, yb, z)
+            L(p0[0], p0[1], p1[0], p1[1], "OAK_0")
+            L(p0[0] + 1, p0[1], p1[0] + 1, p1[1], "OAK_DK")
+        rnd = random.Random(7)
+        # three clumps of small silver-green leaves, darker underneath
+        for (ox, oy, rx, ry, n) in ((-0.5, 6.6, 18, 12, 70), (0.6, 7.2, 20, 13, 80), (0.0, 7.9, 16, 10, 60)):
+            cx, cy = pj(X + ox, oy, z)
+            for i in range(n):
+                ang = rnd.uniform(0, math.tau)
+                rr = math.sqrt(rnd.random())
+                lx = cx + math.cos(ang) * rr * rx
+                ly = cy + math.sin(ang) * rr * ry
+                c = "LEAF_0" if ly > cy + ry * 0.3 else ("LEAF_1" if i % 3 else "SLATE_1")
+                L(lx - 2, ly, lx + 1, ly - 1, c)
+
+
 @scene("back")
 def scene_back():
-    pass
+    """The calendar wall: the same plum plaster and floor, a painter's studio in a few props (paint cans and brush
+    jars, canvases leaning on the wall, a stool, a splattered drop cloth, an olive tree), four black dome pendants,
+    and the month board with the day bar that the engine fills."""
+    CAL["month"] = cal_panel("cal-board", *CAL_BOARD)
+    CAL["day"] = cal_panel("cal-daybar", *CAL_BAR)
+    # pendants: cord from the ceiling, black dome, warm bulb; each throws a pool down the board
+    for k, X in enumerate(PENDANTS):
+        with obj("cal-pendant", mat={"default": "metal_painted", "SUN": "bulb", "CREAM": "bulb", "GOLD": "gold_metal"}):
+            z = 2.6
+            top = pj(X, CEIL - 0.1, z)
+            lx, ly = pj(X, 11.4, z)
+            L(top[0], max(top[1], 0), lx, ly - 9, "INK")
+            # an industrial dome: cap, flared black shade with a lit lip, the bulb under it
+            R(lx - 2, ly - 10, lx + 2, ly - 8, "INK")
+            POLY([(lx - 5, ly - 8), (lx + 5, ly - 8), (lx + 10, ly - 3), (lx + 14, ly + 2), (lx - 14, ly + 2), (lx - 10, ly - 3)], "INK_2", "INK")
+            L(lx - 4, ly - 7, lx - 9, ly - 3, "SLATE_0")
+            L(lx - 13, ly + 1, lx + 13, ly + 1, "SLATE_0")
+            R(lx - 4, ly + 3, lx + 4, ly + 5, "SUN!")
+            R(lx - 2, ly + 3, lx + 2, ly + 4, "CREAM!")
+            # the strongest light in the room: a warm pool down the calendar
+            light(lx, ly + 60, 70, 110, 0.9)
+    # drop cloth on the floor, paint splatter on it
+    with obj("drop-cloth", mat={"default": "fabric_cotton"}):
+        q = [pj(-7.6, 0.02, 0.6), pj(-1.2, 0.02, 0.6), pj(-0.6, 0.02, 3.9), pj(-8.2, 0.02, 3.4)]
+        POLY(q, "LINEN_1" if "LINEN_1" in N else "CREAM", "LINEN_2" if "LINEN_2" in N else "PAPER_DK")
+        rnd = random.Random(11)
+        for i in range(26):
+            X, z = rnd.uniform(-7.2, -1.4), rnd.uniform(0.9, 3.4)
+            x, y = pj(X, 0.02, z)
+            c = ("TERRA_2", "CRT_1", "GOLD", "LEAF_2", "PLUM_3")[i % 5]
+            R(x, y, x + 1 + (i % 2), y, c)
+    with obj("paint-cans", mat={"default": "metal_painted", "SLATE_0": "metal_brushed"}):
+        paint_can(-6.6, 1.6, 0.9, "SLATE_1", "TERRA_2", "TERRA_2")
+        paint_can(-5.6, 1.2, 0.8, "SLATE_1", "CRT_1", "CRT_1")
+        paint_can(-2.4, 2.4, 0.9, "SLATE_1", "GOLD", "GOLD")
+    # the stool with brush jars on it
+    with obj("studio-stool", mat={"default": "wood_furniture"}):
+        SXs, SZs = -8.6, 3.6
+        for dx in (-0.55, 0.55):
+            for dz in (-0.5, 0.5):
+                a, b = pj(SXs + dx, 0, SZs + dz), pj(SXs + dx * 0.8, 2.4, SZs + dz * 0.8)
+                L(a[0], a[1], b[0], b[1], "OAK_0")
+        box3d(SXs - 0.75, SXs + 0.75, 2.4, 2.65, SZs - 0.7, SZs + 0.7, "OAK_1", side="OAK_0", top="OAK_2")
+    with obj("brush-jars", mat={"default": "glass_crt", "OAK_1": "wood_furniture", "OAK_2": "wood_furniture", "TERRA_2": "plastic",
+                                "CRT_1": "plastic", "GOLD": "plastic"}):
+        for k, (dx, c) in enumerate(((-0.35, "TERRA_2"), (0.3, "CRT_1"))):
+            X = -8.6 + dx
+            box3d(X - 0.22, X + 0.22, 2.65, 3.25, 3.4, 3.8, "SLATE_2", side="SLATE_1", top="SLATE_0")
+            for j in range(3):
+                a = pj(X - 0.1 + j * 0.1, 3.2, 3.6)
+                b = pj(X - 0.25 + j * 0.25, 3.9 - j * 0.12, 3.6)
+                L(a[0], a[1], b[0], b[1], "OAK_2")
+                P(b[0], b[1], c)
+    # canvases leaning on the wall near the right corner (backs and one painted face)
+    with obj("canvases", mat={"default": "fabric_cotton", "OAK_1": "wood_furniture", "OAK_0": "wood_furniture"}):
+        for k, (X0, X1, H, face) in enumerate(((10.2, 12.6, 4.4, None), (10.8, 12.4, 3.3, "sunset"), (11.2, 12.9, 2.5, None))):
+            zb = 0.25 + k * 0.35
+            q = [pj(X0, 0, zb + 0.5), pj(X1, 0, zb + 0.5), pj(X1, H, zb), pj(X0, H, zb)]
+            POLY(q, "OAK_1", "INK")
+            inner = [pj(X0 + 0.15, 0.2, zb + 0.47), pj(X1 - 0.15, 0.2, zb + 0.47), pj(X1 - 0.15, H - 0.15, zb + 0.02), pj(X0 + 0.15, H - 0.15, zb + 0.02)]
+            if face == "sunset":
+                POLY(inner, "PLUM_2" if "PLUM_2" in N else "PLUM_1")
+                a, b = inner[3], inner[1]
+                R(min(a[0], b[0]) + 2, (a[1] + b[1]) // 2, max(a[0], b[0]) - 2, (a[1] + b[1]) // 2 + 2, "ORANGE")
+                R(min(a[0], b[0]) + 2, (a[1] + b[1]) // 2 + 3, max(a[0], b[0]) - 2, max(a[1], b[1]) - 2, "SLATE_1")
+            else:
+                POLY(inner, "LINEN_1" if "LINEN_1" in N else "CREAM")
+    olive_tree(-10.9, 1.4)
 
 
 
@@ -3467,7 +3590,7 @@ STGK = ("s0", "s1", "s2")
 RELK = ("base", "active", "hot", "gold")
 BASEVAR = {"kitchen.relic": "base", "window.relic": "base", "gym.relic": "base"}
 ZONE_VIEW = {"kitchen": "left", "bed": "left", "library": "front", "window": "front", "study": "right",
-             "computer": "right", "gym": "right"}
+             "computer": "right", "gym": "right", "calendar": "back"}
 STATIC_PARTS = {"sky", "sun", "far"}
 TA = {"t1": "base", "t3": "base", "t5": "base"}
 SA = {"s0": "base", "s1": "base", "s2": "base"}
@@ -3595,7 +3718,8 @@ def items_right():
     it = shell_items(v)
     it += [I("study.academics", "study", "hotspot", ["schedule-board"], STGK + ("alert",), alias={"base": "s1"}, target=SKI("academics"),
              label="ACADEMICS", view=v),
-           I("study.time", "study", "hotspot", ["calendar"], STGK, alias={"base": "s1"}, target=SKI("time-blocking"), label="TIME BLOCKING", view=v),
+           # the wall calendar is decor now (Time Blocking is archived): it takes you to the calendar wall
+           I("study.time", "study", "hotspot", ["calendar"], target=FTR("calendar"), label="CALENDAR", view=v),
            I("study.desk", "study", "decor", ["desk"], alias=TA, view=v),
            I("study.lamp", "study", "decor", ["desk-lamp"], ("base", "night"), alias={"t1": "base", "t2": "base", "t5": "base"}, view=v),
            I("study.courses", "study", "hotspot", ["course-books"], target=FTR("courses"), label="COURSES", view=v),
@@ -3634,7 +3758,16 @@ def items_right():
 
 
 def items_back():
-    return shell_items("back")
+    v = "back"
+    it = shell_items(v)
+    it += [I("calendar.board", "calendar", "hotspot", ["cal-board"], target=FTR("calendar"), label="CALENDAR", view=v,
+             note="the month board; the engine draws the month into its field (engine/calendar.js)"),
+           I("calendar.daybar", "calendar", "hotspot", ["cal-daybar"], target=FTR("calendar"), label="DAY", view=v,
+             note="the day-schedule bar, 6 AM to 3 AM"),
+           I("calendar.pendants", "calendar", "decor", ["cal-pendant"], ("base", "night"), view=v),
+           I("calendar.studio", "calendar", "decor", ["drop-cloth", "paint-cans", "studio-stool", "brush-jars", "canvases"], view=v),
+           I("calendar.olive", "calendar", "decor", ["olive-tree"], view=v)]
+    return it
 
 
 ITEMS = {"front": items_front, "left": items_left, "right": items_right, "back": items_back}
@@ -3653,7 +3786,7 @@ ANIMS = {
 }
 ZONE_ON = {"kitchen": ("left", "cabinet-light"), "bed": ("left", "plasma-globe"), "library": ("front", "bookcase"),
            "window": ("front", "crt-big"), "study": ("right", "desk-lamp"), "computer": ("right", "monitors"),
-           "gym": ("right", "gym-timer")}
+           "gym": ("right", "gym-timer"), "calendar": ("back", "cal-pendant")}
 
 
 class LR:
@@ -4013,6 +4146,9 @@ def export_view(view, manifest):
             # hotspot objects have their own sprites (and the engine draws on them): a sway frame never covers them
             still = [o for nm in set(KEEP_PATTERN) | hotspot_objects(view) for o in base["names"].get(nm, [])]
             movers = np.setdiff1d(np.unique(base["oid"][m]), still)
+            # only plants sway: anything else in the diff is just uncovered or covered by a leaf
+            nm_of = {o: n for n, os_ in base["names"].items() for o in os_}
+            movers = np.array([o for o in movers if re.search(r"plant|corner-|hang|olive|fern|vine|fig|bush|leaf", nm_of.get(int(o), ""))], dtype=movers.dtype)
             d = m.copy()
             for _ in range(3):
                 d = d | np.roll(d, 1, 0) | np.roll(d, -1, 0) | np.roll(d, 1, 1) | np.roll(d, -1, 1)
@@ -4020,13 +4156,19 @@ def export_view(view, manifest):
             m = d & np.isin(base["oid"], movers)
             for r in rs + rn:
                 m |= np.isin(r["oid"], movers)
-        arrays = {"base": np.where(m, rs[0]["img"], T).astype(np.uint8), "night": np.where(m, rn[0]["img"], T).astype(np.uint8)}
-        mats = {"base": base["mat"], "night": night["mat"]}
+        def frame(r, g):
+            # sway: the wall a leaf uncovers is the shell plate's own wall (one clean, gated backdrop)
+            if ch != "sway":
+                return np.where(m, r["img"], T).astype(np.uint8), r["mat"]
+            sh = r["oid"] < 10
+            return (np.where(m, np.where(sh, g["img"], r["img"]), T).astype(np.uint8),
+                    np.where(sh, g["mat"], r["mat"]).astype(np.uint8))
+        arrays, mats = {}, {}
+        arrays["base"], mats["base"] = frame(rs[0], ghost)
+        arrays["night"], mats["night"] = frame(rn[0], ghost_n)
         for k in range(1, n):
-            arrays[f"f{k}"] = np.where(m, rs[k]["img"], T).astype(np.uint8)
-            arrays[f"n{k}"] = np.where(m, rn[k]["img"], T).astype(np.uint8)
-            mats[f"f{k}"] = rs[k]["mat"]
-            mats[f"n{k}"] = rn[k]["mat"]
+            arrays[f"f{k}"], mats[f"f{k}"] = frame(rs[k], ghost)
+            arrays[f"n{k}"], mats[f"n{k}"] = frame(rn[k], ghost_n)
         rec = write(I(aid, zone, "decor", [], view=view), arrays, mats, {}, layer=top_layer(m) if ch != "sway" else 5)
         vv = rec["variants"]
         fk = ["base"] + [f"f{k}" for k in range(1, n)]
@@ -4143,7 +4285,7 @@ def write_live_palette():
 
 
 ZONE_NAMES = [("kitchen", "KITCHEN"), ("bed", "BED"), ("library", "LIBRARY"), ("window", "WINDOW"), ("study", "STUDY DESK"),
-              ("computer", "COMPUTER"), ("gym", "GYM")]
+              ("computer", "COMPUTER"), ("gym", "GYM"), ("calendar", "CALENDAR")]
 
 
 def make_zones(items, res, zone_light):
@@ -4190,6 +4332,9 @@ def make_zones(items, res, zone_light):
         views[v] = {"art": {"x": AX, "y": AY, "w": W, "h": H}, "core": {"w": CW, "h": CH_},
                     "horizon": int(CY) - OY, "vp": [int(CX) - OX, int(CY) - OY], "yaw": YAW[v], "f": F,
                     "lighting": res[v][2]["lighting"], "light": res[v][2]["light"]}
+        if v == "back" and CAL:
+            # the calendar wall's fields (world px x, y, w, h): the month board and the day bar
+            views[v]["calendar"] = {k: [r[0] - OX, r[1] - OY, r[2] - r[0] + 1, r[3] - r[1] + 1] for k, r in CAL.items()}
     fb = int(round(CY + EYE * F / D0)) - OY
     return {
         "_note": "Art pass 6 (v3.4) world coordinates (art px): master (800x560) = world + (122, 104) in every view. One square "

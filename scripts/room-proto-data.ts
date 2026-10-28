@@ -110,7 +110,7 @@ const goals: Goal[] = [
   mk("dropshipping", "rack", "standard"),
   mk("strength", "rack", "standard"),
   mk("running", "rack", null),
-  mk("time-blocking", "rack", "floor"),
+  mk("reading", "rack", "floor"),
   mk("academics", "rack", null),
   mk("meditation", "balance", null, "floor", true),
   mk("food", "balance", "standard"),
@@ -126,6 +126,55 @@ const streak = computeStreak(
   TODAY,
 );
 
+// The calendar wall (v3.4): three months of FORGE days (a spread from dark red to gold in September), what was
+// logged, and Google events in Google's colours. Sample only.
+const SKILL_NAMES = ["Strength", "Running", "Dropshipping", "Academics", "Reading", "Meditation", "Food"];
+const TIERS: Tier[] = ["floor", "standard", "standard", "stretch"];
+const wallDays: Record<string, { p: number | null; logged: { name: string; tier: Tier }[] }> = {};
+for (let d = 92; d >= 0; d--) {
+  const day = addDays(TODAY, -d);
+  const sep = day.slice(5, 7) === "09";
+  const p = d === 0 ? Math.round(todayP) : sep ? Math.round(((Number(day.slice(8, 10)) * 37) % 101)) : Math.round(55 + rand() * 45);
+  const n = Math.max(0, Math.round((p / 100) * 6));
+  wallDays[day] = { p, logged: SKILL_NAMES.slice(0, n).map((name, i) => ({ name, tier: TIERS[(i + d) % TIERS.length]! })) };
+}
+const ev = (day: string, start: string, end: string, title: string, calendar: string, color: string) => ({
+  id: `${calendar}:${day}-${start}-${title}`,
+  calendarId: calendar,
+  calendar,
+  title,
+  start: `${day}T${start}:00-05:00`,
+  end: `${day}T${end}:00-05:00`,
+  allDay: false,
+  color,
+});
+const allDay = (day: string, last: string, title: string, calendar: string, color: string) => ({
+  id: `${calendar}:${day}-${title}`, calendarId: calendar, calendar, title, start: day, end: addDays(last, 1), allDay: true, color,
+});
+const events: object[] = [];
+for (let d = -60; d <= 40; d++) {
+  const day = addDays(TODAY, d);
+  const wd = new Date(`${day}T12:00:00Z`).getUTCDay();
+  if (wd === 1 || wd === 3 || wd === 5) events.push(ev(day, "09:00", "09:50", "Calc II", "Tulane", "#039be5"));
+  if (wd === 2 || wd === 4) events.push(ev(day, "11:00", "12:15", "CMPS 1500", "Tulane", "#039be5"), ev(day, "14:00", "15:15", "Econ", "Tulane", "#7986cb"));
+  if (wd === 1 || wd === 4) events.push(ev(day, "17:30", "18:30", "Lift", "Training", "#0b8043"));
+  if (wd === 6) events.push(ev(day, "08:00", "09:30", "Long run", "Training", "#33b679"));
+  if (wd === 0) events.push(ev(day, "19:00", "20:00", "Weekly review", "FORGE", "#f4511e"));
+}
+events.push(ev(TODAY, "20:00", "21:00", "Study group", "Tulane", "#8e24aa"), ev(TODAY, "22:30", "23:30", "Ship store update", "Business", "#e67c73"));
+events.push(allDay(addDays(TODAY, 3), addDays(TODAY, 4), "Fall break", "Tulane", "#f6bf26"), allDay(addDays(TODAY, -9), addDays(TODAY, -9), "Mom's birthday", "Family", "#d50000"));
+const monthsOf = (m: string) => ({
+  days: Object.fromEntries(Object.entries(wallDays).filter(([k]) => k.startsWith(m))),
+  events: events.filter((e) => String((e as { start: string }).start).slice(0, 7) === m),
+});
+const calendarWall = {
+  connected: true,
+  configured: true,
+  tz: "America/Chicago",
+  addUrl: "https://calendar.google.com/calendar/r/eventedit",
+  months: Object.fromEntries([addDays(TODAY, -62), addDays(TODAY, -31), TODAY, addDays(TODAY, 31)].map((d) => [d.slice(0, 7), monthsOf(d.slice(0, 7))])),
+};
+
 const data = {
   label: "SAMPLE STATE, NOT LIVE DATA",
   today: TODAY,
@@ -134,11 +183,13 @@ const data = {
   focusLine: "Win the morning",
   overall: { score: Math.round(overall * 10) / 10, display: displayScore(overall), tier: tier.tier, numeral: tier.numeral, name: tier.name, level: Math.floor(overall) },
   categories: categories.map((c) => ({ ...c, score: catScores[c.slug] === null ? null : Math.round((catScores[c.slug] as number) * 10) / 10 })),
-  skills,
+  // Time Blocking retired in v3.4 (archived, history kept): the calendar wall replaced it
+  skills: (skills as { slug: string; status: string }[]).map((s) => (s.slug === "time-blocking" ? { ...s, status: "archived" } : s)),
   goals,
   todayP: Math.round(todayP),
   streak: { current: streak.current, best: streak.best },
   calendar: days,
+  calendarWall,
   review: { weekly: false, monthly: false },
   dueSoon: [{ name: "CMPS 1500: Lab 6", hours: 30 }],
 };
@@ -153,6 +204,7 @@ const fresh = {
   todayP: 0,
   streak: { current: 0, best: 0 },
   calendar: [],
+  calendarWall: { connected: false, configured: false, tz: "America/Chicago", addUrl: calendarWall.addUrl, months: {} },
 };
 
 const out = join(__dirname, "..", "docs", "redesign", "room-prototype", "data.js");

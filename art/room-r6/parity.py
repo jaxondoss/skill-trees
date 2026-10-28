@@ -23,12 +23,17 @@ def baseline_path() -> Path:
     return r3 if r3.exists() else PROTO / "art-v3.js"
 
 
+RETIRED = ("study.time: target", "study.time: missing variants")
+
+
 def run(items=None, zones=None) -> list:
     items = items if items is not None else json.loads((HERE / "manifest.json").read_text())["items"]
     zones = zones if zones is not None else json.loads((HERE / "zones.json").read_text())
     bp = baseline_path()
     base = R3.load_bundle(bp)
-    errs = R3.check(items, zones, base)
+    # v3.4 phase 3 retired the Time Blocking skill (archived, history kept): the study wall calendar keeps its id
+    # but now opens the calendar wall, so its target and stage variants change on purpose.
+    errs = [e for e in R3.check(items, zones, base) if not e.startswith(RETIRED)]
     hs = [i for i in items if i["kind"] == "hotspot"]
     print(f"parity vs {bp.name}: {len(base['items'])} baseline ids, {len(items)} new items "
           f"({len(hs)} hotspots), {len(errs)} problems")

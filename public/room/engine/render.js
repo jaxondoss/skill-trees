@@ -436,6 +436,7 @@
       blit(f.buf, f.w, f.h, img, dx, dy, tA, tB, f.step, f.x0, f.y0);
       if (f.aux) blitAux(f, d, img, dx, dy);
       if (d.statue && ROOM.statue) ROOM.statue.draw(f, d, img, dx, dy); // plaque and level-up surge
+      if (ROOM.calendar && (d.id === 'calendar.board' || d.id === 'calendar.daybar')) ROOM.calendar.draw(f, d); // the calendar wall
       if (opts.marks) {
         if (d.dust) ROOM.fx.drawDust(f, img, dx, dy);
         if (ROOM.fx.drawScreen && d.item.screen) ROOM.fx.drawScreen(f, d, dx, dy);
@@ -719,6 +720,7 @@
     lastRest = { cam: cam, org: org, offs: r.offs, z: z, x0: r.x0, y0: r.y0, gpu: r.gpu, key: [org.ox, org.oy, z, r.offs.join(','), sceneVersion, ROOM.state.zone, view.Wd, view.Hd].join('|') };
     if (ROOM.overlay) ROOM.overlay.sync(lastRest);
     if (ROOM.statue) ROOM.statue.sync(lastRest);
+    if (ROOM.calendar) ROOM.calendar.sync(lastRest);
   }
 
   /* ------------------------------------------------------------------ dolly */
@@ -1051,7 +1053,7 @@
       }
     }
     return k + '|' + lightKey(now) + '|' + (ROOM.fx ? ROOM.fx.ambientKey(now) : '') + '|' + (ROOM.glow ? ROOM.glow.ambientKey(now) : '') +
-      '|' + (ROOM.weather ? ROOM.weather.ambientKey(now) : '') + '|' + (ROOM.statue ? ROOM.statue.ambientKey(now) : '') + '|' + (gpuOn() && ROOM.gl.ambientKey ? ROOM.gl.ambientKey(now) : '');
+      '|' + (ROOM.weather ? ROOM.weather.ambientKey(now) : '') + '|' + (ROOM.statue ? ROOM.statue.ambientKey(now) : '') + '|' + (ROOM.calendar ? ROOM.calendar.ambientKey(now) : '') + '|' + (gpuOn() && ROOM.gl.ambientKey ? ROOM.gl.ambientKey(now) : '');
   }
   function hasAmbient() {
     if (ROOM.state.reducedMotion) return false;
@@ -1059,6 +1061,7 @@
     if (lightKey(0) !== '') return true;
     if (ROOM.weather && ROOM.weather.hasAmbient()) return true;
     if (ROOM.statue && ROOM.statue.hasAmbient()) return true;
+    if (ROOM.calendar && ROOM.calendar.hasAmbient()) return true;
     if (gpuOn() && ROOM.gl.hasAmbient && ROOM.gl.hasAmbient()) return true;
     return (ROOM.fx && ROOM.fx.hasAmbient()) || (ROOM.glow && ROOM.glow.hasAmbient());
   }

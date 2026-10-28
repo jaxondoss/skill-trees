@@ -128,7 +128,24 @@ efficient (Haiku/Gemini for grunt work, Claude for thinking).
   - Turns: the pan starts from the real rest frame and settles into the destination's rest frame (no pop from
     frame-wide light effects), and adjacent views cross-fade over 10 degrees at each corner.
     `node scripts/room-turn-audit.mjs` measures all eight turns at golden hour and night.
-- NEXT (phase 3, after review): the calendar wall on the back view.
+- Phase 3 (the calendar wall, back view):
+  - Art: the same plum plaster and floor; a painter's studio in a few props (paint cans and brush jars on a
+    stool, a splattered drop cloth, canvases leaning in the corner, an olive tree); four black industrial dome
+    pendants, the strongest light in the room, throw warm pools down the wall; a framed month board and a tall
+    day bar whose fields the engine fills (`zones.json views.back.calendar`).
+  - `engine/calendar.js`: month title with today's date, what is on now and when the next event starts; the 6 x 7
+    grid (past days by FORGE completion: dark red at 0% to light green at 85%, gold fill and outline at 85%+;
+    future days greyed; today a cyan wireframe with a pulsing marker); each day's Google events the way Google
+    shows them (all-day bars, then timed events with a dot and start time, "+N"); the day bar with the selected
+    day's completion and what was logged, and its events on a 6 AM to 3 AM scale with a moving now line.
+    Google colours are drawn as the nearest palette colour. In the calendar zone (key 8) every day is a button,
+    the arrows change month, ADD opens Google Calendar on that day.
+  - Data: `ROOM.data.calendarWall` (src/lib/data/calendarWall.ts), other months from `GET /api/calendar?month=`.
+  - Google Calendar: OAuth in Settings (`/api/google/connect`), read-only, all calendars, Google colours
+    (`src/integrations/googleCalendar.ts`, setup in `docs/redesign/room-r6/GOOGLE_CALENDAR.md`). Needs
+    GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel (and INTEGRATIONS_KEY, already set).
+  - Time Blocking is retired: migration 0013 archives it (final score from its last snapshot, history kept) and
+    unpins it; the study desk's wall calendar is decor that leads to the calendar wall.
 
 ## skill-pack
 Added (skills in `.claude/skills/`, sources in `vendor/`): superpowers (minus using-superpowers and its

@@ -67,7 +67,7 @@ describe("pending adapters", () => {
   it("say exactly what they need and never pretend to connect", () => {
     for (const a of ADAPTERS.filter((x) => !x.available)) {
       expect(a.needs.length).toBeGreaterThan(0);
-      expect(a.fallback.href).toMatch(/^\/s\//);
+      expect(a.fallback.href).toMatch(/^(\/s\/|https:\/\/)/);
       expect(() => a.connect({})).toThrow(/Needs:/);
     }
     expect(ADAPTERS.map((a) => a.id)).toEqual(["chess", "lyfta", "strava", "google_calendar", "canvas"]);

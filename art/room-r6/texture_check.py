@@ -279,6 +279,11 @@ def region_report(path, idx, mat, materials, item_kind, view, front_views, lstar
             if int(inner.sum()) >= MIN_REGION:
                 rm = inner
                 n = int(rm.sum())
+            elif item_kind != "shell":
+                continue                     # only crumbs of wall between moving leaves: nothing to judge
+            if item_kind != "shell":
+                continue                     # the backdrop in an object sprite is the shell plate's own pixels
+                                             # (sway frames copy them), gated there
         ramp = ramps.get(md["ramp"]) if md["ramp"] else None
         mt = metrics(idx, rm, ramp, lstar)
         cls = classes[md["class"]]

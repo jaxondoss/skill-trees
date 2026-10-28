@@ -275,7 +275,9 @@
     }
     ROOM.emit('hotspot', { item: d.item });
     var statue = d.statue;
-    var target = statue ? 'window' : zone.id;
+    // the study wall calendar (and the board itself) lead to the calendar wall
+    var cal = d.item.target && d.item.target.feature === 'calendar' && ROOM.zoneById('calendar');
+    var target = statue ? 'window' : cal ? 'calendar' : zone.id;
     var opener = document.activeElement;
     ROOM.go(target, {
       item: d.id,

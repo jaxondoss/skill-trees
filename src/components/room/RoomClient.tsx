@@ -27,6 +27,7 @@ const SCRIPTS = [
   "engine/fx.js",
   "engine/glow.js",
   "engine/statue.js",
+  "engine/calendar.js",
   "ui/sound.js",
   "ui/strip.js",
   "ui/today.js",
@@ -133,6 +134,9 @@ export function RoomClient({ data }: { data: RoomData }) {
       room.on("log", (d) => save(completeGoal(String(d.goalId), (d.result as "floor" | "standard" | "stretch" | null) ?? null)));
       room.on("swap", (d) => save(swapGoal(String(d.goalId))));
       room.on("upgrade", (d) => save(upgradeStatue(Number(d.from))));
+      // the calendar wall loads other months on demand
+      (room as Room & { calendarSource?: (month: string) => Promise<unknown> }).calendarSource = (month: string) =>
+        fetch(`/api/calendar?month=${encodeURIComponent(month)}`).then((r) => (r.ok ? r.json() : null));
       room.on("focus", (d) => save(saveFocusLine(String(d.line ?? ""))));
       room.on("bodyweight", (d) => {
         const id = skillId("strength");

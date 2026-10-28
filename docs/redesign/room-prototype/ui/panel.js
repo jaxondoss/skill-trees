@@ -124,6 +124,12 @@
 
   function open(id, opts) {
     opts = opts || {};
+    // the calendar wall has no panel: its board, its day bar and the study wall calendar lead to the wall itself
+    var cit = ROOM.itemById ? ROOM.itemById(id) : null;
+    if (cit && cit.target && cit.target.feature === 'calendar') {
+      if (ROOM.calendar) ROOM.calendar.openFromItem(id);
+      return true;
+    }
     var r = resolve(id);
     if (!r) return false;
     if (r.kind === 'feature' && r.feature === 'today') {

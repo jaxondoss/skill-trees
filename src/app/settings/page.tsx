@@ -8,7 +8,9 @@ import { ADAPTERS } from "@/integrations/index";
 import type { IntegrationRow } from "@/lib/data/rows";
 import { createClient } from "@/lib/supabase/server";
 
-export default function SettingsPage() {
+type Search = Promise<Record<string, string | string[] | undefined>>;
+
+export default function SettingsPage({ searchParams }: { searchParams: Search }) {
   return (
     <main className="mx-auto w-full max-w-2xl flex flex-1 flex-col gap-6 py-4 pb-16">
       <Link href="/board" className="-ml-2 flex min-h-11 w-fit items-center gap-1 pr-3 text-sm text-muted">
@@ -19,7 +21,7 @@ export default function SettingsPage() {
       <Suspense fallback={<div className="glass h-40" aria-busy="true" />}>
         <Settings />
         <Connections />
-        <Integrations />
+        <Integrations searchParams={searchParams} />
       </Suspense>
     </main>
   );
@@ -65,6 +67,8 @@ const KEYS: { name: string; what: string; optional?: boolean }[] = [
   { name: "STRAVA_CLIENT_ID", what: "Strava runs", optional: true },
   { name: "STRAVA_CLIENT_SECRET", what: "Strava runs", optional: true },
   { name: "INTEGRATIONS_KEY", what: "Encrypts Strava, Canvas and Google logins", optional: true },
+  { name: "GOOGLE_CLIENT_ID", what: "Google Calendar on the calendar wall", optional: true },
+  { name: "GOOGLE_CLIENT_SECRET", what: "Google Calendar on the calendar wall", optional: true },
   { name: "ANTHROPIC_API_KEY", what: "Backup AI if Gemini is down", optional: true },
 ];
 
@@ -95,11 +99,25 @@ async function Connections() {
   );
 }
 
-async function Integrations() {
+/** What the Google sign-in sent back, as a plain sentence. */
+const GOOGLE_RESULT: Record<string, string> = {
+  connected: "Google Calendar is connected. The calendar wall shows your events.",
+  google_denied: "Google Calendar was not connected: access was declined on Google's screen.",
+  google_state: "Google Calendar was not connected: the sign-in expired or came from another tab. Try again.",
+  google_no_refresh_token: "Google sent no lasting access. Remove FORGE at myaccount.google.com/permissions, then connect again.",
+  google_not_configured: "Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel and redeploy first.",
+  integrations_key: "Add INTEGRATIONS_KEY in Vercel and redeploy first. It encrypts the Google login.",
+  google_save_failed: "Google said yes, but saving the connection failed. Try again.",
+  google_failed: "Google Calendar could not connect. Try again.",
+  sign_in: "Sign in again, then connect Google Calendar.",
+};
+
+async function Integrations({ searchParams }: { searchParams: Search }) {
   await connection();
   const supabase = await createClient();
-  const { data } = await supabase.from("integrations").select("provider, status, config, last_synced_at, last_error");
+  const [{ data }, query] = await Promise.all([supabase.from("integrations").select("provider, status, config, last_synced_at, last_error"), searchParams]);
   const rows = (data ?? []) as IntegrationRow[];
+  const googleResult = query.connected === "google_calendar" ? GOOGLE_RESULT.connected : typeof query.error === "string" ? GOOGLE_RESULT[query.error] : undefined;
 
   return (
     <section aria-label="Integrations" className="space-y-3">
@@ -109,6 +127,7 @@ async function Integrations() {
         {ADAPTERS.map((a) => {
           const row = rows.find((r) => r.provider === a.id);
           const status = row ? (row.status === "error" ? "Error" : "Connected") : a.available ? "Not connected" : "Needs setup";
+          const google = a.id === "google_calendar";
           return (
             <li key={a.id} className="glass space-y-2 p-4">
               <div className="flex items-center justify-between gap-2">
@@ -116,17 +135,25 @@ async function Integrations() {
                 <span className={`rounded-chip px-2.5 py-0.5 text-[11px] ${row?.status === "connected" ? "bg-nutrition/15 text-nutrition" : row ? "bg-athletics/15 text-athletics" : "bg-white/5 text-muted"}`}>{status}</span>
               </div>
               <p className="text-xs text-muted">{a.feeds}</p>
+              {google && googleResult && <p className="text-xs" role="status">{googleResult}</p>}
               {row?.last_error && <p className="text-xs text-athletics">Last sync failed: {row.last_error}</p>}
               {!a.available && (
                 <p className="text-xs">
                   <span className="text-gold">Needs from you:</span> {a.needs.join("; ")}.
                 </p>
               )}
-              {row?.last_synced_at && <p className="text-[11px] text-muted">Last sync {new Date(row.last_synced_at).toLocaleString("en-US", { timeZone: "America/Chicago" })}. Re-syncs every 6 hours when you open the app.</p>}
+              {google && row?.last_synced_at && <p className="text-[11px] text-muted">Last read {new Date(row.last_synced_at).toLocaleString("en-US", { timeZone: "America/Chicago" })}. Events load live on the calendar wall.</p>}
+              {!google && row?.last_synced_at && <p className="text-[11px] text-muted">Last sync {new Date(row.last_synced_at).toLocaleString("en-US", { timeZone: "America/Chicago" })}. Re-syncs every 6 hours when you open the app.</p>}
+              {google && row && <IntegrationButtons provider={a.id} connected keySet />}
+              {google && a.available && !row && (
+                <a href="/api/google/connect" className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm">
+                  Connect Google Calendar
+                </a>
+              )}
               {a.envKey && <IntegrationButtons provider={a.id} connected={Boolean(row)} keySet={Boolean(process.env[a.envKey])} />}
               {a.envKey && !row && !process.env[a.envKey] && <p className="text-xs text-muted">Add {a.envKey} in Vercel and redeploy to connect.</p>}
               <Link href={a.fallback.href} className="inline-flex min-h-11 items-center text-xs text-muted underline underline-offset-4">
-                {a.available && !a.envKey ? (row ? "Manage" : "Connect") : a.fallback.label}
+                {a.available && !a.envKey && !google ? (row ? "Manage" : "Connect") : a.fallback.label}
               </Link>
             </li>
           );

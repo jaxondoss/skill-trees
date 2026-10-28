@@ -5,6 +5,7 @@ import { addDays } from "@/engine/time";
 import { createClient } from "@/lib/supabase/server";
 import type { UserContext } from "./context";
 import { loadDashboardContext } from "./dashboard";
+import { loadCalendarWall } from "./calendarWall";
 import { loadStatueLevel } from "./statue";
 import type { MetricRow } from "./rows";
 
@@ -186,6 +187,7 @@ export async function loadRoomData() {
     .filter((a) => a.hours >= 0 && a.hours <= 7 * 24);
   const todayP = data.todayP === null ? 0 : Math.round(data.todayP);
   const statue = await loadStatueLevel(supabase, data.overall.score);
+  const calendarWall = await loadCalendarWall(supabase, { today: ctx.today, todayP: data.todayP, timeZone: ctx.profile.timezone });
 
   return {
     live: true,
@@ -205,6 +207,7 @@ export async function loadRoomData() {
     categories: data.categories.map((c) => ({ slug: c.slug, name: c.name, score: c.score === null ? null : Math.round(c.score * 10) / 10 })),
     skills,
     goals,
+    calendarWall,
     todayP,
     swapUsed: data.plan.swapUsed,
     streak: { current: data.streak.current, best: data.streak.best },

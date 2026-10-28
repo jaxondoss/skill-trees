@@ -437,7 +437,7 @@ window.ROOM_DATA = {
     "slug": "time-blocking",
     "name": "Time Blocking",
     "category": "mind",
-    "status": "active",
+    "status": "archived",
     "identity": "My day is designed before it starts.",
     "score": 50.8,
     "display": 51,
@@ -1234,13 +1234,13 @@ window.ROOM_DATA = {
     "nmt": false
    },
    {
-    "id": "time-blocking-rack",
-    "skill": "time-blocking",
+    "id": "reading-rack",
+    "skill": "reading",
     "kind": "rack",
     "tier": "standard",
-    "title": "Plan tomorrow",
-    "text": "Tomorrow fully blocked (classes, training, skill blocks, meals) before bed",
-    "estMin": 10,
+    "title": "Read",
+    "text": "30 min reading plus a 3-line summary",
+    "estMin": 30,
     "result": "floor",
     "nmt": false
    },
@@ -1436,6 +1436,3370 @@ window.ROOM_DATA = {
     "p": 88
    }
   ],
+  "calendarWall": {
+   "connected": true,
+   "configured": true,
+   "tz": "America/Chicago",
+   "addUrl": "https://calendar.google.com/calendar/r/eventedit",
+   "months": {
+    "2026-08": {
+     "days": {
+      "2026-08-01": {
+       "p": 84,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        },
+        {
+         "name": "Reading",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-08-02": {
+       "p": 65,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-03": {
+       "p": 92,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        },
+        {
+         "name": "Meditation",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-08-04": {
+       "p": 97,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        },
+        {
+         "name": "Meditation",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-05": {
+       "p": 88,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        },
+        {
+         "name": "Reading",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-08-06": {
+       "p": 62,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-07": {
+       "p": 71,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-08": {
+       "p": 93,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        },
+        {
+         "name": "Meditation",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-09": {
+       "p": 78,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        },
+        {
+         "name": "Reading",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-08-10": {
+       "p": 63,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-11": {
+       "p": 61,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-12": {
+       "p": 65,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-08-13": {
+       "p": 57,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-14": {
+       "p": 57,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-15": {
+       "p": 82,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-16": {
+       "p": 91,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-17": {
+       "p": 72,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-08-18": {
+       "p": 85,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-08-19": {
+       "p": 88,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-20": {
+       "p": 93,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        },
+        {
+         "name": "Meditation",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-21": {
+       "p": 98,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        },
+        {
+         "name": "Reading",
+         "tier": "floor"
+        },
+        {
+         "name": "Meditation",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-22": {
+       "p": 70,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-23": {
+       "p": 71,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-24": {
+       "p": 64,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-08-25": {
+       "p": 82,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        },
+        {
+         "name": "Reading",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-08-26": {
+       "p": 66,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-27": {
+       "p": 91,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-08-28": {
+       "p": 66,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-08-29": {
+       "p": 78,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        },
+        {
+         "name": "Reading",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-08-30": {
+       "p": 91,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-08-31": {
+       "p": 61,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      }
+     },
+     "events": [
+      {
+       "id": "Tulane:2026-08-21-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-08-21T09:00:00-05:00",
+       "end": "2026-08-21T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-08-22-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-08-22T08:00:00-05:00",
+       "end": "2026-08-22T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-08-23-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-08-23T19:00:00-05:00",
+       "end": "2026-08-23T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-08-24-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-08-24T09:00:00-05:00",
+       "end": "2026-08-24T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-08-24-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-08-24T17:30:00-05:00",
+       "end": "2026-08-24T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-08-25-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-08-25T11:00:00-05:00",
+       "end": "2026-08-25T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-08-25-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-08-25T14:00:00-05:00",
+       "end": "2026-08-25T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-08-26-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-08-26T09:00:00-05:00",
+       "end": "2026-08-26T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-08-27-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-08-27T11:00:00-05:00",
+       "end": "2026-08-27T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-08-27-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-08-27T14:00:00-05:00",
+       "end": "2026-08-27T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-08-27-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-08-27T17:30:00-05:00",
+       "end": "2026-08-27T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-08-28-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-08-28T09:00:00-05:00",
+       "end": "2026-08-28T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-08-29-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-08-29T08:00:00-05:00",
+       "end": "2026-08-29T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-08-30-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-08-30T19:00:00-05:00",
+       "end": "2026-08-30T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-08-31-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-08-31T09:00:00-05:00",
+       "end": "2026-08-31T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-08-31-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-08-31T17:30:00-05:00",
+       "end": "2026-08-31T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      }
+     ]
+    },
+    "2026-09": {
+     "days": {
+      "2026-09-01": {
+       "p": 37,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-09-02": {
+       "p": 74,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-09-03": {
+       "p": 10,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-09-04": {
+       "p": 47,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-09-05": {
+       "p": 84,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-09-06": {
+       "p": 20,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-09-07": {
+       "p": 57,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-09-08": {
+       "p": 94,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        },
+        {
+         "name": "Meditation",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-09-09": {
+       "p": 30,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-09-10": {
+       "p": 67,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-09-11": {
+       "p": 3,
+       "logged": []
+      },
+      "2026-09-12": {
+       "p": 40,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-09-13": {
+       "p": 77,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-09-14": {
+       "p": 13,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-09-15": {
+       "p": 50,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-09-16": {
+       "p": 87,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-09-17": {
+       "p": 23,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-09-18": {
+       "p": 60,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-09-19": {
+       "p": 97,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "stretch"
+        },
+        {
+         "name": "Meditation",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-09-20": {
+       "p": 33,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-09-21": {
+       "p": 70,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-09-22": {
+       "p": 6,
+       "logged": []
+      },
+      "2026-09-23": {
+       "p": 43,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-09-24": {
+       "p": 80,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-09-25": {
+       "p": 16,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-09-26": {
+       "p": 53,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-09-27": {
+       "p": 90,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-09-28": {
+       "p": 26,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-09-29": {
+       "p": 63,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-09-30": {
+       "p": 100,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        },
+        {
+         "name": "Reading",
+         "tier": "floor"
+        },
+        {
+         "name": "Meditation",
+         "tier": "standard"
+        }
+       ]
+      }
+     },
+     "events": [
+      {
+       "id": "Tulane:2026-09-01-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-09-01T11:00:00-05:00",
+       "end": "2026-09-01T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-09-01-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-09-01T14:00:00-05:00",
+       "end": "2026-09-01T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-09-02-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-09-02T09:00:00-05:00",
+       "end": "2026-09-02T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-09-03-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-09-03T11:00:00-05:00",
+       "end": "2026-09-03T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-09-03-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-09-03T14:00:00-05:00",
+       "end": "2026-09-03T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-09-03-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-09-03T17:30:00-05:00",
+       "end": "2026-09-03T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-09-04-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-09-04T09:00:00-05:00",
+       "end": "2026-09-04T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-09-05-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-09-05T08:00:00-05:00",
+       "end": "2026-09-05T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-09-06-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-09-06T19:00:00-05:00",
+       "end": "2026-09-06T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-09-07-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-09-07T09:00:00-05:00",
+       "end": "2026-09-07T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-09-07-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-09-07T17:30:00-05:00",
+       "end": "2026-09-07T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-09-08-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-09-08T11:00:00-05:00",
+       "end": "2026-09-08T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-09-08-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-09-08T14:00:00-05:00",
+       "end": "2026-09-08T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-09-09-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-09-09T09:00:00-05:00",
+       "end": "2026-09-09T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-09-10-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-09-10T11:00:00-05:00",
+       "end": "2026-09-10T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-09-10-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-09-10T14:00:00-05:00",
+       "end": "2026-09-10T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-09-10-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-09-10T17:30:00-05:00",
+       "end": "2026-09-10T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-09-11-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-09-11T09:00:00-05:00",
+       "end": "2026-09-11T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-09-12-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-09-12T08:00:00-05:00",
+       "end": "2026-09-12T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-09-13-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-09-13T19:00:00-05:00",
+       "end": "2026-09-13T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-09-14-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-09-14T09:00:00-05:00",
+       "end": "2026-09-14T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-09-14-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-09-14T17:30:00-05:00",
+       "end": "2026-09-14T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-09-15-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-09-15T11:00:00-05:00",
+       "end": "2026-09-15T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-09-15-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-09-15T14:00:00-05:00",
+       "end": "2026-09-15T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-09-16-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-09-16T09:00:00-05:00",
+       "end": "2026-09-16T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-09-17-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-09-17T11:00:00-05:00",
+       "end": "2026-09-17T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-09-17-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-09-17T14:00:00-05:00",
+       "end": "2026-09-17T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-09-17-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-09-17T17:30:00-05:00",
+       "end": "2026-09-17T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-09-18-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-09-18T09:00:00-05:00",
+       "end": "2026-09-18T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-09-19-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-09-19T08:00:00-05:00",
+       "end": "2026-09-19T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-09-20-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-09-20T19:00:00-05:00",
+       "end": "2026-09-20T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-09-21-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-09-21T09:00:00-05:00",
+       "end": "2026-09-21T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-09-21-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-09-21T17:30:00-05:00",
+       "end": "2026-09-21T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-09-22-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-09-22T11:00:00-05:00",
+       "end": "2026-09-22T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-09-22-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-09-22T14:00:00-05:00",
+       "end": "2026-09-22T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-09-23-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-09-23T09:00:00-05:00",
+       "end": "2026-09-23T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-09-24-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-09-24T11:00:00-05:00",
+       "end": "2026-09-24T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-09-24-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-09-24T14:00:00-05:00",
+       "end": "2026-09-24T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-09-24-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-09-24T17:30:00-05:00",
+       "end": "2026-09-24T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-09-25-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-09-25T09:00:00-05:00",
+       "end": "2026-09-25T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-09-26-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-09-26T08:00:00-05:00",
+       "end": "2026-09-26T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-09-27-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-09-27T19:00:00-05:00",
+       "end": "2026-09-27T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-09-28-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-09-28T09:00:00-05:00",
+       "end": "2026-09-28T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-09-28-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-09-28T17:30:00-05:00",
+       "end": "2026-09-28T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-09-29-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-09-29T11:00:00-05:00",
+       "end": "2026-09-29T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-09-29-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-09-29T14:00:00-05:00",
+       "end": "2026-09-29T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-09-30-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-09-30T09:00:00-05:00",
+       "end": "2026-09-30T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      }
+     ]
+    },
+    "2026-10": {
+     "days": {
+      "2026-10-01": {
+       "p": 60,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-10-02": {
+       "p": 91,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-10-03": {
+       "p": 78,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-10-04": {
+       "p": 73,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-10-05": {
+       "p": 74,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-10-06": {
+       "p": 60,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-10-07": {
+       "p": 96,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        },
+        {
+         "name": "Meditation",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-10-08": {
+       "p": 73,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-10-09": {
+       "p": 88,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-10-10": {
+       "p": 86,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-10-11": {
+       "p": 70,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-10-12": {
+       "p": 94,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        },
+        {
+         "name": "Reading",
+         "tier": "floor"
+        },
+        {
+         "name": "Meditation",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-10-13": {
+       "p": 65,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-10-14": {
+       "p": 73,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-10-15": {
+       "p": 63,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-10-16": {
+       "p": 99,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "stretch"
+        },
+        {
+         "name": "Reading",
+         "tier": "floor"
+        },
+        {
+         "name": "Meditation",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-10-17": {
+       "p": 97,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "stretch"
+        },
+        {
+         "name": "Running",
+         "tier": "floor"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "stretch"
+        },
+        {
+         "name": "Meditation",
+         "tier": "floor"
+        }
+       ]
+      },
+      "2026-10-18": {
+       "p": 99,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "stretch"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "floor"
+        },
+        {
+         "name": "Academics",
+         "tier": "standard"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        },
+        {
+         "name": "Meditation",
+         "tier": "stretch"
+        }
+       ]
+      },
+      "2026-10-19": {
+       "p": 80,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "standard"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "stretch"
+        },
+        {
+         "name": "Academics",
+         "tier": "floor"
+        },
+        {
+         "name": "Reading",
+         "tier": "standard"
+        }
+       ]
+      },
+      "2026-10-20": {
+       "p": 50,
+       "logged": [
+        {
+         "name": "Strength",
+         "tier": "floor"
+        },
+        {
+         "name": "Running",
+         "tier": "standard"
+        },
+        {
+         "name": "Dropshipping",
+         "tier": "standard"
+        }
+       ]
+      }
+     },
+     "events": [
+      {
+       "id": "Tulane:2026-10-01-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-10-01T11:00:00-05:00",
+       "end": "2026-10-01T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-10-01-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-10-01T14:00:00-05:00",
+       "end": "2026-10-01T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-10-01-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-10-01T17:30:00-05:00",
+       "end": "2026-10-01T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-10-02-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-10-02T09:00:00-05:00",
+       "end": "2026-10-02T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-10-03-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-10-03T08:00:00-05:00",
+       "end": "2026-10-03T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-10-04-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-10-04T19:00:00-05:00",
+       "end": "2026-10-04T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-10-05-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-10-05T09:00:00-05:00",
+       "end": "2026-10-05T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-10-05-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-10-05T17:30:00-05:00",
+       "end": "2026-10-05T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-10-06-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-10-06T11:00:00-05:00",
+       "end": "2026-10-06T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-10-06-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-10-06T14:00:00-05:00",
+       "end": "2026-10-06T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-10-07-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-10-07T09:00:00-05:00",
+       "end": "2026-10-07T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-10-08-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-10-08T11:00:00-05:00",
+       "end": "2026-10-08T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-10-08-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-10-08T14:00:00-05:00",
+       "end": "2026-10-08T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-10-08-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-10-08T17:30:00-05:00",
+       "end": "2026-10-08T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-10-09-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-10-09T09:00:00-05:00",
+       "end": "2026-10-09T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-10-10-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-10-10T08:00:00-05:00",
+       "end": "2026-10-10T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-10-11-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-10-11T19:00:00-05:00",
+       "end": "2026-10-11T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-10-12-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-10-12T09:00:00-05:00",
+       "end": "2026-10-12T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-10-12-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-10-12T17:30:00-05:00",
+       "end": "2026-10-12T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-10-13-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-10-13T11:00:00-05:00",
+       "end": "2026-10-13T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-10-13-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-10-13T14:00:00-05:00",
+       "end": "2026-10-13T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-10-14-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-10-14T09:00:00-05:00",
+       "end": "2026-10-14T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-10-15-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-10-15T11:00:00-05:00",
+       "end": "2026-10-15T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-10-15-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-10-15T14:00:00-05:00",
+       "end": "2026-10-15T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-10-15-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-10-15T17:30:00-05:00",
+       "end": "2026-10-15T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-10-16-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-10-16T09:00:00-05:00",
+       "end": "2026-10-16T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-10-17-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-10-17T08:00:00-05:00",
+       "end": "2026-10-17T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-10-18-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-10-18T19:00:00-05:00",
+       "end": "2026-10-18T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-10-19-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-10-19T09:00:00-05:00",
+       "end": "2026-10-19T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-10-19-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-10-19T17:30:00-05:00",
+       "end": "2026-10-19T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-10-20-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-10-20T11:00:00-05:00",
+       "end": "2026-10-20T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-10-20-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-10-20T14:00:00-05:00",
+       "end": "2026-10-20T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-10-21-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-10-21T09:00:00-05:00",
+       "end": "2026-10-21T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-10-22-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-10-22T11:00:00-05:00",
+       "end": "2026-10-22T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-10-22-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-10-22T14:00:00-05:00",
+       "end": "2026-10-22T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-10-22-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-10-22T17:30:00-05:00",
+       "end": "2026-10-22T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-10-23-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-10-23T09:00:00-05:00",
+       "end": "2026-10-23T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-10-24-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-10-24T08:00:00-05:00",
+       "end": "2026-10-24T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-10-25-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-10-25T19:00:00-05:00",
+       "end": "2026-10-25T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-10-26-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-10-26T09:00:00-05:00",
+       "end": "2026-10-26T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-10-26-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-10-26T17:30:00-05:00",
+       "end": "2026-10-26T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-10-27-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-10-27T11:00:00-05:00",
+       "end": "2026-10-27T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-10-27-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-10-27T14:00:00-05:00",
+       "end": "2026-10-27T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-10-28-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-10-28T09:00:00-05:00",
+       "end": "2026-10-28T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-10-29-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-10-29T11:00:00-05:00",
+       "end": "2026-10-29T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-10-29-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-10-29T14:00:00-05:00",
+       "end": "2026-10-29T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-10-29-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-10-29T17:30:00-05:00",
+       "end": "2026-10-29T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-10-30-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-10-30T09:00:00-05:00",
+       "end": "2026-10-30T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-10-31-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-10-31T08:00:00-05:00",
+       "end": "2026-10-31T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "Tulane:2026-10-20-20:00-Study group",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Study group",
+       "start": "2026-10-20T20:00:00-05:00",
+       "end": "2026-10-20T21:00:00-05:00",
+       "allDay": false,
+       "color": "#8e24aa"
+      },
+      {
+       "id": "Business:2026-10-20-22:30-Ship store update",
+       "calendarId": "Business",
+       "calendar": "Business",
+       "title": "Ship store update",
+       "start": "2026-10-20T22:30:00-05:00",
+       "end": "2026-10-20T23:30:00-05:00",
+       "allDay": false,
+       "color": "#e67c73"
+      },
+      {
+       "id": "Tulane:2026-10-23-Fall break",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Fall break",
+       "start": "2026-10-23",
+       "end": "2026-10-25",
+       "allDay": true,
+       "color": "#f6bf26"
+      },
+      {
+       "id": "Family:2026-10-11-Mom's birthday",
+       "calendarId": "Family",
+       "calendar": "Family",
+       "title": "Mom's birthday",
+       "start": "2026-10-11",
+       "end": "2026-10-12",
+       "allDay": true,
+       "color": "#d50000"
+      }
+     ]
+    },
+    "2026-11": {
+     "days": {},
+     "events": [
+      {
+       "id": "FORGE:2026-11-01-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-11-01T19:00:00-05:00",
+       "end": "2026-11-01T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-11-02-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-11-02T09:00:00-05:00",
+       "end": "2026-11-02T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-11-02-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-11-02T17:30:00-05:00",
+       "end": "2026-11-02T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-11-03-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-11-03T11:00:00-05:00",
+       "end": "2026-11-03T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-11-03-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-11-03T14:00:00-05:00",
+       "end": "2026-11-03T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-11-04-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-11-04T09:00:00-05:00",
+       "end": "2026-11-04T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-11-05-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-11-05T11:00:00-05:00",
+       "end": "2026-11-05T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-11-05-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-11-05T14:00:00-05:00",
+       "end": "2026-11-05T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-11-05-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-11-05T17:30:00-05:00",
+       "end": "2026-11-05T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-11-06-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-11-06T09:00:00-05:00",
+       "end": "2026-11-06T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-11-07-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-11-07T08:00:00-05:00",
+       "end": "2026-11-07T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-11-08-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-11-08T19:00:00-05:00",
+       "end": "2026-11-08T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-11-09-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-11-09T09:00:00-05:00",
+       "end": "2026-11-09T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-11-09-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-11-09T17:30:00-05:00",
+       "end": "2026-11-09T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-11-10-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-11-10T11:00:00-05:00",
+       "end": "2026-11-10T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-11-10-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-11-10T14:00:00-05:00",
+       "end": "2026-11-10T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-11-11-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-11-11T09:00:00-05:00",
+       "end": "2026-11-11T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-11-12-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-11-12T11:00:00-05:00",
+       "end": "2026-11-12T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-11-12-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-11-12T14:00:00-05:00",
+       "end": "2026-11-12T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-11-12-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-11-12T17:30:00-05:00",
+       "end": "2026-11-12T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-11-13-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-11-13T09:00:00-05:00",
+       "end": "2026-11-13T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-11-14-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-11-14T08:00:00-05:00",
+       "end": "2026-11-14T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-11-15-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-11-15T19:00:00-05:00",
+       "end": "2026-11-15T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-11-16-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-11-16T09:00:00-05:00",
+       "end": "2026-11-16T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-11-16-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-11-16T17:30:00-05:00",
+       "end": "2026-11-16T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-11-17-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-11-17T11:00:00-05:00",
+       "end": "2026-11-17T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-11-17-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-11-17T14:00:00-05:00",
+       "end": "2026-11-17T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-11-18-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-11-18T09:00:00-05:00",
+       "end": "2026-11-18T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-11-19-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-11-19T11:00:00-05:00",
+       "end": "2026-11-19T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-11-19-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-11-19T14:00:00-05:00",
+       "end": "2026-11-19T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-11-19-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-11-19T17:30:00-05:00",
+       "end": "2026-11-19T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-11-20-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-11-20T09:00:00-05:00",
+       "end": "2026-11-20T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-11-21-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-11-21T08:00:00-05:00",
+       "end": "2026-11-21T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-11-22-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-11-22T19:00:00-05:00",
+       "end": "2026-11-22T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      },
+      {
+       "id": "Tulane:2026-11-23-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-11-23T09:00:00-05:00",
+       "end": "2026-11-23T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-11-23-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-11-23T17:30:00-05:00",
+       "end": "2026-11-23T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-11-24-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-11-24T11:00:00-05:00",
+       "end": "2026-11-24T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-11-24-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-11-24T14:00:00-05:00",
+       "end": "2026-11-24T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Tulane:2026-11-25-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-11-25T09:00:00-05:00",
+       "end": "2026-11-25T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-11-26-11:00-CMPS 1500",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "CMPS 1500",
+       "start": "2026-11-26T11:00:00-05:00",
+       "end": "2026-11-26T12:15:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Tulane:2026-11-26-14:00-Econ",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Econ",
+       "start": "2026-11-26T14:00:00-05:00",
+       "end": "2026-11-26T15:15:00-05:00",
+       "allDay": false,
+       "color": "#7986cb"
+      },
+      {
+       "id": "Training:2026-11-26-17:30-Lift",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Lift",
+       "start": "2026-11-26T17:30:00-05:00",
+       "end": "2026-11-26T18:30:00-05:00",
+       "allDay": false,
+       "color": "#0b8043"
+      },
+      {
+       "id": "Tulane:2026-11-27-09:00-Calc II",
+       "calendarId": "Tulane",
+       "calendar": "Tulane",
+       "title": "Calc II",
+       "start": "2026-11-27T09:00:00-05:00",
+       "end": "2026-11-27T09:50:00-05:00",
+       "allDay": false,
+       "color": "#039be5"
+      },
+      {
+       "id": "Training:2026-11-28-08:00-Long run",
+       "calendarId": "Training",
+       "calendar": "Training",
+       "title": "Long run",
+       "start": "2026-11-28T08:00:00-05:00",
+       "end": "2026-11-28T09:30:00-05:00",
+       "allDay": false,
+       "color": "#33b679"
+      },
+      {
+       "id": "FORGE:2026-11-29-19:00-Weekly review",
+       "calendarId": "FORGE",
+       "calendar": "FORGE",
+       "title": "Weekly review",
+       "start": "2026-11-29T19:00:00-05:00",
+       "end": "2026-11-29T20:00:00-05:00",
+       "allDay": false,
+       "color": "#f4511e"
+      }
+     ]
+    }
+   }
+  },
   "review": {
    "weekly": false,
    "monthly": false
@@ -1737,6 +5101,13 @@ window.ROOM_DATA = {
    "best": 0
   },
   "calendar": [],
+  "calendarWall": {
+   "connected": false,
+   "configured": false,
+   "tz": "America/Chicago",
+   "addUrl": "https://calendar.google.com/calendar/r/eventedit",
+   "months": {}
+  },
   "review": {
    "weekly": false,
    "monthly": false

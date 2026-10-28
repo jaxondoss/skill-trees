@@ -86,6 +86,24 @@ body {
   display: none;
 }
 
+/* The calendar wall's day cells, month arrows and ADD (engine/calendar.js): the canvas draws them. */
+#room-hotspots .cal-hit {
+  position: absolute;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 10000;
+  outline: none;
+}
+#room-hotspots .cal-hit:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
 /* Zone dots, bottom centre. */
 #zone-dots {
   position: fixed;

@@ -1772,7 +1772,7 @@
    "layer": 5,
    "x": 0,
    "y": -59,
-   "w": 556,
+   "w": 505,
    "h": 345,
    "variants": {
     "base": "art-r6/front/window/plants-sway.base.png",
@@ -2140,16 +2140,13 @@
    "w": 25,
    "h": 52,
    "variants": {
-    "s0": "art-r6/right/study/time.s0.png",
-    "s1": "art-r6/right/study/time.s1.png",
-    "s2": "art-r6/right/study/time.s2.png",
-    "base": "art-r6/right/study/time.s1.png"
+    "base": "art-r6/right/study/time.base.png"
    },
    "view": "right",
    "target": {
-    "skill": "time-blocking"
+    "feature": "calendar"
    },
-   "label": "TIME BLOCKING",
+   "label": "CALENDAR",
    "led": [
     124,
     160
@@ -2882,10 +2879,10 @@
    "zone": "gym",
    "kind": "decor",
    "layer": 5,
-   "x": 0,
+   "x": 1,
    "y": -39,
-   "w": 556,
-   "h": 332,
+   "w": 555,
+   "h": 324,
    "variants": {
     "base": "art-r6/right/gym/plants-sway.base.png",
     "night": "art-r6/right/gym/plants-sway.night.png"
@@ -3081,6 +3078,110 @@
    "note": "the corner pieces this view shares with its neighbours"
   },
   {
+   "id": "calendar.board",
+   "zone": "calendar",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 71,
+   "y": 64,
+   "w": 299,
+   "h": 147,
+   "variants": {
+    "base": "art-r6/back/calendar/board.base.png"
+   },
+   "view": "back",
+   "target": {
+    "feature": "calendar"
+   },
+   "label": "CALENDAR",
+   "led": [
+    366,
+    207
+   ],
+   "hit": [
+    71,
+    64,
+    299,
+    147
+   ],
+   "note": "the month board; the engine draws the month into its field (engine/calendar.js)",
+   "castsShadow": false
+  },
+  {
+   "id": "calendar.daybar",
+   "zone": "calendar",
+   "kind": "hotspot",
+   "layer": 2,
+   "x": 383,
+   "y": 64,
+   "w": 69,
+   "h": 147,
+   "variants": {
+    "base": "art-r6/back/calendar/daybar.base.png"
+   },
+   "view": "back",
+   "target": {
+    "feature": "calendar"
+   },
+   "label": "DAY",
+   "led": [
+    448,
+    207
+   ],
+   "hit": [
+    383,
+    64,
+    69,
+    147
+   ],
+   "note": "the day-schedule bar, 6 AM to 3 AM",
+   "castsShadow": false
+  },
+  {
+   "id": "calendar.pendants",
+   "zone": "calendar",
+   "kind": "decor",
+   "layer": 2,
+   "x": 84,
+   "y": -29,
+   "w": 380,
+   "h": 55,
+   "variants": {
+    "base": "art-r6/back/calendar/pendants.base.png",
+    "night": "art-r6/back/calendar/pendants.night.png"
+   },
+   "view": "back",
+   "castsShadow": false
+  },
+  {
+   "id": "calendar.studio",
+   "zone": "calendar",
+   "kind": "decor",
+   "layer": 4,
+   "x": 21,
+   "y": 181,
+   "w": 531,
+   "h": 142,
+   "variants": {
+    "base": "art-r6/back/calendar/studio.base.png"
+   },
+   "view": "back"
+  },
+  {
+   "id": "calendar.olive",
+   "zone": "calendar",
+   "kind": "decor",
+   "layer": 3,
+   "x": 2,
+   "y": 98,
+   "w": 70,
+   "h": 195,
+   "variants": {
+    "base": "art-r6/back/calendar/olive.base.png"
+   },
+   "view": "back"
+  },
+  {
    "id": "shell.back-sway",
    "zone": "shell",
    "kind": "decor",
@@ -3088,7 +3189,7 @@
    "x": 0,
    "y": -29,
    "w": 556,
-   "h": 315,
+   "h": 322,
    "variants": {
     "base": "art-r6/back/shell/back-sway.base.png",
     "night": "art-r6/back/shell/back-sway.night.png"
@@ -3110,6 +3211,22 @@
     "fps": 2
    },
    "note": "moving light (sway): anim frames over the base"
+  },
+  {
+   "id": "calendar.on",
+   "zone": "calendar",
+   "kind": "overlay",
+   "layer": 2,
+   "x": 215,
+   "y": 18,
+   "w": 2,
+   "h": 2,
+   "variants": {
+    "base": "art-r6/back/calendar/on.base.png",
+    "night": "art-r6/back/calendar/on.night.png"
+   },
+   "view": "back",
+   "castsShadow": false
   },
   {
    "id": "shell.left-l2",
@@ -3824,7 +3941,7 @@
    "x": 0,
    "y": -29,
    "w": 556,
-   "h": 485,
+   "h": 315,
    "variants": {
     "base": "art-r6/left/kitchen/plants-sway.base.png",
     "night": "art-r6/left/kitchen/plants-sway.night.png"

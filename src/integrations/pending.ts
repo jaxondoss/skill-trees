@@ -19,14 +19,6 @@ export const canvasAdapter = pending({
   needs: ["Tulane's Canvas base URL", "a Canvas personal access token (Account, Settings, New access token), or the calendar feed URL if tokens are disabled"],
 });
 
-export const googleCalendarAdapter = pending({
-  id: "google_calendar",
-  label: "Google Calendar",
-  feeds: "Time Blocking: checks that tomorrow is planned (at least 5 blocks).",
-  fallback: { label: "Rate block adherence on the Time Blocking page", href: "/s/time-blocking" },
-  needs: ["a Google Cloud OAuth client (client ID and secret) with the calendar read scope", "the app's redirect URL added to that client"],
-});
-
 export const stravaAdapter = pending({
   id: "strava",
   label: "Strava",
