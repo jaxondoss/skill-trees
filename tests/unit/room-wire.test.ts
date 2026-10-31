@@ -4,15 +4,13 @@ import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 
 const require = createRequire(import.meta.url);
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const D = require("../../docs/redesign/room-prototype/engine/decode.js");
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const W = require("../../docs/redesign/room-prototype/engine/wire.js");
 
 type Wire = { hull: Int16Array; nodes: number[] };
 
 function mask(rows: string[]) {
-  const h = rows.length, w = rows[0].length, m = new Uint8Array(w * h);
+  const h = rows.length, w = rows[0]!.length, m = new Uint8Array(w * h);
   rows.forEach((r, y) => [...r].forEach((c, x) => (m[y * w + x] = c === "#" ? 1 : 0)));
   return { m, w, h };
 }
@@ -23,7 +21,7 @@ function wireOf(rows: string[], shape?: string): Wire {
 const key = (x: number, y: number) => x + "," + y;
 function pointSet(r: Wire) {
   const s = new Set<string>();
-  for (let i = 0; i < r.hull.length; i += 2) s.add(key(r.hull[i], r.hull[i + 1]));
+  for (let i = 0; i < r.hull.length; i += 2) s.add(key(r.hull[i]!, r.hull[i + 1]!));
   return s;
 }
 /** Every line pixel has exactly two 4-neighbours on the line or is a corner (closed loop, no 1 px gap). */
@@ -34,7 +32,7 @@ function closedLoop(r: Wire) {
   const seen = new Set([pts[0]]);
   const stack = [pts[0]];
   while (stack.length) {
-    const [x, y] = stack.pop()!.split(",").map(Number);
+    const [x = 0, y = 0] = stack.pop()!.split(",").map(Number);
     for (let dy = -1; dy <= 1; dy++)
       for (let dx = -1; dx <= 1; dx++) {
         const k = key(x + dx, y + dy);
@@ -47,7 +45,7 @@ function closedLoop(r: Wire) {
   if (seen.size !== s.size) return false;
   // no end points: every pixel has >= 2 line neighbours (8-connected)
   for (const p of pts) {
-    const [x, y] = p.split(",").map(Number);
+    const [x = 0, y = 0] = p.split(",").map(Number);
     let n = 0;
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && s.has(key(x + dx, y + dy))) n++;
     if (n < 2) return false;
@@ -68,7 +66,7 @@ describe("D.wire hull (D3 2.1)", () => {
     expect(r.hull.length / 2).toBe(2 * (10 + 8) - 4);
     expect(closedLoop(r)).toBe(true);
     expect(r.nodes).toEqual([-2, -2, 7, -2, 7, 5, -2, 5]);
-    for (let i = 0; i < r.hull.length; i += 2) expect(cheb(rows, r.hull[i], r.hull[i + 1])).toBe(2);
+    for (let i = 0; i < r.hull.length; i += 2) expect(cheb(rows, r.hull[i]!, r.hull[i + 1]!)).toBe(2);
   });
 
   it("ring with a hole: the hole is filled, one outer loop only", () => {
@@ -76,7 +74,7 @@ describe("D.wire hull (D3 2.1)", () => {
     const r = wireOf(rows);
     expect(closedLoop(r)).toBe(true);
     for (let i = 0; i < r.hull.length; i += 2) {
-      const x = r.hull[i], y = r.hull[i + 1];
+      const x = r.hull[i]!, y = r.hull[i + 1]!;
       expect(x < 0 || x > 6 || y < 0 || y > 4).toBe(true);
     }
     expect(r.nodes).toEqual([-2, -2, 8, -2, 8, 6, -2, 6]);
@@ -94,15 +92,15 @@ describe("D.wire hull (D3 2.1)", () => {
     const rows = ["#.....", ".#....", "..#...", "...#..", "....#.", ".....#"];
     const r = wireOf(rows);
     expect(closedLoop(r)).toBe(true);
-    for (let i = 0; i < r.hull.length; i += 2) expect(cheb(rows, r.hull[i], r.hull[i + 1])).toBeGreaterThanOrEqual(2);
+    for (let i = 0; i < r.hull.length; i += 2) expect(cheb(rows, r.hull[i]!, r.hull[i + 1]!)).toBeGreaterThanOrEqual(2);
     const xs: number[] = [], ys: number[] = [];
     for (let i = 0; i < r.hull.length; i += 2) {
-      xs.push(r.hull[i]);
-      ys.push(r.hull[i + 1]);
+      xs.push(r.hull[i]!);
+      ys.push(r.hull[i + 1]!);
     }
-    const sums = xs.map((x, i) => x + ys[i]);
-    expect(r.nodes[0] + r.nodes[1]).toBe(Math.min(...sums));
-    expect(r.nodes[4] + r.nodes[5]).toBe(Math.max(...sums));
+    const sums = xs.map((x, i) => x + ys[i]!);
+    expect(r.nodes[0]! + r.nodes[1]!).toBe(Math.min(...sums));
+    expect(r.nodes[4]! + r.nodes[5]!).toBe(Math.max(...sums));
     const bbox = wireOf(rows, "bbox");
     expect(bbox.nodes).toEqual([-2, -2, 7, -2, 7, 7, -2, 7]);
   });
@@ -177,7 +175,7 @@ describe("styleFor (D3 2.2 table)", () => {
   it("Shift inspect: GOLD_HI cage or hot wire; the hovered one SUN", () => {
     expect(pick(W.styleFor({ ...base, state: "off", inspect: true }))).toEqual(["cage", "GOLD_HI", "CREAM", false, false, true]);
     expect(pick(W.styleFor({ ...base, state: "off", inspect: true, cage: false }))).toEqual(["hot", "GOLD_HI", "CREAM", false, false, true]);
-    expect(pick(W.styleFor({ ...base, state: "off", inspect: true, hovered: true }))[1]).toBe("SUN");
+    expect(pick(W.styleFor({ ...base, state: "off", inspect: true, hovered: true }))![1]).toBe("SUN");
   });
   it("features: nothing at rest, hot wire on attention, never a cage", () => {
     const f = { ...base, skill: false, feature: true, state: null };

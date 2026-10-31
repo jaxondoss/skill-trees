@@ -269,7 +269,7 @@ if (mode === 'ac') {
   const same = async () =>
     rm.evaluate(() => {
       const a = window.ROOM.debug.readFrame().data;
-      window.ROOM.debug.advance(2984);
+      window.ROOM.debug.advance(3200); // whole LED blink periods
       const b = window.ROOM.debug.readFrame().data;
       let d = 0;
       for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) d++;
