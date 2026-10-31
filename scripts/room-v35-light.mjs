@@ -34,10 +34,12 @@ const OUT = path.resolve(opt('out', 'room-v35-light-out'));
 const TIER = opt('tier', 'high');
 const EXTRA = opt('q', '');
 const ONLY = opt('only', '');
+const GAINS = Object.fromEntries((opt('gains', '') || '').split(',').filter(Boolean).map((kv) => [kv.split('=')[0], +kv.split('=')[1]]));
 const BASE = opt('base', ''); // stills: also render this prototype dir and report the mean abs diff
 fs.mkdirSync(OUT, { recursive: true });
 
-const WALLS = { front: '#/room', right: '#/room/right', back: '#/room/back', left: '#/room/left' };
+const WALLS_ALL = { front: '#/room', right: '#/room/right', back: '#/room/back', left: '#/room/left' };
+const WALLS = Object.fromEntries(Object.entries(WALLS_ALL).filter(([k]) => !ONLY || ONLY.split(',').includes(k)));
 const STATES = { el4: 'el=4', 'el-25': 'el=-25', rain: 'el=40&weather=rain&precip=60', el40: 'el=40', night: 'night=1&el=-25' };
 
 /* ---------------------------------------------------------------- PNG */
@@ -90,10 +92,11 @@ async function open(page, q, hash, root = ROOT) {
   const url = `file://${root}/index.html?gltier=${TIER}&p=85&seed=1&weather=clear&${q}${EXTRA ? '&' + EXTRA : ''}${hash}`;
   await page.goto(url);
   await page.waitForFunction(() => window.ROOM && window.ROOM.debug && window.ROOM.render && window.ROOM.render.view, null, { timeout: 60000 });
-  await page.evaluate(() => {
+  await page.evaluate((g) => {
+    Object.assign(window.ROOM.gl.gains, g); // --gains worldBloom=1 etc.
     window.ROOM.debug.freeze();
     window.ROOM.debug.advance(16);
-  });
+  }, GAINS);
   await page.waitForTimeout(300);
   await page.evaluate(() => {
     window.ROOM.debug.advance(16);
@@ -198,6 +201,9 @@ if (mode === 'framing') {
     }
   }
   // hover does not evict data lights (front-10 stays)
+  if (WALLS.front) await hoverCheck(A);
+}
+async function hoverCheck(A) {
   await open(A, STATES.el4, WALLS.front);
   const before = await A.evaluate(() => window.ROOM.gl.stats().lightIds);
   const hov = await A.evaluate(() => {
