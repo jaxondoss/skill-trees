@@ -365,7 +365,8 @@
     }
     if (R()) R().setHover(null);
     ROOM.emit('nav', { phase: 'start', from: from, to: to, kind: legs.map(function (l) { return l.kind; }).join('+') });
-    if (from.mode === 'skill' && to.mode !== 'skill') closeBoard();
+    // a board left open by a move (STATS 'Open calendar', or leaving a skill view) closes first (U3 6.12)
+    if (ROOM.state.panel && !(from.mode === 'skill' && to.mode === 'skill')) closeBoard();
     if (instant) {
       finishInstant();
       return;
