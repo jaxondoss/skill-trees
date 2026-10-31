@@ -24,7 +24,7 @@
  */
 (function () {
   'use strict';
-  var ROOM = (window.ROOM = window.ROOM || {});
+  var ROOM = typeof window !== 'undefined' ? (window.ROOM = window.ROOM || {}) : {};
 
   /* ------------------------------------------------------------------ tiers */
   var TIERS = {
@@ -35,7 +35,9 @@
     off: null,
   };
   var TIER_ORDER = ['ultra', 'high', 'medium', 'low', 'off'];
-  var MAX_LIGHTS = 16;
+  var MAX_LIGHTS = 16; // data lights (slots 4..19)
+  var RESERVED = 4; // 0 hero SELECT, 1 hover SELECT, 2 zone/panel pool, 3 statue (PLAN R7)
+  var SLOTS = MAX_LIGHTS + RESERVED;
   var LUT_N = 32;
   var AUTO_FRAMES = 60;
   var AUTO_P95_MS = 6;
@@ -44,6 +46,9 @@
   var gains = {
     exposure: 1, ambient: 1, key: 1, practical: 1, emissive: 1, rim: 1, shadow: 1, patch: 1, refl: 1, seam: 1,
     shafts: 1, dust: 1, bloom: 1, grain: 1, vignette: 1, glint: 1, transmission: 1, saturation: 1,
+    // v3.5 flags (0 off): worldBloom = bloom at world res with a world-px radius (D4 3.3; PLAN A1: off by default),
+    // heroCache = the low-tier hero policy (atlas shaded on light-key change only) at any tier
+    worldBloom: 0, heroCache: 0,
   };
 
   /* ------------------------------------------------------------------ material tables */
@@ -131,18 +136,21 @@
 
   var VS = ['#version 300 es', 'void main(){ vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2)); gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0); }'].join('\n');
 
-  // Practical lights: shared by P1 and the lightmap bake. Types: 0 point, 1 area (rect), 2 line, 3 cone.
+  // Practical lights: shared by P1 and the lightmap bake. Types: 0 point, 1 area (rect), 2 line, 3 cone; -1 empty.
+  // v3.5 slots (PLAN R7): 0 hero SELECT, 1 hover SELECT (both bit6 only, see FS_LIGHT), 2 zone/panel pool,
+  // 3 statue, 4.. data lights chosen from the whole view (framing independent).
   var LIGHTS_GLSL = [
     'uniform int uN;',
-    'uniform vec4 uLP[16];', // x, y, radius, depth 0..1 (< 0: no facing test)
-    'uniform vec4 uLC[16];', // linear rgb * intensity, type
-    'uniform vec4 uLX[16];', // area: half w, half h; line: x2, y2; z: vertical squash
-    'uniform vec4 uLY[16];', // cone: dir x, dir y, cos outer, cos inner
+    'uniform vec4 uLP[' + SLOTS + '];', // x, y, radius, depth 0..1 (< 0: no facing test); SELECT: w = lift
+    'uniform vec4 uLC[' + SLOTS + '];', // linear rgb * intensity, type
+    'uniform vec4 uLX[' + SLOTS + '];', // area: half w, half h; line: x2, y2; z: vertical squash
+    'uniform vec4 uLY[' + SLOTS + '];', // cone: dir x, dir y, cos outer, cos inner
     'vec3 practicalAt(vec2 p, float depth){',
     '  vec3 acc = vec3(0.0);',
-    '  for (int i = 0; i < 16; i++) {',
+    '  for (int i = 2; i < ' + SLOTS + '; i++) {',
     '    if (i >= uN) break;',
     '    vec4 P = uLP[i]; vec4 C = uLC[i]; vec4 X = uLX[i];',
+    '    if (C.a < -0.5) continue;',
     '    int ty = int(C.a + 0.5);',
     '    vec2 d;',
     '    if (ty == 1) d = max(abs(p - P.xy) - X.xy, 0.0);',
@@ -162,31 +170,50 @@
     '',
   ].join('\n');
 
+  // v3.5 worldOf (D1 2.1): room texels map through uOrigin; atlas texels (rows >= uRoomH, the hero sprite) map to
+  // the hero's world rect: world = (x, y - atlas.y) + atlas.off. uAtlas = (y, h, offX, offY), uAtlasOn 0/1.
+  var WORLD_GLSL = [
+    'uniform vec2 uOrigin; uniform int uRoomH; uniform vec4 uAtlas; uniform int uAtlasOn;',
+    'bool isAtlas(ivec2 ip){ return uAtlasOn == 1 && ip.y >= uRoomH; }',
+    'vec2 worldOf(ivec2 ip){ return isAtlas(ip) ? vec2(float(ip.x), float(ip.y) - uAtlas.x) + uAtlas.zw + 0.5 : uOrigin + vec2(ip) + 0.5; }',
+    '',
+  ].join('\n');
+  // Shadow / patch mask: built once per view over the art rect (world coords), sampled by world position.
+  var MASK_GLSL = [
+    'uniform sampler2D uShadow; uniform vec2 uMaskO; uniform ivec2 uMaskS;',
+    'vec2 maskAt(vec2 p){ ivec2 q = ivec2(floor(p - uMaskO)); if (q.x < 0 || q.y < 0 || q.x >= uMaskS.x || q.y >= uMaskS.y) return vec2(0.0); return texelFetch(uShadow, q, 0).rg; }',
+    '',
+  ].join('\n');
+
   var FS_BAKE = HEAD + LIGHTS_GLSL + [
     'uniform vec4 uRect; uniform vec2 uDst; uniform float uEnc;',
     'out vec4 o;',
     'void main(){ vec2 p = uRect.xy + gl_FragCoord.xy * (uRect.zw / uDst); o = vec4(practicalAt(p, -1.0) * uEnc, 1.0); }',
   ].join('\n');
 
-  var FS_LIGHT = HEAD + LIGHTS_GLSL + [
-    'uniform sampler2D uIndex, uAux, uPal, uPalMat, uMatId, uShadow, uLmA, uLmN;',
-    'uniform vec2 uOrigin; uniform ivec2 uSize; uniform float uEnc; uniform int uMode;',
+  var FS_LIGHT = HEAD + LIGHTS_GLSL + WORLD_GLSL + MASK_GLSL + [
+    'uniform sampler2D uIndex, uAux, uPal, uPalMat, uMatId, uLmA, uLmN;',
+    'uniform ivec2 uSize; uniform float uEnc; uniform int uMode;',
     'uniform vec4 uLmRect; uniform float uLmNight;',
     'uniform vec3 uAmb; uniform float uCeil;',
     'uniform vec3 uKey; uniform vec2 uKeyC; uniform vec2 uKeyR; uniform float uKeyWall; uniform float uRimSpread;',
     'uniform vec3 uBounce; uniform vec2 uBounceY;',
     'uniform float uShadowK; uniform vec3 uRim; uniform float uStatueRim; uniform float uLeafRim;',
     'uniform vec3 uPatch; uniform vec3 uSeam; uniform vec3 uSkyTint; uniform float uSky; uniform float uEmis;',
-    'uniform vec3 uGlint; uniform float uTransK; uniform vec4 uWin;',
-    'uniform vec4 uReg[8]; uniform vec4 uRegK[8]; uniform int uNR;',
+    'uniform vec3 uGlint; uniform float uTransK; uniform vec4 uWin; uniform float uSelRim;',
     'out vec4 o;',
+    // SELECT light (slot 0 hero on atlas texels, slot 1 hover on room texels): only bit6 texels receive it. The
+    // light sits lift px toward the camera, so the falloff over the object is gentle (no hot spot).
+    'vec3 selectAt(int s, vec2 p){ vec4 P = uLP[s]; vec4 C = uLC[s]; if (C.a < -0.5 || s >= uN) return vec3(0.0);',
+    '  vec2 d = p - P.xy; float a = clamp(1.0 - (dot(d, d) + P.w * P.w) / max(P.z * P.z, 1.0), 0.0, 1.0); return C.rgb * a * a; }',
     'vec3 auxAt(ivec2 q){ q = clamp(q, ivec2(0), uSize - 1); return floor(texelFetch(uAux, q, 0).rgb * 255.0 + 0.5); }',
     'float lumAt(ivec2 q){ q = clamp(q, ivec2(0), uSize - 1); int i = int(texelFetch(uIndex, q, 0).r * 255.0 + 0.5); return lum(s2l(texelFetch(uPal, ivec2(i, 0), 0).rgb)); }',
     // 1 when the neighbour q is further back than depth dB (or is sky / window glass): a lit edge.
     'float edgeTo(ivec2 q, float dB){ vec3 a = auxAt(q); int f = int(a.g); if ((f & 8) != 0) return 1.0; if (a.b > 29.5 && a.b < 30.5) return 1.0; return (a.r < 254.5 && a.r + 2.0 < dB) ? 1.0 : 0.0; }',
     'void main(){',
     '  ivec2 ip = ivec2(gl_FragCoord.xy);',
-    '  vec2 p = uOrigin + vec2(ip) + 0.5;',
+    '  bool atl = isAtlas(ip);',
+    '  vec2 p = worldOf(ip);',
     '  int idx = int(texelFetch(uIndex, ip, 0).r * 255.0 + 0.5);',
     '  vec3 ax = floor(texelFetch(uAux, ip, 0).rgb * 255.0 + 0.5);',
     '  float dB = ax.r; int fl = int(ax.g); int mid = int(ax.b);',
@@ -201,7 +228,7 @@
     '  float emis = hasMat ? (fEm ? max(m0.r, 0.6) : m0.r) : (fEm ? max(m0.r, m1.a) : 0.0);',
     '  bool ceil = dB > 254.5;',
     '  bool obj = dB > 0.5 && !ceil && !fFloor && !isSky;',
-    '  vec2 sp = texelFetch(uShadow, ip, 0).rg;',
+    '  vec2 sp = atl ? vec2(0.0) : maskAt(p);',
     '  float sh = clamp(sp.r * uShadowK, 0.0, 1.0);',
     // key: soft elliptical pool on the floor in front of the window; the wall around a backlit window gets less
     '  float kl = length((p - uKeyC) / uKeyR);',
@@ -212,12 +239,10 @@
     '  key += uBounce * mix(0.55, 1.0, by) * (ceil ? 0.35 : 1.0) * (1.0 - sh * 0.5);',
     '  vec2 lmuv = (p - uLmRect.xy) / uLmRect.zw;',
     '  vec3 prac = (texture(uLmA, lmuv).rgb + texture(uLmN, lmuv).rgb * uLmNight) / uEnc + practicalAt(p, dB / 255.0);',
-    '  float rg = 1.0; vec3 rb = vec3(0.0);',
-    '  for (int i = 0; i < 8; i++) { if (i >= uNR) break; vec4 R = uReg[i];',
-    '    if (p.x >= R.x && p.y >= R.y && p.x < R.x + R.z && p.y < R.y + R.w) { rg *= uRegK[i].x; rb += uRegK[i].yzw; } }',
     '  vec3 amb = uAmb * (ceil ? uCeil : 1.0);',
     '  vec3 patchL = fFloor ? uPatch * sp.g * (1.0 - sh) : vec3(0.0);',
-    '  vec3 light = amb + (key + prac + patchL) * rg + rb;',
+    '  vec3 light = amb + key + prac + patchL;',
+    '  if (fHover) light += selectAt(atl ? 0 : 1, p);',
     // rim: one world px on edges facing the key (and a weaker top rim), from the depth buffer
     '  vec3 rim = vec3(0.0); float edge = 0.0;',
     '  float rf = 1.0 - smoothstep(0.0, 1.0, kl / uRimSpread);',
@@ -226,8 +251,8 @@
     '    vec2 tl = uKeyC - p; vec2 st = tl / max(max(abs(tl.x), abs(tl.y)), 1e-3);',
     '    ivec2 o1 = ivec2(round(st));',
     '    edge = max(edgeTo(ip + o1, dB), edgeTo(ip + ivec2(0, -1), dB) * 0.5);',
-    '    float g = m0.g * (m1.b > 0.5 ? uStatueRim : 1.0) * (fHover ? 2.0 : 1.0);',
-    '    rim = uRim * edge * g * rf * (1.0 - sh) * rg;',
+    '    float g = m0.g * (m1.b > 0.5 ? uStatueRim : 1.0) * (fHover ? uSelRim : 1.0);',
+    '    rim = uRim * edge * g * rf * (1.0 - sh);',
     '  }',
     // leaf / translucent transmission when between the camera and the window
     '  vec3 trans = vec3(0.0);',
@@ -248,7 +273,7 @@
     '  }',
     '  vec3 seam = fSeam ? uSeam * (lum(uKey) * kf * 1.4 * (1.0 - sh) + lum(prac) * 0.8) : vec3(0.0);',
     '  vec3 lit;',
-    '  if (fMark) lit = alb * 1.15;',
+    '  if (fMark) lit = alb * light + alb * emis * 4.0 * uEmis;',
     '  else if (isSky) lit = alb * uSkyTint * uSky * 2.1 + alb * prac * 0.15;',
     '  else lit = alb * light + rim + alb * emis * 4.0 * uEmis + seam + glint + trans;',
     '  if (uMode == 1) lit = alb;',
@@ -257,9 +282,9 @@
     '}',
   ].join('\n');
 
-  var FS_FLOOR = HEAD + [
+  var FS_FLOOR = HEAD + WORLD_GLSL + [
     'uniform sampler2D uLit, uAux, uMatId;',
-    'uniform vec2 uOrigin; uniform ivec2 uSize; uniform float uEnc; uniform int uMode;',
+    'uniform ivec2 uSize; uniform float uEnc; uniform int uMode;',
     'uniform float uBack, uBottom, uSquash, uReflK; uniform int uTaps;',
     'out vec4 o;',
     'void main(){',
@@ -267,8 +292,8 @@
     '  vec4 c = texelFetch(uLit, ip, 0);',
     '  vec3 ax = floor(texelFetch(uAux, ip, 0).rgb * 255.0 + 0.5);',
     '  int fl = int(ax.g); int mid = int(ax.b);',
-    '  if ((fl & 2) == 0 || (fl & 4) != 0 || (fl & 16) != 0) { o = uMode == 1 ? vec4(0.0, 0.0, 0.0, 1.0) : c; return; }',
-    '  vec2 p = uOrigin + vec2(ip) + 0.5;',
+    '  if (isAtlas(ip) || (fl & 2) == 0 || (fl & 4) != 0 || (fl & 16) != 0) { o = uMode == 1 ? vec4(0.0, 0.0, 0.0, 1.0) : c; return; }',
+    '  vec2 p = worldOf(ip);',
     '  float t = clamp((p.y - uBack) / max(uBottom - uBack, 1.0), 0.0, 1.0);',
     '  float sy = uBack - (p.y - uBack) * uSquash;',
     '  bool hasMat = mid > 0 && mid < 32;',
@@ -346,11 +371,11 @@
 
   var FS_PRE = HEAD + [
     'uniform sampler2D uHdr, uShaft, uAux;',
-    'uniform vec2 uDst; uniform ivec2 uSize; uniform float uEnc, uShaftK, uThresh, uKnee;',
+    'uniform vec2 uDst; uniform ivec2 uSize; uniform float uEnc, uShaftK, uThresh, uKnee, uVS;',
     'out vec4 o;',
     'void main(){',
     '  vec2 uv = gl_FragCoord.xy / uDst;',
-    '  vec3 c = texture(uHdr, uv).rgb / uEnc + texture(uShaft, uv).rgb * uShaftK;',
+    '  vec3 c = texture(uHdr, vec2(uv.x, uv.y * uVS)).rgb / uEnc + texture(uShaft, uv).rgb * uShaftK;',
     '  ivec2 wp = clamp(ivec2(uv * vec2(uSize)), ivec2(0), uSize - 1);',
     '  vec3 ax = floor(texelFetch(uAux, wp, 0).rgb * 255.0 + 0.5); int f = int(ax.g);',
     '  float l = lum(c);',
@@ -383,12 +408,14 @@
   // Debug views (P5): 0 final, 1 albedo, 2 light, 3 depth, 4 flags, 5 shadow, 6 refl, 7 bloom (P6)
   var DEBUG_IDS = { final: 0, albedo: 1, light: 2, depth: 3, flags: 4, shadow: 5, refl: 6, bloom: 7 };
 
-  var FS_GRADE = HEAD + [
-    'uniform sampler2D uHdr, uShaft, uAux, uIndex, uPal, uShadow;',
+  var FS_GRADE = HEAD + WORLD_GLSL + MASK_GLSL + [
+    'uniform sampler2D uHdr, uShaft, uAux, uIndex, uPal;',
     'uniform sampler3D uLutA, uLutB;',
-    'uniform vec2 uOrigin; uniform ivec2 uSize; uniform float uEnc; uniform int uDebug;',
-    'uniform float uLutT, uExpo, uSat, uWarm, uShaftK, uDimK;',
+    'uniform ivec2 uSize; uniform vec2 uRoomS; uniform float uEnc; uniform int uDebug;',
+    'uniform float uLutT, uExpo, uSat, uWarm, uShaftK, uDim;',
     'uniform vec4 uFocus; uniform float uFocusK; uniform vec4 uVig; uniform vec4 uVig2; uniform float uVigK;',
+    // skill view halo (D1 3.2), world px: darkening + key halo (cx, cy, r, k), select pool and INK contact shadow
+    'uniform vec4 uHalo; uniform vec4 uPool; uniform vec4 uShad; uniform vec3 uKeyS; uniform vec3 uInk;',
     'uniform int uRetro; uniform int uRetroN; uniform vec3 uRetroPal[64];',
     'out vec4 o;',
     'const float BAYER[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);',
@@ -399,9 +426,11 @@
     '  yiq.yz = vec2(yiq.y * ca - yiq.z * sa, yiq.y * sa + yiq.z * ca);',
     '  return vec3(dot(yiq, vec3(1.0, 0.956, 0.621)), dot(yiq, vec3(1.0, -0.272, -0.647)), dot(yiq, vec3(1.0, -1.106, 1.703)));',
     '}',
+    'float ringOf(float t, float b){ return t >= 1.0 ? 0.0 : clamp(floor((1.0 - t) * 3.0 + b), 0.0, 3.0); }',
     'void main(){',
     '  ivec2 ip = ivec2(gl_FragCoord.xy);',
-    '  vec2 p = uOrigin + vec2(ip) + 0.5;',
+    '  bool atl = isAtlas(ip);',
+    '  vec2 p = worldOf(ip);',
     '  vec3 ax = floor(texelFetch(uAux, ip, 0).rgb * 255.0 + 0.5); int fl = int(ax.g);',
     '  int idx = int(texelFetch(uIndex, ip, 0).r * 255.0 + 0.5);',
     '  vec3 palc = texelFetch(uPal, ivec2(idx, 0), 0).rgb;',
@@ -413,25 +442,40 @@
     '    if ((fl & 32) != 0) c = vec3(0.2, 0.9, 0.3); if ((fl & 128) != 0) c = mix(c, vec3(0.9, 0.2, 0.2), 0.6);',
     '    if ((fl & 64) != 0) c = vec3(1.0); if ((fl & 16) != 0) c = vec3(1.0, 0.2, 1.0);',
     '    o = vec4(c, 1.0); return; }',
-    '  if (uDebug == 5) { vec2 s = texelFetch(uShadow, ip, 0).rg; vec3 c = palc * 0.35; c = mix(c, vec3(0.1, 0.2, 0.9), s.r); c = mix(c, vec3(1.0, 0.85, 0.2), s.g * 0.8); o = vec4(c, 1.0); return; }',
+    '  if (uDebug == 5) { vec2 s = atl ? vec2(0.0) : maskAt(p); vec3 c = palc * 0.35; c = mix(c, vec3(0.1, 0.2, 0.9), s.r); c = mix(c, vec3(1.0, 0.85, 0.2), s.g * 0.8); o = vec4(c, 1.0); return; }',
     '  vec3 hdr = texelFetch(uHdr, ip, 0).rgb / uEnc;',
     '  if (uDebug == 1 || uDebug == 2 || uDebug == 6) { o = vec4(l2s(uDebug == 6 ? hdr * 2.0 : hdr), 1.0); return; }',
-    '  hdr += texture(uShaft, (vec2(ip) + 0.5) / vec2(uSize)).rgb * uShaftK;',
+    '  vec2 suv = (p - uOrigin) / uRoomS;',
+    '  if (suv.x >= 0.0 && suv.y >= 0.0 && suv.x <= 1.0 && suv.y <= 1.0) hdr += texture(uShaft, suv).rgb * uShaftK;',
+    '  bool mark = (fl & 16) != 0;',
     '  float outF = 0.0;',
-    '  if (uFocusK > 0.0) { float r = length((p - uFocus.xy) / uFocus.zw); float e = 6.0 / max(min(uFocus.z, uFocus.w), 6.0); outF = smoothstep(1.0, 1.0 + e, r) * uFocusK; }',
-    '  hdr *= mix(1.0, 0.45, outF) * uDimK;',
+    '  if (uFocusK > 0.0 && !atl) { float r = length((p - uFocus.xy) / uFocus.zw); float e = 6.0 / max(min(uFocus.z, uFocus.w), 6.0); outF = smoothstep(1.0, 1.0 + e, r) * uFocusK; }',
+    '  hdr *= mix(1.0, 0.45, outF);',
+    '  float dimK = (atl || mark) ? 0.0 : uDim;',
     '  vec3 s = l2s(tonemap(hdr * uExpo));',
     '  vec3 uvw = s * ((float(' + LUT_N + ') - 1.0) / float(' + LUT_N + ')) + 0.5 / float(' + LUT_N + ');',
     '  vec3 g = mix(texture(uLutA, uvw).rgb, texture(uLutB, uvw).rgb, uLutT);',
     '  g = mix(g, clamp(hueRotate(g, uWarm), 0.0, 1.0), smoothstep(0.3, 0.85, lum(g)));',
     '  float l = lum(g);',
-    '  g = clamp(mix(vec3(l), g, uSat * mix(1.0, 0.7, outF)), 0.0, 1.0);',
-    '  float vr = length((p - uVig.xy) / uVig.zw); float vt = clamp((vr - uVig2.x) / (1.0 - uVig2.x), 0.0, 1.0); float ve = vt * vt * (3.0 - 2.0 * vt);',
-    '  g *= mix(vec3(1.0), uVig2.yzw, ve * uVigK);',
-    '  bool mark = (fl & 16) != 0;',
-    '  if (mark) g = max(g, palc);',
+    '  g = clamp(mix(vec3(l), g, uSat * mix(1.0, 0.7, outF) * (1.0 - 0.3 * dimK)), 0.0, 1.0);',
+    '  g *= 1.0 - 0.6 * dimK;',
     '  ivec2 wq = ivec2(floor(p));',
     '  float b = (BAYER[(wq.y & 3) * 4 + (wq.x & 3)] + 0.5) / 16.0;',
+    '  if (!atl) {',
+    '    float vr = length((p - uVig.xy) / uVig.zw); float vt = clamp((vr - uVig2.x) / (1.0 - uVig2.x), 0.0, 1.0); float ve = vt * vt * (3.0 - 2.0 * vt);',
+    '    g *= mix(vec3(1.0), uVig2.yzw, ve * uVigK);',
+    '    if (uHalo.w > 0.0 && !mark) {',
+    // display darkening behind the hero (x0.5 at the centre), then the key halo 10/6/3 %: 3 dithered rings
+    '      float rh = ringOf(length(p - uHalo.xy) / max(uHalo.z, 1.0), b);',
+    '      g *= mix(1.0, 0.5, rh / 3.0 * uHalo.w);',
+    '      g = mix(g, uKeyS, (rh > 2.5 ? 0.10 : rh > 1.5 ? 0.06 : rh > 0.5 ? 0.03 : 0.0) * uHalo.w);',
+    '      float rp = ringOf(length((p - uPool.xy) / max(uPool.zw, vec2(1.0))), b);',
+    '      g = mix(g, uKeyS, (rp > 2.5 ? 0.26 : rp > 1.5 ? 0.16 : rp > 0.5 ? 0.08 : 0.0) * uHalo.w);',
+    '      float rs = length((p - uShad.xy) / max(uShad.zw, vec2(1.0)));',
+    '      if (rs < 1.0 && (rs < 0.75 || b > 0.5)) g = mix(g, uInk, 0.75 * uHalo.w);',
+    '    }',
+    '  }',
+    '  if (mark) g = max(g, palc * 0.7);',
     '  if (uRetro == 1) {',
     '    vec3 gd = g + (b - 0.5) * 0.1; float best = 1e9; vec3 bc = g;',
     '    for (int i = 0; i < 64; i++) { if (i >= uRetroN) break; vec3 d = gd - uRetroPal[i]; float e2 = dot(d * vec3(0.30, 0.59, 0.11), d); if (e2 < best) { best = e2; bc = uRetroPal[i]; } }',
@@ -462,6 +506,27 @@
     '}',
   ].join('\n');
 
+  // P7 hero (D1 2.1.4): after P6 on the same canvas. A quad at the hero device rect (scissored), texelFetch of the
+  // graded atlas at integer k, empty texels (no bit6) discarded, grain per art texel (world anchored), Bayer 4x4
+  // dissolve threshold uDst.w (heroK). uSrc is RT.ldr (rows uRow0..) or the low-tier hero cache (uRow0 = 0).
+  var FS_HERO = HEAD + [
+    'uniform sampler2D uSrc, uAux; uniform vec2 uCanvas; uniform vec4 uDst; uniform ivec2 uAt; uniform int uRow0, uAuxRow0;',
+    'uniform vec2 uOff; uniform float uGrain, uSeed; uniform int uDebug;',
+    'out vec4 o;',
+    'const float BAYER[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);',
+    'void main(){',
+    '  vec2 dev = vec2(gl_FragCoord.x, uCanvas.y - gl_FragCoord.y);',
+    '  ivec2 l = ivec2(floor((dev - uDst.xy) / uDst.z));',
+    '  if (l.x < 0 || l.y < 0 || l.x >= uAt.x || l.y >= uAt.y) discard;',
+    '  int f = int(floor(texelFetch(uAux, ivec2(l.x, uAuxRow0 + l.y), 0).g * 255.0 + 0.5));',
+    '  if ((f & 64) == 0) discard;',
+    '  if ((BAYER[(l.y & 3) * 4 + (l.x & 3)] + 0.5) / 16.0 > uDst.w) discard;',
+    '  vec3 c = texelFetch(uSrc, ivec2(l.x, uRow0 + l.y), 0).rgb;',
+    '  if (uDebug == 0) { float n = hash12(floor(uOff) + vec2(l) + vec2(uSeed * 7.13, uSeed * 3.71)) - 0.5; c += n * 2.0 * uGrain * (0.35 + 0.65 * lum(c)); }',
+    '  o = vec4(c, 1.0);',
+    '}',
+  ].join('\n');
+
   /* ------------------------------------------------------------------ state */
   var canvas = null, gl = null, caps = null;
   var inited = false, isLost = false, supportedCache = null;
@@ -482,7 +547,6 @@
   var lightingCache = {};
   var lmCache = { key: '' };
   var maskCache = { key: '', data: null, w: 0, h: 0 };
-  var focusAnim = { key: '', rect: null, from: 0, to: 0, t0: 0, k: 0 };
   var timing = { ext: null, pending: [], samples: [], method: 'none', p95: 0, p50: 0, frames: 0, dropped: false };
   var debugView = 'final';
   var retro = false;
@@ -698,6 +762,7 @@
       up: program(VS, FS_UP),
       grade: program(VS, FS_GRADE),
       out: program(VS, FS_OUT),
+      hero: program(VS, FS_HERO),
     };
     T = {};
     RT = {};
@@ -941,16 +1006,19 @@
   function bbox(a, b, r, sq) {
     return [Math.min(a[0], b[0]) - r, Math.min(a[1], b[1]) - r * sq, Math.max(a[0], b[0]) + r, Math.max(a[1], b[1]) + r * sq];
   }
-  function packLights(list) {
+  var EMPTY = { P: [0, 0, 1, -1], C: [0, 0, 0, -1], X: [0, 0, 1, 0], Y: [0, 0, 0, 0] };
+  /** Pack the 4 reserved slots (entries or null) and up to MAX_LIGHTS data lights into the 20 uniform slots. */
+  function packLights(reserved, list) {
     var n = Math.min(MAX_LIGHTS, list.length);
-    var LP = new Float32Array(64), LC = new Float32Array(64), LX = new Float32Array(64), LY = new Float32Array(64);
-    for (var i = 0; i < n; i++) {
-      LP.set(list[i].P, i * 4);
-      LC.set(list[i].C, i * 4);
-      LX.set(list[i].X, i * 4);
-      LY.set(list[i].Y, i * 4);
+    var LP = new Float32Array(SLOTS * 4), LC = new Float32Array(SLOTS * 4), LX = new Float32Array(SLOTS * 4), LY = new Float32Array(SLOTS * 4);
+    for (var i = 0; i < RESERVED + n; i++) {
+      var l = i < RESERVED ? (reserved && reserved[i]) || EMPTY : list[i - RESERVED];
+      LP.set(l.P, i * 4);
+      LC.set(l.C, i * 4);
+      LX.set(l.X, i * 4);
+      LY.set(l.Y, i * 4);
     }
-    return { uN: I(n), uLP: { v4: LP }, uLC: { v4: LC }, uLX: { v4: LX }, uLY: { v4: LY } };
+    return { uN: I(RESERVED + n), uLP: { v4: LP }, uLC: { v4: LC }, uLX: { v4: LX }, uLY: { v4: LY } };
   }
 
   /* ------------------------------------------------------------------ static lightmap */
@@ -988,7 +1056,7 @@
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.ONE, gl.ONE);
       for (var i = 0; i < list.length; i += MAX_LIGHTS) {
-        pass(P.bake, rt, w, h, {}, Object.assign({ uRect: rect, uDst: [w, h], uEnc: enc }, packLights(list.slice(i, i + MAX_LIGHTS))));
+        pass(P.bake, rt, w, h, {}, Object.assign({ uRect: rect, uDst: [w, h], uEnc: enc }, packLights(null, list.slice(i, i + MAX_LIGHTS))));
       }
       gl.disable(gl.BLEND);
     });
@@ -1149,27 +1217,54 @@
     }
     return out;
   }
+  /**
+   * v3.5 (D4 3.3): the aux of the whole view (art rect, layers 0..5, no marks, parallax 0), drawn from the scene's
+   * drawables, so the masks are identical at every framing. Cached by (view, sceneVersion, art rect). null when the
+   * render module has no drawables for the view (the masks then fall back to the frame's own aux).
+   */
+  var viewAux = { key: '' };
+  function viewAuxFor(view) {
+    var R = ROOM.render;
+    var a = cur.conf && cur.conf.art;
+    if (!R || !R.blitAux || !a || !a.w || !a.h || !ROOM.viewOf) return null;
+    var ds = R.drawables;
+    var key = view + '|' + R.sceneVersion + '|' + [a.x, a.y, a.w, a.h].join(',');
+    if (viewAux.key === key) return viewAux.f;
+    var vf = { aux: new Uint8Array(a.w * a.h * 3), w: a.w, h: a.h, x0: a.x, y0: a.y };
+    var n = 0;
+    for (var i = 0; ds && i < ds.length; i++) {
+      var d = ds[i];
+      if (!d.img || d.layer >= 6 || (d.item && d.item.drift) || ROOM.viewOf(d.item) !== view) continue;
+      R.blitAux(vf, d, d.img, d.x - a.x, d.y - a.y);
+      n++;
+    }
+    for (var j = 1; j < vf.aux.length; j += 3) vf.aux[j] &= ~64; // hover is not part of the scene
+    viewAux = { key: key, f: n ? vf : null };
+    return viewAux.f;
+  }
   function ensureMasks(f, st) {
-    var key = [cur.view, f.x0, f.y0, f.w, f.h, st.bucket, Math.round(st.castShadow * 10), Math.round(st.shadowLength * 10), Math.round(st.patchIntensity > 0.01 ? 1 : 0), Math.round((st.lateral || 0) / 2), st.shadowSoft > 0.5 ? 1 : 0, sceneKeyOf(f)].join('|');
+    var src = viewAuxFor(cur.view) || f;
+    var key = [cur.view, src === f ? 'f' + [f.x0, f.y0, f.w, f.h, sceneKeyOf(f)].join(',') : viewAux.key, st.bucket, Math.round(st.castShadow * 10), Math.round(st.shadowLength * 10), Math.round(st.patchIntensity > 0.01 ? 1 : 0), Math.round((st.lateral || 0) / 2), st.shadowSoft > 0.5 ? 1 : 0].join('|');
     if (maskCache.key === key) return false;
     var t0 = performance.now();
-    var data = buildMasks(f, st);
+    var data = buildMasks(src, st);
     lastStats.maskMs = performance.now() - t0;
-    if (!T.mask || T.mask.w !== f.w || T.mask.h !== f.h) {
+    if (!T.mask || T.mask.w !== src.w || T.mask.h !== src.h) {
       if (T.mask) gl.deleteTexture(T.mask);
-      T.mask = tex2d(f.w, f.h, gl.RG8, gl.RG, gl.UNSIGNED_BYTE, data);
+      T.mask = tex2d(src.w, src.h, gl.RG8, gl.RG, gl.UNSIGNED_BYTE, data);
     } else {
       gl.bindTexture(gl.TEXTURE_2D, T.mask);
       gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, f.w, f.h, gl.RG, gl.UNSIGNED_BYTE, data);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, src.w, src.h, gl.RG, gl.UNSIGNED_BYTE, data);
     }
-    maskCache = { key: key, data: data, w: f.w, h: f.h };
+    maskCache = { key: key, data: data, w: src.w, h: src.h, x0: src.x0, y0: src.y0 };
     return true;
   }
 
   /* ------------------------------------------------------------------ targets */
-  function ensureTargets(w, h, cw, ch, tier) {
-    var key = [w, h, cw, ch, tier.shaftDiv, tier.bloomDiv, tier.bloomLevels].join('|');
+  function ensureTargets(w, h, hT, cw, ch, tier) {
+    var wb = gains.worldBloom > 0;
+    var key = [w, h, hT, cw, ch, tier.shaftDiv, tier.bloomDiv, tier.bloomLevels, wb ? 1 : 0].join('|');
     if (RT.key === key) return;
     ['lit', 'floor', 'shaft', 'ldr'].forEach(function (k) {
       freeTarget(RT[k]);
@@ -1177,16 +1272,18 @@
     (RT.down || []).concat(RT.up || []).forEach(freeTarget);
     if (T.index) gl.deleteTexture(T.index);
     if (T.aux) gl.deleteTexture(T.aux);
-    T.index = tex2d(w, h, gl.R8, gl.RED, gl.UNSIGNED_BYTE, null);
-    T.aux = tex2d(w, h, gl.RGB8, gl.RGB, gl.UNSIGNED_BYTE, null);
-    RT = { key: key };
-    RT.lit = target(w, h, gl.NEAREST);
-    RT.floor = target(w, h, gl.LINEAR);
+    // index, aux, lit, floor and ldr hold the room rows plus the atlas rows (hT >= h); shafts and bloom the room only
+    T.index = tex2d(w, hT, gl.R8, gl.RED, gl.UNSIGNED_BYTE, null);
+    T.aux = tex2d(w, hT, gl.RGB8, gl.RGB, gl.UNSIGNED_BYTE, null);
+    RT = { key: key, hT: hT };
+    RT.lit = target(w, hT, gl.NEAREST);
+    RT.floor = target(w, hT, gl.LINEAR);
     RT.shaft = target(Math.ceil(w / tier.shaftDiv), Math.ceil(h / tier.shaftDiv), gl.LINEAR);
-    RT.ldr = target8(w, h);
+    RT.ldr = target8(w, hT);
     RT.down = [];
     RT.up = [];
-    var bw = Math.max(1, Math.ceil(cw / tier.bloomDiv)), bh = Math.max(1, Math.ceil(ch / tier.bloomDiv));
+    // world-res bloom (D4 3.3, PLAN A1: behind the flag, off by default): world-px radius, the same at every zoom
+    var bw = wb ? w : Math.max(1, Math.ceil(cw / tier.bloomDiv)), bh = wb ? h : Math.max(1, Math.ceil(ch / tier.bloomDiv));
     for (var i = 0; i < tier.bloomLevels; i++) {
       RT.down.push(target(bw, bh, gl.LINEAR));
       RT.up.push(target(bw, bh, gl.LINEAR));
@@ -1234,20 +1331,98 @@
       timing.dropped = true; // decide once on the first 60 frames; never raise automatically
       if (timing.p95 > AUTO_P95_MS) {
         var i = TIER_ORDER.indexOf(tierName);
-        if (i >= 0 && i < TIER_ORDER.length - 2) {
-          tierName = TIER_ORDER[i + 1];
-          if (ROOM.emit) ROOM.emit('gl', { tier: tierName, auto: true, p95: timing.p95 });
-        }
+        if (i >= 0 && i < TIER_ORDER.length - 2) pendingTier = TIER_ORDER[i + 1]; // applied on the next idle frame
       }
     }
   }
 
   /* ------------------------------------------------------------------ frame */
   var lastFrameT = 0;
+  var pendingTier = null; // an auto-tier step waits for an idle frame (PLAN R21)
+  var atlasRowsMax = 0; // grow-only atlas rows in the GPU targets (D1 2.1.1)
+  var heroCache = { key: '', rt: null, w: 0, h: 0 };
+
+  function clamp01(v) {
+    return Math.max(0, Math.min(1, v));
+  }
   /**
-   * Light the buffer. f: {buf, aux, w, h, x0, y0, now, z, sceneVersion?}. opts: {dim, focus: {x,y,w,h} | null,
-   * hover: {x,y,w,h} | null, statueBurst: 0..1 | {x, y, k}, flash: 0..1.8, pools: [{x,y,r,a,rgb?}],
-   * spot: {x,y,w,h,k}, regions: [{rect: [x,y,w,h], gain, bounce}], state: a ROOM.light.state() to use}.
+   * Pure (exported for tests): choose up to n data lights. cands: [{bb: [x0, y0, x1, y1], sk}] (expanded lights with
+   * a stable strength key), art: the view's art rect [x, y, w, h] or null. Lights whose box misses the art rect are
+   * dropped; the rest sort by sk (ties keep input order). The frame bbox never enters: the set is the same at every
+   * framing (D4 3.3), and hover / pools / statue live in reserved slots, so they never evict a data light.
+   */
+  function selectLights(cands, art, n) {
+    var a = art ? [art[0] - 4, art[1] - 4, art[0] + art[2] + 4, art[1] + art[3] + 4] : null;
+    var keep = [];
+    for (var i = 0; i < cands.length; i++) {
+      var l = cands[i];
+      if (a && !(l.bb[2] >= a[0] && l.bb[0] <= a[2] && l.bb[3] >= a[1] && l.bb[1] <= a[3])) continue;
+      keep.push({ l: l, i: i });
+    }
+    keep.sort(function (p, q) {
+      return q.l.sk - p.l.sk || p.i - q.i;
+    });
+    return keep.slice(0, Math.max(0, n)).map(function (e) {
+      return e.l;
+    });
+  }
+  /** The SELECT light entry (slot 0 or 1) for a world rect, at intensity k (PLAN R8). */
+  function selectLight(rect, col, k) {
+    var S = (ROOM.light && ROOM.light.SELECT) || { radiusK: 0.9, radiusPad: 6, lift: 24 };
+    if (!rect || !(k > 0.001)) return null;
+    var R = Math.max(rect.w, rect.h) * S.radiusK + S.radiusPad;
+    return { P: [rect.x + rect.w / 2, rect.y + rect.h / 2, R, S.lift], C: [col[0] * k, col[1] * k, col[2] * k, 0], X: [0, 0, 1, 0], Y: [0, 0, 0, 0] };
+  }
+  /** The room-rest rect of the current view (world px) for the vignette: the same in room, zone and snapshots. */
+  function restRect(f, opts) {
+    var r = opts.restRect;
+    if (r && r.w > 0) return r;
+    var V = ROOM.render && ROOM.render.view, CAM = ROOM.camera;
+    var a = cur.conf && cur.conf.art;
+    if (cur.view === 'top' && a) return { x: a.x, y: a.y, w: a.w, h: a.h };
+    if (V && V.Wd && CAM && CAM.roomCamera) {
+      var c = CAM.roomCamera(V, null);
+      var w = V.Wd / c.z, h = V.Hd / c.z;
+      if (V.mode === 'pan' && CAM.CORE_W) return { x: 0, y: c.cy - h / 2, w: CAM.CORE_W, h: h }; // phone: the whole core
+      return { x: c.cx - w / 2, y: c.cy - h / 2, w: w, h: h };
+    }
+    return { x: f.x0, y: f.y0, w: f.w, h: f.h };
+  }
+  function inkRgb() {
+    var i = palNames.indexOf('INK');
+    if (i < 0) return [0.08, 0.06, 0.1];
+    return [palRGB[i * 3] / 255, palRGB[i * 3 + 1] / 255, palRGB[i * 3 + 2] / 255];
+  }
+  function atlasHash(f, at) {
+    var h = 2166136261, w = f.w;
+    for (var y = at.y; y < at.y + at.h; y++) {
+      for (var x = 0; x < at.w; x++) {
+        var i = y * w + x;
+        h = Math.imul(h ^ f.buf[i], 16777619);
+        h = Math.imul(h ^ f.aux[i * 3 + 1], 16777619);
+      }
+    }
+    return h >>> 0;
+  }
+  /** Apply an auto-tier step that waited for an idle frame (R21); emits 'gltier' {tier}. */
+  function applyPendingTier() {
+    if (!pendingTier || (ROOM.nav && ROOM.nav.busy)) return;
+    tierName = pendingTier;
+    pendingTier = null;
+    heroCache.key = '';
+    if (ROOM.emit) {
+      ROOM.emit('gltier', { tier: tierName });
+      ROOM.emit('gl', { tier: tierName, auto: true, p95: timing.p95 });
+    }
+  }
+
+  /**
+   * Light the buffer. f: {buf, aux, w, h, x0, y0, now, z, org?, sceneVersion?}; buffers are w x (h + atlas rows).
+   * opts (PLAN 2.4, all optional): dim 0..1 (bool accepted), focus {rect: {x,y,w,h}, k} (a bare rect = k 1),
+   * hover rect or {rect, k}, pools [{x,y,r,a,rgb?,zone?}], statueBurst 0..1 | {x,y,k}, flash 0..1.8, state,
+   * atlas {y, w, h, off: [dx, dy]} (off = world of the atlas top-left texel; atlas columns start at 0),
+   * hero {x, y, k, K, selK} (device px of the target canvas f.org refers to; k integer zoom, K Bayer dissolve 0..1),
+   * halo {cx, cy, r, k, pool: {cx,cy,rx,ry}, shadow: {cx,cy,rx,ry}} (world px), restRect {x,y,w,h} (vignette).
    * Returns the WebGL canvas, or null (tier Off, no WebGL2, context lost): use the Canvas2D path then.
    */
   function frame(f, opts) {
@@ -1255,10 +1430,10 @@
     if (tierName === 'off' || isLost) return null;
     if (!inited && !init()) return null;
     if (!gl || gl.isContextLost()) return null;
+    applyPendingTier();
     var tier = TIERS[tierName];
     if (!tier) return null;
-    var view = (ROOM.state && ROOM.state.view) || cur.view || 'main';
-    if (opts.view) view = opts.view;
+    var view = opts.view || cur.view || (ROOM.state && ROOM.state.view) || 'main';
     if (view !== cur.view || !cur.lighting) setView(view, null);
     var Lg = cur.lighting;
     var now = f.now != null ? f.now : performance.now();
@@ -1270,34 +1445,42 @@
     timerPoll();
     var q = timerBegin();
 
+    // ---- the hero atlas rows (D1 2.1): below the room rows, lit in the same passes
+    var at = opts.atlas || null;
+    var useAtlas = !!(at && at.w > 0 && at.h > 0 && at.y >= f.h && at.w <= f.w && f.buf.length >= f.w * (at.y + at.h) && f.aux && f.aux.length >= f.w * (at.y + at.h) * 3);
+    if (useAtlas) atlasRowsMax = Math.max(atlasRowsMax, at.y + at.h - f.h);
+    var hT = f.h + atlasRowsMax;
+    var rows = useAtlas ? at.y + at.h : f.h;
+    var off = useAtlas ? at.off || [0, 0] : [0, 0];
+
     if (canvas.width !== cw) canvas.width = cw;
     if (canvas.height !== ch) canvas.height = ch;
-    ensureTargets(f.w, f.h, cw, ch, tier);
+    ensureTargets(f.w, f.h, hT, cw, ch, tier);
     gl.bindVertexArray(vao);
     gl.disable(gl.BLEND);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.bindTexture(gl.TEXTURE_2D, T.index);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, f.w, f.h, gl.RED, gl.UNSIGNED_BYTE, f.buf);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, f.w, rows, gl.RED, gl.UNSIGNED_BYTE, f.buf);
     var aux = f.aux;
     if (!aux || aux.length < f.w * f.h * 3) {
       aux = new Uint8Array(f.w * f.h * 3);
       f = Object.assign({}, f, { aux: aux });
     }
     gl.bindTexture(gl.TEXTURE_2D, T.aux);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, f.w, f.h, gl.RGB, gl.UNSIGNED_BYTE, aux);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, f.w, rows, gl.RGB, gl.UNSIGNED_BYTE, aux);
 
     ensureLightmap();
     ensureMasks(f, st);
 
-    // ---- uniforms from the state
+    // ---- uniforms from the state (the light model never depends on dim or focus: the hero shares it)
     var G = gains;
-    var dim = opts.dim ? 1 : 0;
+    var dimK = typeof opts.dim === 'number' ? clamp01(opts.dim) : opts.dim ? 1 : 0;
     var flash = Math.max(0, Math.min(1.8, opts.flash || 0));
     var keyL = Lg.key || {};
     var keyScale = keyL.scale != null ? keyL.scale : 1;
     // weather.flash() is 0..1.8: at 1.8 the key light is 1.8x (TEXTURE_SPEC 7.1, LIGHTING_SPEC 12b)
     var flashMul = 1 + flash * (0.8 / 1.8);
-    var kc = st.keyColor, kI = st.keyIntensity * G.key * flashMul * (dim ? 0.75 : 1);
+    var kc = st.keyColor, kI = st.keyIntensity * G.key * flashMul;
     var keyCol = [kc[0] * kI * keyScale, kc[1] * kI * keyScale, kc[2] * kI * keyScale];
     if (flash > 0) {
       var fl = Math.min(1, flash / 1.8) * 0.6; // storm flashes are blue-white
@@ -1323,80 +1506,114 @@
     });
     var win = (Lg.window && Lg.window.rect) || [0, 0, 0, 0];
     var floorL = Lg.floor || { backLine: 184, bottom: 235, squash: 1 };
+    var art = cur.conf && cur.conf.art;
+    var artRect = art && art.w ? [art.x, art.y, art.w, art.h] : null;
 
-    // ---- dynamic lights: data lights, then zone pools, hover, spot and statue burst
-    var dyn = [];
-    var pg = st.practicalGain * G.practical * (dim ? 0.7 : 1);
+    // ---- data lights: chosen from the whole view (stable key: no flicker), flicker applied after the choice
+    var pg = st.practicalGain * G.practical;
+    var cands = [];
     (Lg.lights || []).forEach(function (l) {
       if (l.static) return;
-      var lv = whenLevel(l, st) * channelLevel(l, now) * driveLevel(l, st, now) * pg;
-      expandLight(l, lv, dyn);
+      var neon = l.drive === 'completion';
+      var stable = whenLevel(l, st) * pg * (neon ? st.neon : 1);
+      var vary = channelLevel(l, now) * (neon ? (st.neon > 0 ? driveLevel(l, st, now) / st.neon : 0) : 1);
+      var n0 = cands.length;
+      expandLight(l, stable, cands);
+      for (var j = n0; j < cands.length; j++) {
+        var e = cands[j];
+        e.id = l.id;
+        e.sk = e.k * (e.P[2] + 10);
+        if (vary !== 1) e.C = [e.C[0] * vary, e.C[1] * vary, e.C[2] * vary, e.C[3]];
+      }
     });
-    var extras = [];
-    (opts.pools || []).forEach(function (p) {
-      expandLight({ type: 'point', pos: [p.x, p.y], radius: p.r || 30, rgb: p.rgb || [255, 190, 112], intensity: (p.a != null ? p.a : 0.34) * 2.5 }, 1, extras);
+    // pools: the strongest (or the one flagged zone) takes reserved slot 2; night lamp pools compete as data lights
+    var pools = (opts.pools || []).slice().sort(function (a, b) {
+      return (b.zone ? 1 : 0) - (a.zone ? 1 : 0) || (b.a != null ? b.a : 0.34) - (a.a != null ? a.a : 0.34);
     });
-    if (opts.hover && opts.hover.w != null) {
-      var hv = opts.hover;
-      expandLight({ type: 'point', pos: [hv.x + hv.w / 2, hv.y + hv.h / 2], radius: Math.max(hv.w, hv.h) * 0.9 + 6, rgb: [255, 200, 130], intensity: 0.35 }, 1, extras);
-    }
-    if (opts.spot && opts.spot.k > 0) {
-      var sp = opts.spot;
-      expandLight({ type: 'cone', pos: [sp.x + sp.w / 2, sp.y - 30], dir: 90, angle: 42, radius: sp.h + 70, rgb: [255, 214, 150], intensity: 1.5 * sp.k }, 1, extras);
-    }
+    var res = [null, null, null, null];
+    pools.forEach(function (p, i) {
+      var tmp = [];
+      expandLight({ type: 'point', pos: [p.x, p.y], radius: p.r || 30, rgb: p.rgb || [255, 190, 112], intensity: (p.a != null ? p.a : 0.34) * 2.5 }, 1, tmp);
+      if (!tmp.length) return;
+      if (i === 0) res[2] = tmp[0];
+      else {
+        tmp[0].id = 'pool';
+        tmp[0].sk = tmp[0].k * (tmp[0].P[2] + 10);
+        cands.push(tmp[0]);
+      }
+    });
     var sb = opts.statueBurst;
     if (sb) {
       var sk = typeof sb === 'number' ? sb : sb.k != null ? sb.k : 1;
       var spos = typeof sb === 'object' && sb.x != null ? [sb.x, sb.y] : Lg.statue;
-      if (spos && sk > 0) expandLight({ type: 'point', pos: spos, radius: 70, rgb: [255, 214, 120], intensity: 1.5 * sk }, 1, extras);
+      var tmp2 = [];
+      if (spos && sk > 0) expandLight({ type: 'point', pos: spos, radius: 70, rgb: [255, 214, 120], intensity: 1.5 * sk }, 1, tmp2);
+      res[3] = tmp2[0] || null;
     }
-    var vx0 = f.x0 - 4, vy0 = f.y0 - 4, vx1 = f.x0 + f.w + 4, vy1 = f.y0 + f.h + 4;
-    function visible(l) {
-      return l.bb[2] >= vx0 && l.bb[0] <= vx1 && l.bb[3] >= vy0 && l.bb[1] <= vy1;
+    // SELECT (R8): white mixed toward the key colour; slot 0 the hero (atlas texels), slot 1 hover/focus (room)
+    var S = ROOM.light.SELECT;
+    var kmax = Math.max(kc[0], kc[1], kc[2]) || 1;
+    var kn = [kc[0] / kmax, kc[1] / kmax, kc[2] / kmax];
+    var selCol = [mix(1, kn[0], S.tint), mix(1, kn[1], S.tint), mix(1, kn[2], S.tint)];
+    var hero = opts.hero || null;
+    var selK = hero && hero.selK != null ? clamp01(hero.selK) : 1;
+    if (useAtlas) res[0] = selectLight({ x: off[0], y: off[1], w: at.w, h: at.h }, selCol, S.heroI * selK);
+    var hv = opts.hover;
+    if (hv) {
+      var hr = hv.rect || hv;
+      if (hr.w != null) res[1] = selectLight(hr, selCol, S.I * (hv.k != null ? clamp01(hv.k) : 1));
     }
-    dyn = dyn.filter(visible).sort(function (a, b) {
-      return b.k * (b.P[2] + 10) - a.k * (a.P[2] + 10);
-    });
-    var lights = extras.filter(visible).concat(dyn).slice(0, tier.lights);
+    var lights = selectLights(cands, artRect, tier.lights);
     lastStats.lights = lights.length;
-    lastStats.dynamicCandidates = dyn.length + extras.length;
-
-    var regU = new Float32Array(32), regK = new Float32Array(32), nr = 0;
-    (opts.regions || []).slice(0, 8).forEach(function (r) {
-      regU.set(r.rect, nr * 4);
-      var bc = r.bounce ? r.bounce : 0;
-      regK.set([r.gain != null ? r.gain : 1, 0.95 * bc, 0.62 * bc, 0.35 * bc], nr * 4);
-      nr++;
+    lastStats.lightIds = lights.map(function (l) {
+      return l.id;
+    });
+    lastStats.dynamicCandidates = cands.length;
+    lastStats.reserved = res.map(function (r) {
+      return !!r;
     });
 
     var dbg = DEBUG_IDS[debugView] || 0;
     var origin = [f.x0, f.y0];
     var size = { iv: [f.w, f.h] };
     var lm = lmCache;
+    var world = { uOrigin: origin, uRoomH: I(f.h), uAtlas: [useAtlas ? at.y : 0, useAtlas ? at.h : 0, off[0], off[1]], uAtlasOn: I(useAtlas ? 1 : 0) };
+    var maskU = { uMaskO: [maskCache.x0, maskCache.y0], uMaskS: { iv: [maskCache.w, maskCache.h] } };
+
+    // ---- low tier (D1 2.1.3): the atlas is shaded only when the light key changes or on a flash
+    var heroLow = useAtlas && (tierName === 'low' || G.heroCache > 0);
+    var hKey = '';
+    if (heroLow) {
+      hKey = [cur.view, st.keyframe, st.bucket, Math.round(st.nightness * 50), Math.round(st.keyIntensity * 100), kc.map(function (c) {
+        return Math.round(c * 100);
+      }).join(','), Math.round(st.practicals.lamps * 50), Math.round(st.practicals.desk * 50), at.w, at.h, off.join(','), atlasHash(f, at), Math.round(selK * 32), dbg, flash > 0 ? now : 0, retro ? 1 : 0].join('|');
+    }
+    var cached = heroLow && heroCache.key === hKey && heroCache.rt && heroCache.w === at.w && heroCache.h === at.h;
+    var passRows = useAtlas && !cached ? rows : f.h;
+    lastStats.heroShaded = useAtlas && !cached;
 
     // ---- P1 light
-    pass(P.light, RT.lit, f.w, f.h, { uIndex: T.index, uAux: T.aux, uPal: T.pal, uPalMat: T.palMat, uMatId: T.matId, uShadow: T.mask, uLmA: lm.a.tex, uLmN: lm.n.tex }, Object.assign({
-      uOrigin: origin, uSize: size, uEnc: enc, uMode: I(dbg === 1 ? 1 : dbg === 2 ? 2 : 0),
+    pass(P.light, RT.lit, f.w, passRows, { uIndex: T.index, uAux: T.aux, uPal: T.pal, uPalMat: T.palMat, uMatId: T.matId, uShadow: T.mask, uLmA: lm.a.tex, uLmN: lm.n.tex }, Object.assign({
+      uSize: { iv: [f.w, passRows] }, uEnc: enc, uMode: I(dbg === 1 ? 1 : dbg === 2 ? 2 : 0),
       uLmRect: lm.rect, uLmNight: st.practicals.lamps,
       uAmb: amb, uCeil: 0.6,
       uKey: keyCol, uKeyC: keyL.center || [f.x0 + f.w / 2, floorL.backLine], uKeyR: keyL.radius || [200, 70], uKeyWall: keyL.wall != null ? keyL.wall : 0.25,
       uRimSpread: keyL.rimSpread || 2.2, uBounce: bounceCol.map(function (c) {
         return c * (keyL.bounce || 0);
-      }), uBounceY: [f.y0, f.y0 + f.h],
+      }), uBounceY: artRect ? [artRect[1], artRect[1] + artRect[3]] : [f.y0, f.y0 + f.h],
       uShadowK: st.shadowStrength * G.shadow, uRim: rimCol, uStatueRim: st.statueRim, uLeafRim: tier.leafRim ? 1 : 0,
-      uPatch: patchCol, uSeam: seamCol, uSkyTint: st.skyTint, uSky: st.sky * (1 + flash * 0.6), uEmis: G.emissive * (dim ? 0.8 : 1),
-      uGlint: glintCol, uTransK: G.transmission, uWin: win,
-      uReg: { v4: regU }, uRegK: { v4: regK }, uNR: I(nr),
-    }, packLights(lights)));
+      uPatch: patchCol, uSeam: seamCol, uSkyTint: st.skyTint, uSky: st.sky * (1 + flash * 0.6), uEmis: G.emissive,
+      uGlint: glintCol, uTransK: G.transmission, uWin: win, uSelRim: S.rimGain,
+    }, world, maskU, packLights(res, lights)));
 
     // ---- P2 floor
-    pass(P.floor, RT.floor, f.w, f.h, { uLit: RT.lit.tex, uAux: T.aux, uMatId: T.matId }, {
-      uOrigin: origin, uSize: size, uEnc: enc, uMode: I(dbg === 6 ? 1 : 0),
-      uBack: floorL.backLine, uBottom: floorL.bottom || f.y0 + f.h, uSquash: floorL.squash || 1, uReflK: G.refl * (dim ? 0.7 : 1), uTaps: I(tier.reflTaps),
-    });
+    pass(P.floor, RT.floor, f.w, passRows, { uLit: RT.lit.tex, uAux: T.aux, uMatId: T.matId }, Object.assign({
+      uSize: size, uEnc: enc, uMode: I(dbg === 6 ? 1 : 0),
+      uBack: floorL.backLine, uBottom: floorL.bottom || f.y0 + f.h, uSquash: floorL.squash || 1, uReflK: G.refl, uTaps: I(tier.reflTaps),
+    }, world));
 
-    // ---- P3 shafts and dust
-    var shaftK = st.shafts * G.shafts * (dim ? 0.5 : 1) * (keyScale === 0 ? 0 : 1);
+    // ---- P3 shafts and dust (room rows)
+    var shaftK = st.shafts * G.shafts * (keyScale === 0 ? 0 : 1);
     var haveShafts = tier.shaftSamples > 0 && shaftK > 0.004 && win[2] > 0;
     var sdir = [0, 1];
     if (haveShafts) {
@@ -1437,11 +1654,11 @@
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
 
-    // ---- P4 bloom (dual filter)
-    var bloomK = st.bloom * G.bloom * (dim ? 0.55 : 1);
+    // ---- P4 bloom (dual filter; the room rows only, so the atlas never blooms)
+    var bloomK = st.bloom * G.bloom * (1 - 0.45 * dimK);
     var lv = RT.down.length;
     pass(P.pre, RT.down[0], RT.down[0].w, RT.down[0].h, { uHdr: RT.floor.tex, uShaft: RT.shaft.tex, uAux: T.aux }, {
-      uDst: [RT.down[0].w, RT.down[0].h], uSize: size, uEnc: enc, uShaftK: 1, uThresh: 0.8, uKnee: 0.2,
+      uDst: [RT.down[0].w, RT.down[0].h], uSize: size, uEnc: enc, uShaftK: 1, uThresh: 0.8, uKnee: 0.2, uVS: f.h / RT.hT,
     });
     for (var i = 1; i < lv; i++) {
       var s = RT.down[i - 1], d = RT.down[i];
@@ -1455,20 +1672,49 @@
     }
     var bloomTex = lv > 1 ? RT.up[0].tex : RT.down[0].tex;
 
-    // ---- P5 grade
-    var focusK = focusLevel(opts.focus, now);
-    var fr = focusAnim.rect;
-    var focusU = fr ? [fr.x + fr.w / 2, fr.y + fr.h / 2, fr.w * 0.62 + 6, fr.h * 0.62 + 6] : [0, 0, 1, 1];
-    var vg = Lg.vignette || { x: f.x0 + f.w / 2, y: f.y0 + f.h / 2, rx: f.w * 0.78, ry: f.h * 1.1, inner: 0.42, c: [0.55, 0.5, 0.58] };
+    // ---- P5 grade: dim (float, D1 3.2), zone focus (explicit k), world-anchored vignette, skill-view halo
+    var fo = opts.focus, frect = null, fk = 0;
+    if (fo && fo.rect) {
+      frect = fo.rect;
+      fk = fo.k != null ? clamp01(fo.k) : 1;
+    } else if (fo && fo.w != null) {
+      frect = fo;
+      fk = 1;
+    }
+    var focusU = frect ? [frect.x + frect.w / 2, frect.y + frect.h / 2, frect.w * 0.62 + 6, frect.h * 0.62 + 6] : [0, 0, 1, 1];
+    var rr = restRect(f, opts);
+    var vg = Lg.vignette || { x: rr.x + rr.w / 2, y: rr.y + rr.h / 2, rx: rr.w * 0.78, ry: rr.h * 1.1, inner: 0.42, c: [0.55, 0.5, 0.58] };
     var vc = vg.c || [0.55, 0.5, 0.58];
+    var ha = opts.halo || null;
+    var haK = ha ? clamp01(ha.k != null ? ha.k : 1) : 0;
+    var hp = (ha && ha.pool) || { cx: 0, cy: 0, rx: 0, ry: 0 }, hs = (ha && ha.shadow) || { cx: 0, cy: -1e6, rx: 0, ry: 0 };
+    var l2s = ROOM.light.linearToSrgb;
     var gr = st.grade;
     var rp = retroPalette();
-    pass(P.grade, RT.ldr, f.w, f.h, { uHdr: RT.floor.tex, uShaft: RT.shaft.tex, uAux: T.aux, uIndex: T.index, uPal: T.pal, uShadow: T.mask, uLutA: T.luts[gr.a], uLutB: T.luts[gr.b] }, {
-      uOrigin: origin, uSize: size, uEnc: enc, uDebug: I(dbg),
-      uLutT: gr.t, uExpo: st.exposure * G.exposure, uSat: st.saturation * G.saturation, uWarm: st.warmth, uShaftK: haveShafts ? 1 : 0, uDimK: dim ? 0.8 : 1,
-      uFocus: focusU, uFocusK: focusK, uVig: [vg.x, vg.y, vg.rx, vg.ry], uVig2: [vg.inner != null ? vg.inner : 0.42, vc[0], vc[1], vc[2]], uVigK: G.vignette,
+    pass(P.grade, RT.ldr, f.w, passRows, { uHdr: RT.floor.tex, uShaft: RT.shaft.tex, uAux: T.aux, uIndex: T.index, uPal: T.pal, uShadow: T.mask, uLutA: T.luts[gr.a], uLutB: T.luts[gr.b] }, Object.assign({
+      uSize: { iv: [f.w, passRows] }, uRoomS: [f.w, f.h], uEnc: enc, uDebug: I(dbg),
+      uLutT: gr.t, uExpo: st.exposure * G.exposure, uSat: st.saturation * G.saturation, uWarm: st.warmth, uShaftK: haveShafts ? 1 : 0, uDim: dimK,
+      uFocus: focusU, uFocusK: frect ? fk : 0, uVig: [vg.x, vg.y, vg.rx, vg.ry], uVig2: [vg.inner != null ? vg.inner : 0.42, vc[0], vc[1], vc[2]], uVigK: G.vignette,
+      uHalo: ha ? [ha.cx, ha.cy, ha.r || 1, haK] : [0, 0, 1, 0], uPool: [hp.cx, hp.cy, hp.rx, hp.ry], uShad: [hs.cx, hs.cy, hs.rx, hs.ry],
+      uKeyS: kn.map(function (c) {
+        return l2s(c);
+      }), uInk: inkRgb(),
       uRetro: I(retro ? 1 : 0), uRetroN: I(rp.length / 3), uRetroPal: { v3: rp },
-    });
+    }, world, maskU));
+    if (heroLow && !cached) {
+      if (!heroCache.rt || heroCache.w !== at.w || heroCache.h !== at.h) {
+        freeTarget(heroCache.rt);
+        heroCache.rt = target8(at.w, at.h);
+        heroCache.w = at.w;
+        heroCache.h = at.h;
+      }
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, RT.ldr.fb);
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, heroCache.rt.fb);
+      gl.blitFramebuffer(0, at.y, at.w, at.y + at.h, 0, 0, at.w, at.h, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+      heroCache.key = hKey;
+    }
 
     // ---- P6 output
     var grainOn = tier.grain && G.grain > 0;
@@ -1477,6 +1723,31 @@
       uCanvas: [cw, ch], uZ: [cw / f.w, ch / f.h], uOrigin: origin, uSize: size, uDebug: I(dbg),
       uBloomK: bloomK / Math.max(1, lv * 0.6), uGrain: grainOn ? st.grain * G.grain : 0, uSeed: seed, uEnc: enc,
     });
+
+    // ---- P7 hero: integer k, integer device origin, Bayer dissolve heroK (D1 2.1.4)
+    lastStats.hero = null;
+    if (useAtlas && hero && (hero.K == null || hero.K > 0)) {
+      var hk = Math.max(1, Math.round(hero.k || 1));
+      var gx = hero.x, gy = hero.y;
+      if (f.org) {
+        gx += f.org.ox - f.x0 * z;
+        gy += f.org.oy - f.y0 * z;
+      }
+      gx = Math.round(gx);
+      gy = Math.round(gy);
+      var hw = at.w * hk, hh = at.h * hk;
+      var sx0 = Math.max(0, gx), sy0 = Math.max(0, ch - gy - hh), sx1 = Math.min(cw, gx + hw), sy1 = Math.min(ch, ch - gy);
+      if (sx1 > sx0 && sy1 > sy0) {
+        gl.enable(gl.SCISSOR_TEST);
+        gl.scissor(sx0, sy0, sx1 - sx0, sy1 - sy0);
+        pass(P.hero, null, cw, ch, { uSrc: cached || heroLow ? heroCache.rt.tex : RT.ldr.tex, uAux: T.aux }, {
+          uCanvas: [cw, ch], uDst: [gx, gy, hk, hero.K != null ? clamp01(hero.K) : 1], uAt: { iv: [at.w, at.h] },
+          uRow0: I(heroLow ? 0 : at.y), uAuxRow0: I(at.y), uOff: off, uGrain: grainOn ? st.grain * G.grain : 0, uSeed: seed, uDebug: I(dbg),
+        });
+        gl.disable(gl.SCISSOR_TEST);
+      }
+      lastStats.hero = { x: gx, y: gy, k: hk, w: hw, h: hh, cached: !!cached };
+    }
 
     timerEnd(q);
     timing.frames++;
@@ -1495,25 +1766,10 @@
     return a + (b - a) * t;
   }
 
-  /** Zone focus: ease in over 300 ms when a focus rect appears, out when it goes (instant with reduced motion). */
-  function focusLevel(rect, now) {
-    var key = rect ? [rect.x, rect.y, rect.w, rect.h].join(',') : '';
-    if (key !== focusAnim.key) {
-      var curK = focusAnim.k;
-      focusAnim = { key: key, rect: rect || focusAnim.rect, from: curK, to: rect ? 1 : 0, t0: now, k: curK };
-    }
-    var u = reduced() ? 1 : Math.min(1, Math.max(0, (now - focusAnim.t0) / 300));
-    var e = u * u * (3 - 2 * u);
-    focusAnim.k = focusAnim.from + (focusAnim.to - focusAnim.from) * e;
-    if (!rect && focusAnim.k <= 0.001) focusAnim.rect = null;
-    return focusAnim.k;
-  }
-
   /* ------------------------------------------------------------------ scheduler hooks */
-  /** True while an eased transition (zone focus) runs: render.js keeps drawing. */
-  function busy(now) {
-    if (!inited || tierName === 'off') return false;
-    return Math.abs(focusAnim.k - focusAnim.to) > 0.001 && now - focusAnim.t0 < 400;
+  /** v3.5: the compositor has no eased state of its own (dim and focus arrive as explicit k from nav.js). */
+  function busy() {
+    return false;
   }
   /**
    * A string that changes whenever the GPU look animates: light channels (<= 15 fps), the neon flicker, grain
@@ -1620,5 +1876,8 @@
     lightingFromV33: function (viewConf, viewId, items) {
       return ROOM.light.lightingFromV33(viewConf, viewId, items);
     },
+    selectLights: selectLights,
+    SLOTS: { reserved: RESERVED, data: MAX_LIGHTS, HERO: 0, HOVER: 1, POOL: 2, STATUE: 3 },
   };
+  if (typeof module !== 'undefined' && module.exports) module.exports = { selectLights: selectLights };
 })();
