@@ -331,6 +331,7 @@
    */
   function request(p, opts) {
     opts = opts || {};
+    if (!cur) cur = placeFromState();
     var from = target();
     var to = full(p, from);
     if (!to) return false;
@@ -352,12 +353,12 @@
     return true;
   }
 
-  function start(to, opts) {
+  function start(to, opts, queued) {
     var from = cur;
     var legs = planFor(from, to);
     if (!legs.length) return;
     var instant = !!opts.instant || reduced() || !R() || !R().view;
-    move = { from: from, to: to, legs: legs, i: -1, leg: null, opts: opts, reversed: false, ahead: legs[0].steps || 1 };
+    move = { from: from, to: to, legs: legs, i: -1, leg: null, opts: opts, reversed: false, ahead: legs[0].steps || 1, queued: !!queued };
     if (opts.history !== false) {
       if (opts.dismiss) dismiss(to);
       else push(urlOf(to));
@@ -400,8 +401,10 @@
     l.t0 = now;
     var Rr = R();
     if (CAMERA_LEGS[l.kind]) {
-      // render.js plans from the frame on screen; the destination is drawn with its arrival light
+      // render.js plans from the frame on screen; the destination is drawn with its arrival light. After another
+      // leg or a landing in the same tick the canvas still shows a move frame: draw the start place at rest first.
       scene = l.from;
+      if (m.i > 0 || m.queued) Rr.restNow();
       l.r = Rr.beginLeg({ kind: l.kind, from: l.from, to: l.to, lsFrom: lsFull(l.from), lsTo: lsFull(l.to), dir: l.dir });
       l.dur = l.r.dur;
       return;
@@ -464,7 +467,7 @@
       var p = pending;
       pending = null;
       // relative requests were resolved against the queued target already
-      if (!same(p.place, cur)) start(p.place, p.opts);
+      if (!same(p.place, cur)) start(p.place, p.opts, true);
       return;
     }
     if (cur.mode === 'skill' && !m.reversed) openBoard(cur, m.opts);
@@ -739,10 +742,20 @@
     if (d.phase === 'land') schedulePrewarm();
   });
   // A board closed by itself (Esc, Close, scrim) while its skill place is up: step back to the backdrop.
+  // Only once the board of this visit has been seen open (skill.js opens it mid-LIFT, nav at landing).
+  var boardSeen = false;
+  ROOM.on('nav', function (d) {
+    if (d.phase === 'start') boardSeen = false;
+  });
   ROOM.on('state', function () {
     if (closing) return;
     var t = target();
-    if (t && t.mode === 'skill' && !ROOM.state.panel && !(move && move.leg && move.leg.kind === 'lift' && !move.reversed)) back();
+    if (!t || t.mode !== 'skill') return;
+    if (ROOM.state.panel) boardSeen = true;
+    else if (boardSeen) {
+      boardSeen = false;
+      back();
+    }
   });
 
   ROOM.nav = {

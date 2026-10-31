@@ -1626,6 +1626,10 @@
     retargetTurn: retargetTurn,
     turnAngle: turnAngle,
     applyPlace: applyPlace,
+    /** Draw the current place at rest now (the navigator calls it before planning a leg mid-move). */
+    restNow: function () {
+      if (view && ctx) renderRest(ROOM.now());
+    },
     cameraFor: function (p) {
       return view ? camOf(p) : null;
     },

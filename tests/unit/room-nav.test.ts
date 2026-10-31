@@ -4,7 +4,6 @@ import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 
 const require = createRequire(import.meta.url);
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const N = require("../../docs/redesign/room-prototype/engine/nav.js");
 
 type Place = { mode: string; view: string; zone: string | null; item: string | null; base?: string | null; baseZone?: string | null };
