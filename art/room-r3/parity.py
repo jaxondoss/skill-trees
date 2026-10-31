@@ -61,7 +61,8 @@ def check(items: list, zones: dict, base: dict) -> list:
             errs.append(f"{b['id']}: missing variants {sorted(miss)}")
     zone_h = {z["id"]: z["focus"][3] for z in zones.get("zones", [])}
     for n in items:
-        if n["kind"] != "hotspot":
+        if n["kind"] != "hotspot" or n.get("of"):
+            # v3.5: items with `of` (overview twins) take target and label from their room item (overview_check)
             continue
         if not (n.get("target") and n.get("label") and n.get("led")):
             errs.append(f"{n['id']}: hotspot needs target, label and led")
