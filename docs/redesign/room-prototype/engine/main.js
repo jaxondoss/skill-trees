@@ -1,53 +1,19 @@
-/* FORGE room prototype: boot and hash routing.
+/* FORGE room prototype: boot and routing.
  *
- * Routes mirror the app's /room/[[...zone]]: #/room is the whole room (front view), #/room/<zone> a zone, and
- * #/room/right, #/room/back, #/room/left the other three views (art pass 6: every view keeps its own URL).
- * Every step in or out pushes a history entry, so the browser Back button walks back through zones.
- * Loaded last, after the ui scripts.
+ * Routes mirror the app's /room/[[...zone]] (PLAN 2.2): the bare base path is the front wall, /room/right|back|left
+ * the other walls, /room/<zone> a zone, /room/overview the overview, /room/<zone>/<item> an item's skill view (the
+ * item's own zone: library.chess stands in the window zone, so /room/window/chess). The navigator (engine/nav.js)
+ * owns history: one entry per move, pushed at its start; Back animates to the previous place. Without
+ * window.ROOM_ROUTE (the static prototype) routes live in the hash. Loaded last, after the ui scripts.
  */
 (function () {
   'use strict';
   var ROOM = window.ROOM;
 
-  // Path routing (the app sets window.ROOM_ROUTE = {base: '/'} or {base: '/room'}): /room/<zone> is a zone and
-  // the base path is the whole room. Without it (the static prototype) routes live in the hash.
+  // Path routing (the app sets window.ROOM_ROUTE = {base: '/'} or {base: '/room'}); else the hash.
   var PATH = window.ROOM_ROUTE || null;
-  function zoneFromHash() {
-    var src = PATH ? window.location.pathname : window.location.hash || '';
-    var m = PATH ? /^\/room(?:\/([a-z-]+))?\/?$/.exec(src) || (src === '/' ? ['/', ''] : null) : /^#\/room(?:\/([a-z-]+))?/.exec(src);
-    if (!m) return { valid: false, zone: null, view: null };
-    if (m[1] && m[1] !== 'front' && ROOM.viewList().indexOf(m[1]) >= 0) return { valid: true, zone: null, view: m[1] };
-    var z = m[1] && ROOM.zoneById(m[1]);
-    return { valid: !m[1] || !!z, zone: z ? z.id : null, view: z ? ROOM.viewOf(z) : 'front' };
-  }
-  /** The URL of a zone, or with no zone of the view on screen (the front view is the bare base path). */
-  function hashFor(zone, view) {
-    view = ROOM.normView(view === undefined ? ROOM.state.view : view);
-    var seg = zone || (view !== 'front' ? view : '');
-    if (PATH) return (seg ? '/room/' + seg : PATH.base || '/room') + window.location.search;
-    return seg ? '#/room/' + seg : '#/room';
-  }
-  function current() {
-    return PATH ? window.location.pathname + window.location.search : window.location.hash;
-  }
-
-  var routing = false;
-  function onRoute() {
-    routing = true;
-    try {
-      route();
-    } finally {
-      routing = false;
-    }
-  }
-  function route() {
-    var r = zoneFromHash();
-    if (!r.valid) {
-      history.replaceState(null, '', hashFor(ROOM.state.zone));
-      return;
-    }
-    if (r.zone !== ROOM.state.zone) ROOM.go(r.zone, { push: false });
-    if (!r.zone && r.view && r.view !== ROOM.normView(ROOM.state.view)) ROOM.turnTo(r.view, { push: false });
+  function src() {
+    return PATH ? window.location.pathname : window.location.hash || '';
   }
 
   function boot() {
@@ -57,25 +23,15 @@
     ROOM.overlay.init(stage);
     ROOM.input.init(stage);
     document.body.classList.toggle('photo', !!ROOM.state.photo);
-
-    // Initial route: jump straight to the zone, no dolly.
     if (ROOM.weather) ROOM.weather.init();
     if (!/[?&]gl=off\b/.test(window.location.search)) ROOM.render.enableGpu();
-    var r = zoneFromHash();
-    if (r.valid && r.zone) ROOM.go(r.zone, { push: false, instant: true });
-    else if (r.valid && r.view && r.view !== 'front') ROOM.turnTo(r.view, { push: false, instant: true });
-    if (current() !== hashFor(ROOM.state.zone)) history.replaceState(null, '', hashFor(ROOM.state.zone));
-
-    ROOM.on('zone', function (d) {
-      if (d.push && current() !== hashFor(d.zone)) history.pushState(null, '', hashFor(d.zone));
+    // the overview path is reserved: no zone or wall may use it
+    if (ROOM.zoneById('overview') || ROOM.viewList().indexOf('overview') >= 0) throw new Error('room: "overview" is a reserved route');
+    // Initial route: land straight on the URL's place (a skill deep link opens its board), no move.
+    ROOM.nav.boot(src());
+    window.addEventListener('popstate', function () {
+      ROOM.nav.route(src());
     });
-    // A turn with no zone: the view's own URL (a turn on the way into a zone is covered by the zone's URL).
-    ROOM.on('view', function (d) {
-      if (ROOM.state.zone || d.push === false || routing) return;
-      if (current() !== hashFor(null, d.view)) history.pushState(null, '', hashFor(null, d.view));
-    });
-    window.addEventListener('popstate', onRoute);
-    if (!PATH) window.addEventListener('hashchange', onRoute);
 
     ROOM.debug = {
       /** The device canvas pixels (ImageData) as last drawn. */
