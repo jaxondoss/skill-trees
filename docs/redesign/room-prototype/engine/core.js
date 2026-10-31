@@ -39,6 +39,11 @@
     for (var i = 0; i < ROOM.zones.length; i++) if (ROOM.zones[i].id === id) return ROOM.zones[i];
     return null;
   };
+  /** The zone an item lives in (its own zone field; the territory under it as a fallback). */
+  ROOM.zoneOf = function (item) {
+    if (!item) return null;
+    return ROOM.zoneById(item.zone) || (ROOM.camera && ROOM.camera.zoneAtX ? ROOM.camera.zoneAtX(item.x, ROOM.zonesInView(item.view)) : null);
+  };
   ROOM.itemById = function (id) {
     var items = ROOM.art.items;
     for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i];
@@ -49,10 +54,10 @@
   // One square room seen from its centre: four 90 degree views, front (the knight and the window), right (desks,
   // gym), back (the calendar wall), left (bed, kitchen). Turning right cycles front, right, back, left. Items carry
   // "view" and zones their view; zones.json views.<v> holds each view's frame (art, core, horizon, vp, yaw, f) and
-  // its lighting. Older bundles: "main" is the front view, and a bundle without views is all front.
+  // its lighting. A bundle without views is all front. The overview (v3.5) is a place, never a fifth view.
   ROOM.VIEWS = ['front', 'right', 'back', 'left'];
   function normView(v) {
-    return !v || v === 'main' ? 'front' : v;
+    return v || 'front';
   }
   ROOM.normView = normView;
   ROOM.viewOf = function (thing) {
@@ -63,13 +68,13 @@
     var Z = ROOM.art.zones || {};
     var V = Z.views || {};
     v = normView(v);
-    return V[v] || (v === 'front' && V.main) || Z;
+    return V[v] || Z;
   };
   /** The views this bundle has, in turning order. */
   ROOM.viewList = function () {
     var V = (ROOM.art.zones || {}).views || {};
     var out = ROOM.VIEWS.filter(function (v) {
-      return !!V[v] || (v === 'front' && !!V.main);
+      return !!V[v];
     });
     return out.length ? out : ['front'];
   };
@@ -83,34 +88,22 @@
       return ROOM.viewOf(z) === v;
     });
   };
-  /** The view a turn in direction dir (-1 left, +1 right) leads to from view v, or null. A four-view room
-   *  wraps around; an older three-view bundle (left, main, right) stops at the side views. */
+  /** The view a turn in direction dir (-1 left, +1 right) leads to from view v, or null: the views form a ring. */
   ROOM.viewToward = function (v, dir) {
     var list = ROOM.viewList();
     if (list.length < 2) return null;
-    v = normView(v);
-    var i = list.indexOf(v);
+    var i = list.indexOf(normView(v));
     if (i < 0) return null;
-    if (list.length === 4) return list[(i + (dir > 0 ? 1 : 3)) % 4];
-    // three views (front, right, left): left - front - right
-    var line = ['left', 'front', 'right'].filter(function (x) {
-      return list.indexOf(x) >= 0;
-    });
-    var j = line.indexOf(v) + (dir > 0 ? 1 : -1);
-    return j >= 0 && j < line.length ? line[j] : null;
+    return list[(i + (dir > 0 ? 1 : list.length - 1)) % list.length];
   };
   /** Turning direction (+1 right, -1 left) of the shortest turn from view a to view b (0 when equal). */
   ROOM.turnDir = function (a, b) {
     a = normView(a);
     b = normView(b);
     if (a === b) return 0;
-    var list = ROOM.viewList();
-    if (list.length === 4) {
-      var d = (list.indexOf(b) - list.indexOf(a) + 4) % 4;
-      return d === 3 ? -1 : 1;
-    }
-    var line = ['left', 'front', 'right'];
-    return line.indexOf(b) > line.indexOf(a) ? 1 : -1;
+    var list = ROOM.viewList(), n = list.length;
+    var d = (list.indexOf(b) - list.indexOf(a) + n) % n;
+    return d === n - 1 ? -1 : 1; // the opposite wall: always right
   };
 
   // Colour name -> palette index, and index -> name.
@@ -411,7 +404,9 @@
   };
   /** Which scene the renderers draw: 'top' in the overview, else the current wall view. */
   ROOM.sceneKey = function () {
-    var p = ROOM.nav && ROOM.nav.place;
+    var ov = ROOM.render && ROOM.render.sceneOverride;
+    if (ov) return ov; // a snapshot of another scene is being drawn
+    var p = ROOM.nav && (ROOM.nav.scenePlace || ROOM.nav.place);
     if (p && p.mode === 'overview') return 'top';
     return normView(ROOM.state && ROOM.state.view);
   };

@@ -1,41 +1,22 @@
-/* FORGE room prototype: renderer, camera controller and frame scheduler.
+/* FORGE room prototype: renderer, move renderer and frame scheduler.
  *
- * At rest the room is drawn into an indexed framebuffer (one byte per world pixel, the visible window
- * plus 1 px), with every sprite passed through the current lighting LUT as it is blitted. Engine marks
- * (LEDs, outlines, dust, motes, nameplates, zone title) are written after the LUT, in true palette
- * colours. The buffer is expanded through a 256-entry RGBA table, put into a small canvas and drawn
- * once onto the device canvas at integer zoom z with smoothing off. Every frame is strictly in palette.
+ * At rest the room is drawn into an indexed framebuffer (one byte per world pixel, the visible window plus 1 px)
+ * with every sprite passed through the current lighting LUT as it is blitted, and an aux buffer (depth, flags,
+ * material; docs/redesign/room-r6/INTERFACES.md section 5). Engine marks go through plotMark (raw palette colour).
+ * The WebGL2 compositor (ROOM.gl) lights the frame from those buffers; without it the v3.3 path expands the indices
+ * through the palette and lays the Canvas2D light (drawLight) over it. Rest frames are at integer zoom, drawn with
+ * smoothing off; the only colours outside the palette come from the light layers and Bayer dissolves.
  *
- * Lighting changes use a 4x4 Bayer dissolve (16 steps) anchored to world coordinates: a pixel takes
- * the new LUT once its Bayer threshold is below the step.
+ * v3.5: what a frame shows is decided by the navigator (engine/nav.js): drawFrame reads an explicit LightState
+ * (ls: zone focus, panel dim, pools, hover, skill) and never the globals. Every move is drawn from pre-lit rest
+ * renders ("shots" and snapshots made by drawFrame itself, GPU or LUT path), scaled by nearest neighbour and
+ * snapped to whole device pixels; lighting changes during a move are 4x4 Bayer dissolves anchored to the world.
+ * DOLLY: one lit plane (no per-layer parallax). TURN: a pure yaw that re-projects the columns of each wall's
+ * master, with zoom and centre terms for TURN+ZOOM. RISE/DESCEND: the wall frame shrinks onto its anchor in the
+ * overview while the overview grows about it. LIFT/DROP/SWAP keep the camera still and draw live rest frames.
  *
- * During the 450 ms dolly only, each layer is pre-rendered once into its own RGBA canvas and drawn per
- * frame at its own fractional zoom (camera.dollyLayer). Destination rectangles are snapped to whole
- * device pixels and smoothing is off, so sampling is nearest-neighbour and still never blends.
- * No globalAlpha anywhere: the dim is a LUT.
- *
- * Frames are drawn only on change. Ambient motion (anim sprites, LED blink, skill glow, embers) ticks
- * at 10 fps at most, phone-pan depth at 30 fps at most, the dolly, dissolve and phone pan at display
- * rate. Hidden tabs pause. There is no mouse-look parallax: layers separate only during the dolly and
- * while the phone pan moves.
- *
- * Stepping into a zone: an 80 ms anticipation pull-back, the push-in, then on landing the rest of the
- * room dims in DIM steps, the clicked object gets a spotlight pulse and opts.onArrive runs (the ui
- * opens the panel). World size, horizon and zones come from ROOM_ART.zones (camera.configure).
- *
- * Art pass 5: three views (ROOM.state.view: main, left, right). Only the current view's items are drawn;
- * camera.configure takes that view's frame. ROOM.turn plays the walk-forward-and-turn (a short push, then a
- * yaw sweep drawn as vertical strips) between two rest frames. After the indexed frame is drawn, the view's
- * smooth light (zones.json views.<v>.light: warm wash, glows, oval vignette) is laid over it with canvas
- * gradients ("screen" and "multiply"); that is the one place colours leave the palette. Window drift sprites
- * (clouds, birds, the streetcar) move by time, clipped to the window.
- *
- * Art pass 6 (v3.4): one square room, four 90 degree views of one camera (front, right, back, left). The art is
- * albedo only. Alongside the index buffer the renderer fills f.aux (3 bytes per pixel: depth, flags, material ID,
- * docs/redesign/room-r6/INTERFACES.md section 5); the WebGL2 compositor (ROOM.gl, engine/gl.js) lights the frame
- * from those buffers and returns a canvas, and when it is missing or off the v3.3 path (LUT ramps and the Canvas2D
- * light) draws instead. Live weather (ROOM.weather) paints into the buffer before the engine marks. Turning is a
- * pan: each frame re-projects the columns of the views' full master renders (exact, one camera centre).
+ * Frames are drawn only on change. Ambient motion (anim sprites, LEDs, embers) ticks at 10 fps at most, phone-pan
+ * depth at 30 fps at most, moves and the phone pan at display rate. Hidden tabs pause.
  */
 (function () {
   'use strict';
@@ -118,7 +99,6 @@
   }
 
   /* ------------------------------------------------------------------ lighting state and dissolve */
-  var dimOn = false;
   var light = { key: null, base: null, from: null, to: null, t0: 0, dur: 0, step: 16 };
 
   /** True when the WebGL2 compositor lights this frame (the art is then drawn as plain albedo). */
@@ -143,8 +123,7 @@
     // On the GPU path the sprites go in as albedo (identity) and the compositor applies light and dim itself.
     var gpu = gpuOn();
     var base = gpu ? 'ID' : ROOM.state.night ? 'NIGHT' : ROOM.rampOf(ROOM.data.todayP || 0);
-    var dim = dimOn && !gpu;
-    return { base: base, dim: dim, key: base + (dim ? '+DIM' : '') };
+    return { base: base, dim: false, key: base }; // the panel dim is a Bayer step per frame (ls.dimK)
   }
   /** Advance the dissolve. Returns true when the frame must be redrawn. */
   function updateLighting(now) {
@@ -160,7 +139,7 @@
       // A new target: dissolve from the current target (a dissolve in progress snaps to its end).
       light.from = light.to;
       light.to = lutFor(t.base, t.dim);
-      light.dur = t.base !== light.base ? 1200 : 300; // sky 1.2 s, dim 0.3 s
+      light.dur = 1200; // a sky ramp change dissolves over 1.2 s
       if (t.base === 'ID' || light.base === 'ID') light.dur = 0; // switching to or from the GPU path snaps
       light.t0 = now;
       light.key = t.key;
@@ -193,7 +172,7 @@
   /** Pick variants, place the dog, sort by layer, shell first, contact y, item order. */
   function buildScene() {
     var list = [];
-    var curView = ROOM.sceneKey(); // 'top' in the overview (v3.5), else the wall view
+    var curView = ROOM.sceneKey(); // 'top' in the overview (v3.5), else the wall view (sceneOverride in snapshots)
     var noRim = noRimTest();
     ROOM.art.items.forEach(function (it, order) {
       if (ROOM.viewOf(it) !== curView) return;
@@ -278,7 +257,7 @@
 
   /** zones.json views.<v>.lighting.noRim globs ("*poster*") as one test on item ids. */
   function noRimTest() {
-    var L = (ROOM.viewConf(ROOM.state.view) || {}).lighting;
+    var L = (ROOM.viewConf(ROOM.sceneKey()) || {}).lighting;
     var pats = (L && L.noRim) || [];
     if (!pats.length) return function () {
       return false;
@@ -348,7 +327,9 @@
     if (x0 >= x1 || y0 >= y1) return;
     var H = CAM.CORE_H || 352, hz = CAM.HORIZON || H * 0.4;
     var objDepth = markDepth(d);
-    var base = d.auxFlags | (d.id === hoverId || d.id === focusId ? 64 : 0);
+    var ls = f.ls || NO_LS;
+    var hot = (ls.hover && d.id === ls.hover) || (ls.focus && d.id === ls.focus);
+    var base = d.auxFlags | (hot ? 64 : 0);
     var m0 = d.mat0;
     for (var y = y0; y < y1; y++) {
       var si = y * sw, wy = y + dy + f.y0;
@@ -470,13 +451,6 @@
         tA = statA;
         tB = statB;
       }
-      if (ROOM.glow) {
-        var sA = ROOM.glow.spotTable(d, tA, f.now);
-        if (sA) {
-          tA = sA;
-          tB = tA === tB ? sA : ROOM.glow.spotTable(d, tB, f.now);
-        }
-      }
       if (d.item.drift) {
         drawDrift(f, d, img, dx, dy, tA, tB);
         continue;
@@ -491,11 +465,11 @@
         if (ROOM.glow) {
           if (opts.outline && !wireOn()) ROOM.glow.drawSkillGlow(f, d, img, dx, dy);
           ROOM.glow.drawEmbers(f, d, img, dx, dy);
-          ROOM.glow.drawSpotRing(f, d, img, dx, dy);
         }
         if (d.led && d.hotspot) ROOM.fx.drawLed(f, d, d.led[0] + f.offs[d.layer] - f.x0, d.led[1] - f.y0);
       }
-      if (opts.outline && !wireOn() && d.hotspot && !(d.skill && ROOM.glow) && (d.id === hoverId || d.id === focusId || ROOM.state.inspect)) {
+      var ls = f.ls || NO_LS;
+      if (opts.outline && !wireOn() && d.hotspot && !(d.skill && ROOM.glow) && (d.id === ls.hover || d.id === ls.focus || ls.inspect)) {
         var ring = D.ring(img), col = lightCatColor(d.cat);
         for (var k = 0; k < ring.length; k += 2) plot(f, dx + ring[k], dy + ring[k + 1], col);
       }
@@ -530,7 +504,7 @@
 
   /* ------------------------------------------------------------------ smooth light (art pass 5) */
   function lightSpec() {
-    var vc = ROOM.viewConf ? ROOM.viewConf(ROOM.state.view) : null;
+    var vc = ROOM.viewConf ? ROOM.viewConf(ROOM.sceneKey()) : null;
     var L = vc && vc.light;
     return L ? (ROOM.state.night ? L.night : L.day) : null;
   }
@@ -546,15 +520,16 @@
    * Lay the view's light over the frame just drawn: tr maps world to device px (x * z + tx).
    * Warm wash and glows use "screen", the oval vignette "multiply"; falloff stops come from the art build.
    */
+  /** dim: the panel dim 0..1 (a boolean is read as 0 or 1); the light keeps 55 % at full dim. */
   function drawLight(tr, now, dim, target) {
     var spec = lightSpec();
-    var ctx = target ? target.ctx : canvasCtx();
-    if (!spec || !ctx) return;
-    var W = target ? target.W : canvas.width, H = target ? target.H : canvas.height, k = dim ? 0.55 : 1;
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    ctx.fillStyle = rgba(spec.ambient.rgb, spec.ambient.a * k);
-    ctx.fillRect(0, 0, W, H);
+    var tctx = target ? target.ctx : ctx;
+    if (!spec || !tctx) return;
+    var W = target ? target.W : canvas.width, H = target ? target.H : canvas.height, k = 1 - 0.45 * Math.max(0, Math.min(1, +dim || 0));
+    tctx.save();
+    tctx.globalCompositeOperation = 'screen';
+    tctx.fillStyle = rgba(spec.ambient.rgb, spec.ambient.a * k);
+    tctx.fillRect(0, 0, W, H);
     var stops = spec.stops, fall = spec.fall;
     for (var i = 0; i < spec.glows.length; i++) {
       var g = spec.glows[i];
@@ -564,28 +539,28 @@
       if (a <= 0.002) continue;
       var cx = g.x * tr.z + tr.tx, cy = g.y * tr.z + tr.ty, rx = g.rx * tr.z, ry = g.ry * tr.z;
       if (cx + rx < 0 || cx - rx > W || cy + ry < 0 || cy - ry > H) continue;
-      ctx.setTransform(1, 0, 0, ry / rx, cx, cy);
-      var gr = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+      tctx.setTransform(1, 0, 0, ry / rx, cx, cy);
+      var gr = tctx.createRadialGradient(0, 0, 0, 0, 0, rx);
       for (var j = 0; j < stops.length; j++) gr.addColorStop(stops[j], rgba(g.rgb, a * fall[j]));
-      ctx.fillStyle = gr;
-      ctx.fillRect(-rx, -rx, 2 * rx, 2 * rx);
+      tctx.fillStyle = gr;
+      tctx.fillRect(-rx, -rx, 2 * rx, 2 * rx);
     }
     // the active zone's lamp pool (glow.js), warm and smooth
     var pools = ROOM.glow && ROOM.glow.pools ? ROOM.glow.pools() : [];
     for (var q = 0; q < pools.length; q++) {
       var pl = pools[q];
       var px = pl.x * tr.z + tr.tx, py = pl.y * tr.z + tr.ty, pr = pl.r * tr.z;
-      ctx.setTransform(1, 0, 0, 1, px, py);
-      var pg = ctx.createRadialGradient(0, 0, 0, 0, 0, pr);
+      tctx.setTransform(1, 0, 0, 1, px, py);
+      var pg = tctx.createRadialGradient(0, 0, 0, 0, 0, pr);
       for (var pj = 0; pj < stops.length; pj++) pg.addColorStop(stops[pj], rgba([255, 190, 112], pl.a * k * fall[pj]));
-      ctx.fillStyle = pg;
-      ctx.fillRect(-pr, -pr, 2 * pr, 2 * pr);
+      tctx.fillStyle = pg;
+      tctx.fillRect(-pr, -pr, 2 * pr, 2 * pr);
     }
     var v = spec.vignette;
     var vx = v.x * tr.z + tr.tx, vy = v.y * tr.z + tr.ty, vr = v.rx * tr.z;
-    ctx.setTransform(1, 0, 0, v.ry / v.rx, vx, vy);
-    ctx.globalCompositeOperation = 'multiply';
-    var vg = ctx.createRadialGradient(0, 0, 0, 0, 0, vr);
+    tctx.setTransform(1, 0, 0, v.ry / v.rx, vx, vy);
+    tctx.globalCompositeOperation = 'multiply';
+    var vg = tctx.createRadialGradient(0, 0, 0, 0, 0, vr);
     var vs = spec.vstops || [0, 0.25, 0.5, 0.75, 1];
     vg.addColorStop(0, '#fff');
     for (var m = 0; m < vs.length; m++) {
@@ -595,11 +570,11 @@
       });
       vg.addColorStop(v.inner + t * (1 - v.inner), 'rgb(' + col.join(',') + ')');
     }
-    ctx.fillStyle = vg;
+    tctx.fillStyle = vg;
     // cover the whole canvas (the gradient pads beyond its radius with the last stop)
     var inv = v.rx / v.ry;
-    ctx.fillRect(-vx - 10, (-vy - 10) * inv, W + 20, (H + 20) * inv);
-    ctx.restore();
+    tctx.fillRect(-vx - 10, (-vy - 10) * inv, W + 20, (H + 20) * inv);
+    tctx.restore();
   }
   function lightKey(now) {
     var spec = lightSpec();
@@ -612,32 +587,22 @@
   }
 
   /* ------------------------------------------------------------------ view and camera */
-  var stage, canvas, ctx;
-  function canvasCtx() {
-    return ctx;
-  }
+  var canvas, ctx;
   var view = null;
   var pan = { x: MID_X, v: 0, target: null, dragging: false };
   var panSpeed = 0; // smoothed pan speed (CSS px/s) that drives the phone-pan layer depth
-  var arrive = null; // {item, fn}: what to do once the camera lands in a zone
   var hoverId = null, focusId = null;
   var lastZone = null;
+  var NO_LS = { scene: 'front', zone: null, focusK: 0, dimK: 0, poolK: 0, hover: null, focus: null, inspect: false, skill: null, statueLight: false, snap: false };
 
-  function zoneObj() {
-    return ROOM.state.zone ? ROOM.zoneById(ROOM.state.zone) : null;
-  }
-
-  /**
-   * v3.5 LightState from the legacy globals (PLAN 2.4). nav.js replaces this with its own tweened state; every
-   * renderer reads ls instead of ROOM.state.zone, dimOn or the hover id.
-   */
+  /** LightState from the globals (boot, and the W0 contract); nav.js supplies the real one. */
   function legacyLs() {
     var zone = ROOM.state.zone || null;
     return {
       scene: ROOM.sceneKey(),
       zone: zone,
       focusK: zone ? 1 : 0,
-      dimK: dimOn ? 1 : 0,
+      dimK: ROOM.state.panel ? 1 : 0,
       poolK: zone ? 1 : 0,
       hover: hoverId,
       focus: focusId,
@@ -647,25 +612,48 @@
       snap: false,
     };
   }
+  // nav.ls() must not call back into ROOM.render.ls() (W0 gotcha): it builds its own state.
   function currentLs() {
-    return ROOM.nav && typeof ROOM.nav.ls === 'function' ? ROOM.nav.ls() : legacyLs();
+    return ROOM.nav && typeof ROOM.nav.ls === 'function' ? ROOM.nav.ls() || legacyLs() : legacyLs();
   }
-
-  /** The camera at rest for the current state (zone view, room view, or the phone pan position). */
-  function restCamera() {
-    if (ROOM.sceneKey() === 'top' && ROOM.overview && ROOM.overview.camera) {
-      var oc = ROOM.overview.camera(view.Wd, view.Hd, view.dpr, CAM.roomCamera(view, pan.x).z);
+  /** The place whose camera the rest frame uses (the navigator's landed place, or a live leg's target). */
+  function restPlace() {
+    var n = ROOM.nav;
+    var p = n && (n.scenePlace || n.place);
+    if (p) return p;
+    var st = ROOM.state;
+    return st.zone ? { mode: 'zone', view: ROOM.normView(st.view), zone: st.zone } : { mode: 'wall', view: ROOM.normView(st.view), zone: null };
+  }
+  function overviewCamera() {
+    if (!ROOM.overview || !ROOM.overview.camera) return null;
+    var oc = ROOM.overview.camera(view.Wd, view.Hd, view.dpr, CAM.roomCamera(view, pan.x).z);
+    if (!oc) return null;
+    // overview.js returns {z, ox, oy}; CAM.origin works on centres: {cx, cy, z} with the same integer origin
+    if (oc.cx != null) return oc;
+    return { cx: (oc.ox + view.Wd / 2) / oc.z, cy: (oc.oy + view.Hd / 2) / oc.z, z: oc.z };
+  }
+  /** Rest camera of a place (CAM must be configured for its wall). Skill places use their backdrop camera. */
+  function cameraFor(p) {
+    if (p.mode === 'overview') {
+      var oc = overviewCamera();
       if (oc) return oc;
     }
-    var z = zoneObj();
+    var zid = p.mode === 'zone' ? p.zone : p.mode === 'skill' && p.base === 'zone' ? p.baseZone || p.zone : null;
+    var z = zid ? ROOM.zoneById(zid) : null;
     if (z) return CAM.zoneCamera(view, z.focus);
-    var cam = CAM.roomCamera(view, pan.x);
-    if (view.mode === 'pan') cam.cx = pan.x; // unclamped while dragging, so the rubber band shows
+    var same = ROOM.normView(p.view) === ROOM.normView(ROOM.state.view);
+    var cam = CAM.roomCamera(view, same ? pan.x : MID_X);
+    if (view.mode === 'pan' && same) cam.cx = pan.x; // unclamped while dragging, so the rubber band shows
     return cam;
   }
+  /** The camera at rest for the current place. */
+  function restCamera() {
+    return cameraFor(restPlace());
+  }
 
-  function offsetsFor(z) {
-    if (ROOM.state.reducedMotion || !view || view.mode !== 'pan' || ROOM.state.zone) return ZERO;
+  function offsetsFor(z, ls) {
+    ls = ls || currentLs();
+    if (ROOM.state.reducedMotion || !view || view.mode !== 'pan' || ls.zone || ls.snap || ls.scene === 'top') return ZERO;
     return CAM.panDepthOffsets(panSpeed, view.s, z);
   }
 
@@ -694,8 +682,8 @@
     fbU32 = new Uint32Array(fbImage.data.buffer);
   }
 
-  function hoverRect() {
-    var id = hoverId || focusId;
+  function hoverRect(ls) {
+    var id = ls.snap ? null : ls.hover || ls.focus;
     if (!id) return null;
     for (var i = 0; i < drawables.length; i++) {
       var h = drawables[i].id === id && drawables[i].hit;
@@ -734,23 +722,28 @@
     return o;
   }
 
-  /** Options the GPU compositor takes with each frame (INTERFACES.md section 6). */
-  function gpuOpts(now) {
-    var z = zoneObj();
+  /**
+   * Options the GPU compositor takes with each frame (INTERFACES.md section 6, PLAN 2.4): explicit dim and zone
+   * focus k from the LightState. focus carries both the v3.5 shape ({rect, k}) and the rect fields gl.js read
+   * before it.
+   */
+  function gpuOpts(now, ls) {
+    var z = ls.zone && ls.focusK > 0 ? ROOM.zoneById(ls.zone) : null;
+    var fr = z && z.focus ? { x: z.focus[0], y: z.focus[1], w: z.focus[2], h: z.focus[3] } : null;
     return {
-      dim: dimOn,
-      focus: z && z.focus ? { x: z.focus[0], y: z.focus[1], w: z.focus[2], h: z.focus[3] } : null,
-      hover: hoverRect(),
+      dim: ls.dimK || 0,
+      focus: fr ? { x: fr.x, y: fr.y, w: fr.w, h: fr.h, rect: fr, k: ls.focusK } : null,
+      hover: hoverRect(ls),
       pools: ROOM.glow && ROOM.glow.pools ? ROOM.glow.pools() : null,
-      statueBurst: Math.max(ROOM.state.statueLight ? 1 : 0, ROOM.statue ? ROOM.statue.burst(now) : 0),
+      statueBurst: Math.max(ls.statueLight ? 1 : 0, ROOM.statue ? ROOM.statue.burst(now) : 0),
       flash: ROOM.weather ? ROOM.weather.flash(now) : 0,
       state: weatherLight(),
     };
   }
 
   /**
-   * Draw the room at rest into target {ctx, W, H} (device px) for camera cam with device origin org.
-   * The main canvas uses this every frame; the pan draws each view's full master with it once.
+   * Draw the place in ls (scene, focus, dim, hover) into target {ctx, W, H} (device px) for camera cam with device
+   * origin org. The main canvas uses it every rest frame; shots and snapshots use it offscreen.
    */
   function drawFrame(now, cam, org, target, marks, ls) {
     ls = ls || currentLs();
@@ -760,34 +753,43 @@
     fb.fill(C.VOID); // beyond the painted art is VOID
     fbAux.fill(0);
     fbMark.fill(0);
-    var offs = marks ? offsetsFor(z) : ZERO;
-    var inZone = !!ROOM.state.zone;
+    var offs = marks ? offsetsFor(z, ls) : ZERO;
+    var inZone = !!ls.zone;
+    var gpu = gpuOn();
+    // gl=off: the panel dim is a Bayer step between the ramp and the ramp + DIM (16 steps of ls.dimK)
+    var lutA = light.from, lutB = light.to, step = light.step;
+    if (!gpu && light.step >= 16 && light.base) {
+      var dk = Math.round(16 * Math.max(0, Math.min(1, ls.dimK || 0)));
+      lutA = lutFor(light.base, false);
+      lutB = dk ? lutFor(light.base, true) : lutA;
+      step = dk;
+    }
     var f = {
       buf: fb, aux: fbAux, mark: fbMark, w: fbW, h: fbH, x0: x0, y0: y0, offs: offs, now: now,
-      lutA: light.from, lutB: light.to, step: light.step, z: z, cam: cam, org: org, atlas: null,
+      lutA: lutA, lutB: lutB, step: step, z: z, cam: cam, org: org, atlas: null, ls: ls,
     };
     drawItems(
       f,
       function (d) {
-        return !(inZone && d.layer === 6); // frame crops are hidden once settled in a zone
+        return !(inZone && d.layer === 6); // frame crops are hidden in a zone
       },
       { marks: marks, outline: marks }
     );
     for (var mp = 0; mp < markPasses.length; mp++) markPasses[mp].fn(f, ls, now);
     var sk = ROOM.skill && ROOM.skill.frame ? ROOM.skill.frame(f, ls, now) : null;
-    if (ROOM.weather) ROOM.weather.draw(f);
+    if (ROOM.weather && ls.scene !== 'top') ROOM.weather.draw(f);
     if (marks) {
-      if (ROOM.glow) ROOM.glow.post(f, dimOn && !gpuOn());
+      if (ROOM.glow) ROOM.glow.post(f, ls, gpu);
       if (ROOM.fx) ROOM.fx.drawMotes(f);
-      if (ROOM.overlay && !ROOM.state.photo) ROOM.overlay.drawMarks(f);
+      if (ROOM.overlay && !ROOM.state.photo) ROOM.overlay.drawMarks(f, ls);
     }
     var tc = target.ctx;
     tc.imageSmoothingEnabled = false;
     var lit = null;
-    if (gpuOn()) {
-      ROOM.gl.setView(ROOM.normView(ROOM.state.view), (ROOM.viewConf(ROOM.state.view) || {}).lighting || null);
+    if (gpu) {
+      ROOM.gl.setView(ls.scene, (ROOM.viewConf(ls.scene) || {}).lighting || null);
       f.sceneVersion = sceneVersion;
-      var go = gpuOpts(now);
+      var go = gpuOpts(now, ls);
       if (sk) {
         go.hero = sk.hero || null;
         go.halo = sk.halo || null;
@@ -806,7 +808,7 @@
       fbCtx.putImageData(fbImage, 0, 0);
       tc.drawImage(fbCanvas, x0 * z - org.ox, y0 * z - org.oy, fbW * z, fbH * z);
       var tr = { z: z, tx: -org.ox, ty: -org.oy };
-      drawLight(tr, now, dimOn, target);
+      drawLight(tr, now, ls.dimK || 0, target);
       if (ROOM.skill && ROOM.skill.drawCanvas2D) ROOM.skill.drawCanvas2D(tc, f, tr, now, ls);
     }
     return { offs: offs, x0: x0, y0: y0, gpu: !!lit };
@@ -815,43 +817,231 @@
   function renderRest(now) {
     var cam = restCamera();
     var org = CAM.origin(cam, view);
-    var r = drawFrame(now, cam, org, { ctx: ctx, W: view.Wd, H: view.Hd }, true);
+    var ls = currentLs();
+    var r = drawFrame(now, cam, org, { ctx: ctx, W: view.Wd, H: view.Hd }, true, ls);
     var z = cam.z;
-    lastRest = { cam: cam, org: org, offs: r.offs, z: z, x0: r.x0, y0: r.y0, gpu: r.gpu, key: [org.ox, org.oy, z, r.offs.join(','), sceneVersion, ROOM.state.zone, view.Wd, view.Hd].join('|') };
+    lastRest = {
+      cam: cam, org: org, offs: r.offs, z: z, x0: r.x0, y0: r.y0, gpu: r.gpu, ls: ls,
+      key: [org.ox, org.oy, z, r.offs.join(','), sceneVersion, ls.scene, ls.zone, ls.skill, view.Wd, view.Hd].join('|'),
+    };
     if (ROOM.overlay) ROOM.overlay.sync(lastRest);
     if (ROOM.statue) ROOM.statue.sync(lastRest);
     if (ROOM.calendar) ROOM.calendar.sync(lastRest);
   }
 
-  /* ------------------------------------------------------------------ dolly */
-  var dolly = null;
-
-  // Render the drawables passing `filter` into a transparent RGBA canvas covering world rect R.
-  function layerCanvas(R, base, filter) {
-    var buf = new Uint8Array(R.w * R.h).fill(T);
-    var f = { buf: buf, w: R.w, h: R.h, x0: R.x, y0: R.y, offs: ZERO, now: base.now, lutA: base.lutA, lutB: base.lutB, step: base.step };
-    var any = false;
-    drawItems(
-      f,
-      function (d) {
-        var ok = filter(d);
-        any = any || ok;
-        return ok;
-      },
-      { marks: true, outline: false }
-    );
-    if (!any) return null;
+  /* ------------------------------------------------------------------ scenes, shots and snapshots (v3.5) */
+  var sceneOverride = null; // the scene a snapshot draws (core.js sceneKey reads it)
+  var dataStamp = 0; // bumped on every data or state change: snapshot cache key
+  function sceneOf(p) {
+    return p && p.mode === 'overview' ? 'top' : ROOM.normView(p && p.view);
+  }
+  /** Run fn with the scene (drawables, camera frame, ROOM.state.view) of place p, then restore the current one. */
+  function withScene(p, fn) {
+    var key = sceneOf(p);
+    if (key === ROOM.sceneKey() && !sceneOverride) {
+      if (sceneDirty) buildScene();
+      return fn();
+    }
+    var sv = ROOM.state.view, so = sceneOverride, sl = drawables, sver = sceneVersion, sd = sceneDirty;
+    sceneOverride = key;
+    if (key !== 'top') {
+      ROOM.state.view = key;
+      CAM.configure(ROOM.viewConf(key));
+    }
+    try {
+      buildScene();
+      return fn();
+    } finally {
+      sceneOverride = so;
+      ROOM.state.view = sv;
+      CAM.configure(ROOM.viewConf(sv));
+      drawables = sl;
+      sceneVersion = sver;
+      sceneDirty = sd;
+    }
+  }
+  function lsFor(p, ls) {
+    var o = {};
+    for (var k in NO_LS) o[k] = ls && ls[k] !== undefined ? ls[k] : NO_LS[k];
+    o.scene = sceneOf(p);
+    o.hover = null;
+    o.focus = null;
+    o.snap = true;
+    return o;
+  }
+  function placeKey(p) {
+    return [p.mode, p.view, p.zone, p.item, p.base, p.baseZone].join(':');
+  }
+  function lsKey(l) {
+    var r2 = function (v) {
+      return Math.round((v || 0) * 100);
+    };
+    return [l.scene, l.zone, r2(l.focusK), r2(l.dimK), r2(l.poolK), l.inspect ? 1 : 0, l.skill, l.statueLight ? 1 : 0].join(',');
+  }
+  function newCanvas(W, H) {
     var c = document.createElement('canvas');
-    c.width = R.w;
-    c.height = R.h;
-    var cx = c.getContext('2d', { colorSpace: 'srgb' });
-    var im = cx.createImageData(R.w, R.h);
-    var u = new Uint32Array(im.data.buffer);
-    for (var i = 0; i < buf.length; i++) u[i] = RGBA[buf[i]];
-    cx.putImageData(im, 0, 0);
-    return c;
+    c.width = Math.max(1, W);
+    c.height = Math.max(1, H);
+    var cx = c.getContext('2d', { alpha: false, colorSpace: 'srgb' });
+    cx.imageSmoothingEnabled = false;
+    cx.fillStyle = VOID_CSS;
+    cx.fillRect(0, 0, c.width, c.height);
+    return { c: c, cx: cx };
+  }
+  var maxTex = 0;
+  function maxTexture() {
+    if (!maxTex) maxTex = (ROOM.gl && ROOM.gl.maxTextureSize) || 8192;
+    return maxTex;
   }
 
+  var snapCache = new Map(), snapBytes = 0, SNAP_CAP = 96 * 1024 * 1024;
+  var snapStats = { made: 0, hits: 0, lastMs: 0, maxMs: 0, maxPx: 0 };
+  /**
+   * Render place p with light state ls over world rect (art px) at snapshot zoom zS into an offscreen canvas
+   * (PLAN 2.4). Same drawFrame as the rest frame (GPU or LUT path); grain frozen, no hover. LRU cache, 96 MB.
+   * Returns {canvas, rect, z}.
+   */
+  function snap(p, ls, rect, zS) {
+    var x = Math.floor(rect.x), y = Math.floor(rect.y);
+    var R = { x: x, y: y, w: Math.ceil(rect.x + rect.w) - x, h: Math.ceil(rect.y + rect.h) - y };
+    zS = Math.max(1, Math.round(zS || 1));
+    var l = lsFor(p, ls);
+    var key = [placeKey(p), lsKey(l), R.x, R.y, R.w, R.h, zS, light.key, dataStamp, ROOM.state.night ? 1 : 0,
+      gpuOn() ? ROOM.gl.tier : 'off', Math.floor(ROOM.now() / 60000)].join('|');
+    var hit = snapCache.get(key);
+    if (hit) {
+      snapCache.delete(key);
+      snapCache.set(key, hit);
+      snapStats.hits++;
+      return hit;
+    }
+    var t0 = performance.now();
+    var nc = newCanvas(R.w * zS, R.h * zS);
+    withScene(p, function () {
+      drawFrame(ROOM.now(), { z: zS }, { ox: R.x * zS, oy: R.y * zS }, { ctx: nc.cx, W: nc.c.width, H: nc.c.height }, true, l);
+    });
+    var s = { canvas: nc.c, rect: R, z: zS };
+    snapStats.made++;
+    snapStats.lastMs = performance.now() - t0;
+    snapStats.maxMs = Math.max(snapStats.maxMs, snapStats.lastMs);
+    snapStats.maxPx = Math.max(snapStats.maxPx, nc.c.width * nc.c.height);
+    snapCache.set(key, s);
+    snapBytes += nc.c.width * nc.c.height * 4;
+    while (snapBytes > SNAP_CAP && snapCache.size > 1) {
+      var k0 = snapCache.keys().next().value;
+      var o = snapCache.get(k0);
+      snapBytes -= o.canvas.width * o.canvas.height * 4;
+      snapCache.delete(k0);
+    }
+    return s;
+  }
+  function dropSnapshots() {
+    snapCache.clear();
+    snapBytes = 0;
+  }
+  /** A wall's full master (its whole art rect) at the largest zoom dividing z within 6 MP. */
+  function master(p, ls, z) {
+    var a = (ROOM.viewConf(sceneOf(p)) || {}).art || { x: CAM.ART.x0, y: CAM.ART.y0, w: CAM.ART.x1 - CAM.ART.x0, h: CAM.ART.y1 - CAM.ART.y0 };
+    return snap(p, ls, a, CAM.snapZoom(z, a.w, a.h, 6e6, maxTexture()));
+  }
+
+  /**
+   * A shot: place p at rest, exactly as the rest frame would draw it (screen size, the place's rest camera).
+   * {canvas, cam, org, wx, wy, s}: canvas px (0, 0) is world (wx, wy), s canvas px per world px.
+   */
+  function shot(p, ls) {
+    var out = null;
+    withScene(p, function () {
+      var cam = cameraFor(p), org = CAM.origin(cam, view);
+      var nc = newCanvas(view.Wd, view.Hd);
+      drawFrame(ROOM.now(), cam, org, { ctx: nc.cx, W: view.Wd, H: view.Hd }, true, lsFor(p, ls));
+      out = { canvas: nc.c, cam: cam, org: org, wx: org.ox / cam.z, wy: org.oy / cam.z, s: cam.z };
+    });
+    return out;
+  }
+  /** The main canvas as it is now (the frame the move starts from), as a shot of camera cam. */
+  function grab(cam) {
+    var nc = newCanvas(canvas.width, canvas.height);
+    nc.cx.drawImage(canvas, 0, 0);
+    var org = CAM.origin(cam, view);
+    return { canvas: nc.c, cam: cam, org: org, wx: org.ox / cam.z, wy: org.oy / cam.z, s: cam.z };
+  }
+  function snapAsShot(sn) {
+    return { canvas: sn.canvas, wx: sn.rect.x, wy: sn.rect.y, s: sn.z };
+  }
+
+  /* ------------------------------------------------------------------ Bayer dissolve */
+  var scratch = null, scratchCtx = null, patCache = {};
+  function ensureScratch() {
+    if (!scratch) {
+      scratch = document.createElement('canvas');
+      scratchCtx = scratch.getContext('2d', { colorSpace: 'srgb' });
+    }
+    if (scratch.width !== canvas.width || scratch.height !== canvas.height) {
+      scratch.width = canvas.width;
+      scratch.height = canvas.height;
+    }
+    scratchCtx.imageSmoothingEnabled = false;
+    scratchCtx.setTransform(1, 0, 0, 1, 0, 0);
+    scratchCtx.globalCompositeOperation = 'source-over';
+    scratchCtx.clearRect(0, 0, scratch.width, scratch.height);
+    return scratchCtx;
+  }
+  function bayerPattern(step, cell) {
+    var key = step + ':' + cell;
+    if (patCache[key]) return patCache[key];
+    var c = document.createElement('canvas');
+    c.width = c.height = 4 * cell;
+    var x = c.getContext('2d');
+    x.fillStyle = '#000';
+    for (var i = 0; i < 16; i++) if (BAYER[i] < step) x.fillRect((i & 3) * cell, (i >> 2) * cell, cell, cell);
+    patCache[key] = c;
+    return c;
+  }
+  /**
+   * Bayer dissolve onto the main canvas: drawA paints the old image on the main canvas, drawB the new one on the
+   * scratch canvas; k (0..1) of the new shows through a 4x4 Bayer mask of cell device px anchored at (ax, ay)
+   * (the world origin on screen, so the stipple does not crawl). Colours stay those of one image or the other.
+   */
+  function dissolve(drawA, drawB, k, cell, ax, ay) {
+    var step = Math.max(0, Math.min(16, Math.round(16 * k)));
+    if (step < 16) drawA(ctx);
+    if (step <= 0) return;
+    if (step >= 16) {
+      drawB(ctx);
+      return;
+    }
+    var sc = ensureScratch();
+    drawB(sc);
+    cell = Math.max(1, Math.round(cell));
+    var pat = sc.createPattern(bayerPattern(step, cell), 'repeat');
+    var P = 4 * cell;
+    var mx = ((Math.round(ax) % P) + P) % P, my = ((Math.round(ay) % P) + P) % P;
+    sc.globalCompositeOperation = 'destination-in';
+    sc.translate(mx, my);
+    sc.fillStyle = pat;
+    sc.fillRect(-mx, -my, scratch.width, scratch.height);
+    sc.setTransform(1, 0, 0, 1, 0, 0);
+    sc.globalCompositeOperation = 'source-over';
+    ctx.drawImage(scratch, 0, 0);
+  }
+  function clearVoid(c) {
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.imageSmoothingEnabled = false;
+    c.fillStyle = VOID_CSS;
+    c.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  /** Draw a shot under world transform tr (device = world * z + t), snapped to whole device pixels. */
+  function drawShot(c, sh, tr) {
+    if (!sh) return;
+    var x0 = Math.round(sh.wx * tr.z + tr.tx), y0 = Math.round(sh.wy * tr.z + tr.ty);
+    var x1 = Math.round((sh.wx + sh.canvas.width / sh.s) * tr.z + tr.tx);
+    var y1 = Math.round((sh.wy + sh.canvas.height / sh.s) * tr.z + tr.ty);
+    c.drawImage(sh.canvas, x0, y0, x1 - x0, y1 - y0);
+  }
+  function contains(a, b) {
+    return a.x <= b.x + 0.01 && a.y <= b.y + 0.01 && a.x + a.w >= b.x + b.w - 0.01 && a.y + a.h >= b.y + b.h - 0.01;
+  }
   function padRect(rects, pad) {
     var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     rects.forEach(function (r) {
@@ -865,269 +1055,311 @@
     return { x: x0, y: y0, w: Math.ceil(x1) + pad - x0, h: Math.ceil(y1) + pad - y0 };
   }
 
-  function startDolly(from, to, fromZone, toZone) {
-    var now = ROOM.now();
-    if (light.key === null) updateLighting(now); // a key pressed before the first frame
-    var plan = CAM.dollyPlan(from, to, view);
-    // Every layer stays inside the union of the start and end windows (it scales about the pivot
-    // between the two), plus pan depth and rounding margin.
-    var R = padRect([CAM.visibleRect(from, view), CAM.visibleRect(to, view)], 12);
-    var base = { now: now, lutA: light.from, lutB: light.to, step: light.step };
-    var layers = [];
-    for (var L = 0; L <= 5; L++) {
-      layers[L] = layerCanvas(R, base, (function (L) {
-        return function (d) {
-          return d.layer === L;
-        };
-      })(L));
-    }
-    // Frame crops slide off (room -> zone) or back on (zone -> room); between zones they stay hidden.
-    var leaving = !fromZone && !!toZone, returning = !!fromZone && !toZone;
-    var crops = [];
-    if (leaving || returning) {
-      var roomCam = leaving ? from : to;
-      var R6 = padRect([CAM.visibleRect(roomCam, view)], 12);
-      [-1, 1].forEach(function (side) {
-        var w = 0;
-        var c = layerCanvas(R6, base, function (d) {
-          var ok = d.layer === 6 && (d.x + d.img.w / 2 < MID_X ? -1 : 1) === side;
-          if (ok) w = Math.max(w, d.img.w); // slide the widest crop on this side fully clear
-          return ok;
-        });
-        if (c) crops.push({ canvas: c, side: side, w: w, R: R6 });
-      });
-    }
-    dolly = {
-      plan: plan,
-      R: R,
-      layers: layers,
-      crops: crops,
-      leaving: leaving,
-      // Push-ins into a zone get an anticipation pull-back first (not on the way out).
-      lead: toZone && !ROOM.state.reducedMotion ? CAM.ANTICIPATE_MS : 0,
-      t0: now,
-      oFrom: offsetsFor(from.z),
-      oTo: offsetsFor(to.z),
-    };
-    if (ROOM.overlay) ROOM.overlay.setHidden(true);
-  }
-
-  // Draw a canvas covering world rect R with transform tr, snapped to whole device pixels.
-  function drawSnapped(c, R, tr, shiftX) {
-    var x0 = Math.round(R.x * tr.z + tr.tx + shiftX), x1 = Math.round((R.x + R.w) * tr.z + tr.tx + shiftX);
-    var y0 = Math.round(R.y * tr.z + tr.ty), y1 = Math.round((R.y + R.h) * tr.z + tr.ty);
-    ctx.drawImage(c, x0, y0, x1 - x0, y1 - y0);
-  }
-
-  /** Draw one dolly frame. Returns false once the dolly has finished (u >= 1). */
-  function renderDolly(now) {
-    var t = now - dolly.t0;
-    var u = Math.max(0, (t - dolly.lead) / CAM.DOLLY_MS);
-    // Scale about the screen centre: pulls back during the lead, released by the push-in.
-    var k = !dolly.lead ? 1 : t < dolly.lead ? CAM.anticipation(t) : CAM.release(u);
-    if (u >= 1) {
-      endDolly();
-      return false;
-    }
-    ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = VOID_CSS;
-    ctx.fillRect(0, 0, view.Wd, view.Hd);
-    var p = dolly.plan;
-    for (var L = 0; L <= 5; L++) {
-      if (!dolly.layers[L]) continue;
-      drawSnapped(dolly.layers[L], dolly.R, CAM.scaleAbout(CAM.dollyLayer(p, L, u, dolly.oFrom[L], dolly.oTo[L]), k, view), 0);
-    }
-    drawLight(CAM.scaleAbout(CAM.dollyLayer(p, 3, u, dolly.oFrom[3], dolly.oTo[3]), k, view), now, dimOn);
-    dolly.crops.forEach(function (cr) {
-      var cam = dolly.leaving ? p.from : p.to;
-      var o6 = dolly.leaving ? dolly.oFrom[6] : dolly.oTo[6];
-      var slide = CAM.frameSlide(u, cr.side, cr.w, dolly.leaving) * cam.z;
-      drawSnapped(cr.canvas, cr.R, CAM.restTransform(cam, view, o6), slide);
+  /* ------------------------------------------------------------------ legs (drawn by the navigator's clock) */
+  /** The camera of a place right now, with the scene's frame configured (for the plan of a leg). */
+  function camOf(p) {
+    var c = null;
+    withScene(p, function () {
+      c = cameraFor(p);
     });
-    lastDollyU = u;
-    return true;
-  }
-  var lastDollyU = null;
-
-  function endDolly() {
-    dolly = null;
-    lastDollyU = null;
-    if (ROOM.overlay) ROOM.overlay.setHidden(false);
-    dirty = true;
-    landed();
-  }
-
-  // The camera is at rest in the target: spotlight pulse on the clicked object, then onArrive.
-  function landed() {
-    var a = arrive;
-    arrive = null;
-    if (!a) return;
-    if (a.item && ROOM.glow) ROOM.glow.spotlight(a.item);
-    if (a.fn) setTimeout(a.fn, ROOM.state.reducedMotion || !a.item ? 0 : 220);
-  }
-
-  /* ------------------------------------------------------------------ turn: a pan (art pass 6) */
-  // The four views are 90 degree faces of one camera, so a turn is a pure yaw: every screen column at angle phi
-  // shows the column at angle phi + theta of whichever view owns that direction, scaled vertically about the
-  // horizon by cos(a) / cos(phi). Each view involved is drawn once, lit, over its full master (55 degrees each
-  // side), and the views hand over at the room corners (45 degrees). 90 degrees takes 640 ms, 180 degrees 900 ms.
-  var turn = null;
-  var TURN_IN_MS = 120, TURN_OUT_MS = 160, SEAM_BAND = (10 * Math.PI) / 180;
-  function snapshot() {
-    var c = document.createElement('canvas');
-    c.width = canvas.width;
-    c.height = canvas.height;
-    c.getContext('2d').drawImage(canvas, 0, 0);
     return c;
   }
-  var pushView = true; // whether the 'view' event asks the router for a history entry
-  var TURN_MS = [0, 640, 900];
 
-  function easeInOut(u) {
-    u = Math.max(0, Math.min(1, u));
-    return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
-  }
-  /** Switch the drawn view at once: scene, camera frame, phone pan. */
-  function applyView(v, silent) {
-    v = ROOM.normView(v);
-    if (ROOM.normView(ROOM.state.view) === v) return;
-    ROOM.state.view = v;
-    CAM.configure(ROOM.viewConf(v));
-    sceneDirty = true;
-    pan.x = CAM.CORE_W / 2;
-    pan.v = 0;
-    pan.target = null;
-    if (!silent) ROOM.emit('view', { view: v, push: pushView });
-  }
-  /** Draw view v's full master (art rect) at zoom z into a new canvas; returns {c, vx, vy} (vp in canvas px). */
-  function masterOf(v, now, z) {
-    applyView(v, true);
-    buildScene();
-    var vc = ROOM.viewConf(v);
-    var a = vc.art || { x: -CAM.ART.x0, y: -CAM.ART.y0, w: 800, h: 560 };
-    var W = Math.round(a.w * z), H = Math.round(a.h * z);
-    var c = document.createElement('canvas');
-    c.width = W;
-    c.height = H;
-    var cx = c.getContext('2d', { alpha: false, colorSpace: 'srgb' });
-    cx.fillStyle = VOID_CSS;
-    cx.fillRect(0, 0, W, H);
-    // with the engine marks (LEDs, embers), so nothing pops in or out at either end of the pan
-    drawFrame(now, { z: z }, { ox: a.x * z, oy: a.y * z }, { ctx: cx, W: W, H: H }, true);
-    var vp = vc.vp || [CAM.CORE_W / 2, CAM.HORIZON];
-    return { c: c, vx: (vp[0] - a.x) * z, vy: (vp[1] - a.y) * z };
-  }
-  function startTurn(toView, dir) {
-    if (dolly) endDolly();
+  /**
+   * Prepare a camera leg. spec: {kind: 'dolly'|'turn'|'rise'|'descend', from, to, lsFrom, lsTo, dir, steps, dur}.
+   * The current canvas is the first frame (exact); the destination's rest frame is the last one (exact).
+   */
+  function beginLeg(spec) {
     var now = ROOM.now();
     if (light.key === null) updateLighting(now);
     if (sceneDirty) buildScene();
-    var from = ROOM.normView(ROOM.state.view);
-    toView = ROOM.normView(toView);
-    var list = ROOM.viewList();
-    var steps = 0, v = from, chain = [from];
-    while (v !== toView && steps < 3) {
-      v = ROOM.viewToward(v, dir);
-      if (!v) break;
-      chain.push(v);
-      steps++;
-    }
-    if (v !== toView || list.length < 2) {
-      applyView(toView);
-      return;
-    }
-    var cam = restCamera();
-    var org = CAM.origin(cam, view);
-    var fvc = ROOM.viewConf(from);
-    var vp = fvc.vp || [CAM.CORE_W / 2, CAM.HORIZON];
-    var f = (fvc.f || CAM.CORE_W / 2) * cam.z;
-    var srcs = chain.map(function (cv) {
-      return masterOf(cv, now, cam.z);
-    });
-    // the real rest frames at both ends: the pan starts from the first and settles into the second, so the
-    // frame-wide effects (vignette, bloom, focus) never pop
-    var restA = snapshot();
-    applyView(from, true);
-    applyView(toView);
-    buildScene();
-    renderRest(now);
-    var restB = snapshot();
-    ctx.drawImage(restA, 0, 0);
-    turn = {
-      restA: restA,
-      restB: restB,
-      srcs: srcs,
-      dir: dir,
-      steps: steps,
-      t0: now,
-      dur: TURN_MS[Math.min(2, steps)] || 900,
-      f: f,
-      vx: vp[0] * cam.z - org.ox,
-      vy: vp[1] * cam.z - org.oy,
-    };
+    var leg = { kind: spec.kind, spec: spec, t0: now };
+    var fromCam = lastRest && lastRest.cam ? lastRest.cam : camOf(spec.from);
+    if (spec.kind === 'dolly') planDolly(leg, spec, fromCam);
+    else if (spec.kind === 'turn') planTurn(leg, spec, fromCam);
+    else planRise(leg, spec, fromCam);
     if (ROOM.overlay) ROOM.overlay.setHidden(true);
-    renderTurn(now);
+    return leg;
   }
-  function renderTurn(now) {
-    var t = now - turn.t0;
-    if (t >= turn.dur) {
-      endTurn();
-      return false;
-    }
-    var W = canvas.width, H = canvas.height;
-    ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = VOID_CSS;
-    ctx.fillRect(0, 0, W, H);
-    var th = easeInOut(t / turn.dur) * turn.steps * (Math.PI / 2) * turn.dir;
-    var f = turn.f, step = Math.max(2, Math.round(W / 640));
-    var lastK = null;
-    turn.seams = [];
-    for (var x = 0; x < W; x += step) {
-      var phi = Math.atan((x + step / 2 - turn.vx) / f);
-      var a = phi + th;
-      var n = Math.round(a / (Math.PI / 2)); // which view owns this direction (0 = start, dir * k = k turns on)
-      var k = n * turn.dir;
-      if (k < 0 || k > turn.steps) continue;
-      if (lastK !== null && k !== lastK) turn.seams.push(x);
-      lastK = k;
-      var la = a - n * (Math.PI / 2);
-      column(turn.srcs[k], la, phi, x, step, f, 1);
-      // near the corner where two views hand over, the neighbour's column fades in (both masters hold valid
-      // pixels 10 degrees past their edge), so the two views' lighting meets as a gradient, not a line
-      var d = Math.PI / 4 - Math.abs(la);
-      if (d < SEAM_BAND) {
-        var n2 = n + (la > 0 ? 1 : -1), k2 = n2 * turn.dir;
-        if (k2 >= 0 && k2 <= turn.steps) column(turn.srcs[k2], a - n2 * (Math.PI / 2), phi, x, step, f, 0.5 * (1 - d / SEAM_BAND));
+
+  function planDolly(leg, spec, fromCam) {
+    var to = spec.to;
+    if (spec.from.mode === 'zone' && to.mode === 'wall' && view.mode === 'pan') {
+      // back to the wall on the phone: settle on the zone's stop
+      var zf = ROOM.zoneById(spec.from.zone);
+      if (zf) {
+        pan.x = zf.stop;
+        pan.v = 0;
+        pan.target = null;
       }
     }
-    ctx.globalAlpha = 1;
-    // settle into the real rest frames at both ends
-    if (t < TURN_IN_MS) {
-      ctx.globalAlpha = 1 - t / TURN_IN_MS;
-      ctx.drawImage(turn.restA, 0, 0);
-    } else if (t > turn.dur - TURN_OUT_MS) {
-      // fully the destination by the pan's last 40 ms frame, so landing changes nothing
-      ctx.globalAlpha = Math.min(1, (t - (turn.dur - TURN_OUT_MS)) / (TURN_OUT_MS - 40));
-      ctx.drawImage(turn.restB, 0, 0);
+    var toCam = camOf(to);
+    leg.plan = CAM.dollyPlan(fromCam, toCam, view);
+    var R = padRect([CAM.visibleRect(fromCam, view), CAM.visibleRect(toCam, view)], 12);
+    leg.A = [grab(fromCam)];
+    leg.B = [shot(to, spec.lsTo)];
+    if (!contains(CAM.visibleRect(fromCam, view), R)) leg.A.unshift(snapAsShot(snap(spec.from, spec.lsFrom, R, CAM.snapZoom(fromCam.z, R.w, R.h, 6e6, maxTexture()))));
+    if (!contains(CAM.visibleRect(toCam, view), R)) leg.B.unshift(snapAsShot(snap(to, spec.lsTo, R, CAM.snapZoom(toCam.z, R.w, R.h, 6e6, maxTexture()))));
+    leg.lead = to.mode === 'zone' && spec.from.mode === 'wall' && !ROOM.state.reducedMotion ? CAM.ANTICIPATE_MS : 0;
+    leg.dur = leg.lead + CAM.DOLLY_MS;
+  }
+  function drawDolly(leg, t) {
+    var u = Math.max(0, Math.min(1, (t - leg.lead) / CAM.DOLLY_MS));
+    var k = !leg.lead ? 1 : t < leg.lead ? CAM.anticipation(t) : CAM.release(u);
+    var tr = CAM.scaleAbout(CAM.dollyAt(leg.plan, u), k, view);
+    var kB = CAM.smoothstep(0.2, 0.9, u);
+    leg.u = u;
+    var paint = function (list) {
+      return function (c) {
+        clearVoid(c);
+        for (var i = 0; i < list.length; i++) drawShot(c, list[i], tr);
+      };
+    };
+    dissolve(paint(leg.A), paint(leg.B), kB, tr.z, tr.tx, tr.ty);
+  }
+
+  /* TURN: the four views are 90 degree faces of one camera, so a turn is a pure yaw: every screen column at angle
+   * phi shows the column at angle phi + theta of whichever view owns that direction, scaled vertically about the
+   * horizon by cos(a) / cos(phi). Each wall in the chain is one lit master (whole art rect); the walls hand over at
+   * the room corners (45 degrees) with a 10 degree blend. TURN+ZOOM adds a geometric zoom and a vanishing-point
+   * slide between the two cameras. The exact first and last frames are re-projected the same way and dissolve
+   * into the masters over the first 100 ms and out of them over the last 120 ms, so both ends are pixel exact
+   * even where a master is a magnified snapshot (TURN_EDGE_DISSOLVE, D4 3.4). */
+  var SEAM_BAND = (10 * Math.PI) / 180, EDGE_IN = 100, EDGE_OUT = 120;
+  function vpOf(v) {
+    var vc = ROOM.viewConf(v) || {};
+    return vc.vp || [CAM.CORE_W / 2, CAM.HORIZON];
+  }
+  function planTurn(leg, spec, fromCam) {
+    var fromV = ROOM.normView(spec.from.view), toV = ROOM.normView(spec.to.view);
+    var dir = spec.dir || ROOM.turnDir(fromV, toV) || 1;
+    var chain = [fromV], v = fromV;
+    while (v !== toV && chain.length < 4) {
+      v = ROOM.viewToward(v, dir);
+      chain.push(v);
     }
-    ctx.globalAlpha = 1;
+    leg.dir = dir;
+    leg.chain = chain;
+    leg.steps = chain.length - 1;
+    var toCam = camOf(spec.to);
+    leg.z0 = fromCam.z;
+    leg.z1 = toCam.z;
+    leg.dip = spec.from.mode === 'zone' && spec.to.mode === 'zone' ? 0.25 : 0;
+    var vp = vpOf(fromV);
+    var o0 = CAM.origin(fromCam, view), o1 = CAM.origin(toCam, view);
+    leg.vx0 = vp[0] * fromCam.z - o0.ox;
+    leg.vy0 = vp[1] * fromCam.z - o0.oy;
+    var vp1 = vpOf(toV);
+    leg.vx1 = vp1[0] * toCam.z - o1.ox;
+    leg.vy1 = vp1[1] * toCam.z - o1.oy;
+    leg.f = (ROOM.viewConf(fromV) || {}).f || CAM.CORE_W / 2;
+    leg.srcs = [];
+    for (var i = 0; i < chain.length; i++) addMaster(leg, i, spec);
+    var exA = grab(fromCam), exB = shot(spec.to, spec.lsTo);
+    leg.exA = { c: exA.canvas, vx: vp[0] * fromCam.z - o0.ox, vy: vp[1] * fromCam.z - o0.oy, s: fromCam.z };
+    leg.exB = { c: exB.canvas, vx: vp1[0] * toCam.z - o1.ox, vy: vp1[1] * toCam.z - o1.oy, s: toCam.z };
+    leg.th0 = 0;
+    leg.th1 = leg.steps * (Math.PI / 2) * dir;
+    leg.v0 = 0;
+    leg.tStart = 0;
+    leg.dur = spec.dur || [0, 640, 900, 1100][leg.steps] || 900;
+    leg.dur0 = leg.dur;
+  }
+  function addMaster(leg, i, spec) {
+    var cv = leg.chain[i], last = leg.chain.length - 1;
+    var p = i === 0 ? spec.from : i === last ? spec.to : { mode: 'wall', view: cv, zone: null };
+    var l = i === 0 ? spec.lsFrom : i === last ? spec.lsTo : null;
+    if (i === last && p.mode === 'skill') l = spec.lsTo;
+    var zRef = i === 0 ? leg.z0 : i === last ? leg.z1 : Math.min(leg.z0, leg.z1);
+    var m = master({ mode: 'wall', view: cv }, l, zRef);
+    var vp = vpOf(cv);
+    leg.srcs[i] = { c: m.canvas, vx: (vp[0] - m.rect.x) * m.z, vy: (vp[1] - m.rect.y) * m.z, s: m.z };
+  }
+  /** Retarget a running turn one more wall in its direction (D4 5.3): keeps the current angular velocity. */
+  function retargetTurn(leg, spec, t) {
+    var th = turnAngle(leg, t), dth = turnSlope(leg, t);
+    leg.chain.push(ROOM.normView(spec.to.view));
+    leg.steps = leg.chain.length - 1;
+    leg.spec = spec;
+    var toCam = camOf(spec.to), o1 = CAM.origin(toCam, view), vp1 = vpOf(spec.to.view);
+    // the old target wall becomes an intermediate master (room light); the new one takes the arrival light
+    addMaster(leg, leg.chain.length - 2, { from: leg.spec.from, to: { mode: 'wall', view: leg.chain[leg.chain.length - 2] } });
+    addMaster(leg, leg.chain.length - 1, spec);
+    var exB = shot(spec.to, spec.lsTo);
+    leg.exB = { c: exB.canvas, vx: vp1[0] * toCam.z - o1.ox, vy: vp1[1] * toCam.z - o1.oy, s: toCam.z };
+    leg.z1 = toCam.z;
+    leg.vx1 = vp1[0] * toCam.z - o1.ox;
+    leg.vy1 = vp1[1] * toCam.z - o1.oy;
+    var target = leg.steps * (Math.PI / 2) * leg.dir;
+    var rem = Math.abs(target - th) / (Math.PI / 2);
+    var dur = Math.max(240, 640 * rem);
+    leg.th0 = th;
+    leg.th1 = target;
+    leg.v0 = dth * dur; // radians per unit of the new segment
+    leg.tStart = t;
+    leg.dur = t + dur;
+    leg.retargeted = true;
+  }
+  function turnAngle(leg, t) {
+    var span = leg.dur - leg.tStart;
+    var s = span > 0 ? (t - leg.tStart) / span : 1;
+    if (!leg.retargeted) return leg.th0 + (leg.th1 - leg.th0) * CAM.easeInOut(s);
+    return CAM.hermite(leg.th0, leg.v0, leg.th1, s);
+  }
+  function turnSlope(leg, t) {
+    var span = Math.max(1, leg.dur - leg.tStart);
+    if (!leg.retargeted) {
+      var s = (t - leg.tStart) / span, e = 1e-3;
+      return (leg.th1 - leg.th0) * (CAM.easeInOut(s + e) - CAM.easeInOut(s - e)) / (2 * e) / span;
+    }
+    return CAM.hermiteSlope(leg.th0, leg.v0, leg.th1, (t - leg.tStart) / span) / span;
+  }
+  function drawTurn(leg, t) {
+    var W = canvas.width;
+    var th = turnAngle(leg, t);
+    var p = Math.abs(th) / Math.max(1e-6, leg.steps * (Math.PI / 2)); // progress of the camera terms
+    var zc = CAM.turnZoom(leg.z0, leg.z1, p, leg.dip);
+    var vx = leg.vx0 + (leg.vx1 - leg.vx0) * p, vy = leg.vy0 + (leg.vy1 - leg.vy0) * p;
+    var F = leg.f * zc, step = Math.max(2, Math.round(W / 640));
+    var geo = { th: th, F: F, zc: zc, vx: vx, vy: vy, step: step };
+    leg.u = p;
+    var paint = function (exact, which) {
+      return function (c) {
+        clearVoid(c);
+        turnColumns(c, leg, geo, null, -1);
+        if (exact) turnColumns(c, leg, geo, exact, which);
+      };
+    };
+    if (t < EDGE_IN && !leg.retargeted) dissolve(paint(null), paint(leg.exA, 0), 1 - t / EDGE_IN, zc, 0, 0);
+    else if (t > leg.dur - EDGE_OUT) dissolve(paint(null), paint(leg.exB, leg.steps), Math.min(1, (t - (leg.dur - EDGE_OUT)) / (EDGE_OUT - 32)), zc, 0, 0);
+    else paint(null)(ctx);
+  }
+  // Every column of a turn frame from the masters; with exact, only view `which`'s columns that the exact shot holds.
+  function turnColumns(c, leg, g, exact, which) {
+    var W = canvas.width;
+    for (var x = 0; x < W; x += g.step) {
+      var phi = Math.atan((x + g.step / 2 - g.vx) / g.F);
+      var a = phi + g.th;
+      var n = Math.round(a / (Math.PI / 2));
+      var k = n * leg.dir;
+      if (k < 0 || k > leg.steps) continue;
+      var la = a - n * (Math.PI / 2);
+      if (exact) {
+        if (k === which) column(c, exact, la, phi, x, g, 1, true);
+        continue;
+      }
+      column(c, leg.srcs[k], la, phi, x, g, 1, false);
+      // near the corner where two walls hand over, the neighbour's column blends in (both masters hold valid
+      // pixels 10 degrees past their edge), so the two walls' light meets as a gradient, not a line
+      var d = Math.PI / 4 - Math.abs(la);
+      if (d < SEAM_BAND) {
+        var n2 = n + (la > 0 ? 1 : -1), k2 = n2 * leg.dir;
+        if (k2 >= 0 && k2 <= leg.steps) column(c, leg.srcs[k2], a - n2 * (Math.PI / 2), phi, x, g, 0.5 * (1 - d / SEAM_BAND), false);
+      }
+    }
+    c.globalAlpha = 1;
+  }
+  // One screen column: the source column at view angle la, scaled about the horizon by cos(la)/cos(phi) and by the
+  // current zoom over the source's scale.
+  function column(c, src, la, phi, x, g, alpha, clip) {
+    var ca = Math.cos(la), cp = Math.cos(phi);
+    var m = g.zc / src.s;
+    var sx = src.vx + leg_f(g) * src.s * Math.tan(la);
+    var sw = (g.step * cp * cp) / (ca * ca) / m;
+    if (clip && (sx - sw / 2 < 0 || sx + sw / 2 > src.c.width)) return;
+    var sc = (ca / cp) * m;
+    var Hs = src.c.height;
+    c.globalAlpha = alpha;
+    c.drawImage(src.c, Math.max(0, sx - sw / 2), 0, Math.max(1, sw), Hs, x, g.vy - src.vy * sc, g.step, Hs * sc);
+  }
+  function leg_f(g) {
+    return g.F / g.zc;
+  }
+
+  /* RISE / DESCEND (D2 2.7): the wall frame shrinks about its centre toward its anchor on the overview while the
+   * overview grows from 1/s_A to 1 about the same point; Bayer k = smoothstep(.15, .75, u). DESCEND is the exact
+   * time reverse toward the destination's anchor. */
+  function planRise(leg, spec, fromCam) {
+    var rise = spec.kind === 'rise';
+    var wallP = rise ? spec.from : spec.to, ovP = rise ? spec.to : spec.from;
+    var wallShot = rise ? grab(fromCam) : shot(wallP, spec.lsTo);
+    var ovShot = rise ? shot(ovP, spec.lsTo) : grab(fromCam);
+    var oc = overviewCamera();
+    var a = ROOM.overview && ROOM.overview.anchor ? ROOM.overview.anchor(wallP) : null;
+    var W = view.Wd, H = view.Hd;
+    var ax = W / 2, ay = H / 2, aw = W * 0.5;
+    if (oc && a) {
+      var oo = CAM.origin(oc, view);
+      ax = (a.x + a.w / 2) * oc.z - oo.ox;
+      ay = (a.y + a.h / 2) * oc.z - oo.oy;
+      aw = a.w * oc.z;
+    }
+    leg.wall = wallShot.canvas;
+    leg.ov = ovShot.canvas;
+    leg.ax = ax;
+    leg.ay = ay;
+    leg.sA = CAM.clamp(aw / W, 0.35, 0.8);
+    leg.rise = rise;
+    leg.dur = spec.dur || 520;
+  }
+  function drawRise(leg, t) {
+    var u = Math.max(0, Math.min(1, t / leg.dur));
+    var ur = leg.rise ? u : 1 - u; // the RISE parameter
+    var e = CAM.easeInOut(ur);
+    var W = view.Wd, H = view.Hd;
+    var s = Math.pow(leg.sA, e);
+    var cx = W / 2 + (leg.ax - W / 2) * e, cy = H / 2 + (leg.ay - H / 2) * e;
+    var g = s / leg.sA;
+    leg.u = u;
+    var wall = function (c) {
+      clearVoid(c);
+      var x0 = Math.round(cx - (W / 2) * s), y0 = Math.round(cy - (H / 2) * s);
+      c.drawImage(leg.wall, x0, y0, Math.round(cx + (W / 2) * s) - x0, Math.round(cy + (H / 2) * s) - y0);
+    };
+    var ov = function (c) {
+      clearVoid(c);
+      var x0 = Math.round(cx - leg.ax * g), y0 = Math.round(cy - leg.ay * g);
+      c.drawImage(leg.ov, x0, y0, Math.round(cx + (W - leg.ax) * g) - x0, Math.round(cy + (H - leg.ay) * g) - y0);
+    };
+    var kOv = CAM.smoothstep(0.15, 0.75, ur);
+    dissolve(wall, ov, kOv, Math.max(1, Math.round((lastRest ? lastRest.z : 2) * s)), cx, cy);
+  }
+
+  /** Draw a camera leg at time t (ms since its start) on the main canvas. Returns false when t is past its end. */
+  function drawLeg(leg, t) {
+    if (t >= leg.dur) return false;
+    ctx.save();
+    if (leg.kind === 'dolly') drawDolly(leg, t);
+    else if (leg.kind === 'turn') drawTurn(leg, t);
+    else drawRise(leg, t);
+    ctx.restore();
+    ctx.imageSmoothingEnabled = false;
     return true;
   }
-  // One screen column of a pan: the source column at view angle la, scaled about the horizon by cos(la)/cos(phi).
-  function column(src, la, phi, x, step, f, alpha) {
-    var ca = Math.cos(la), cp = Math.cos(phi);
-    var sx = src.vx + f * Math.tan(la);
-    var sw = (step * cp * cp) / (ca * ca);
-    var sc = ca / cp;
-    var Hs = src.c.height;
-    ctx.globalAlpha = alpha;
-    ctx.drawImage(src.c, Math.max(0, sx - sw / 2), 0, Math.max(1, sw), Hs, x, turn.vy - src.vy * sc, step, Hs * sc);
-  }
-  function endTurn() {
-    turn = null;
+  function endLeg() {
     if (ROOM.overlay) ROOM.overlay.setHidden(false);
     dirty = true;
-    landed();
+  }
+
+  /**
+   * Land the renderer on place p: wall frame, scene and pan of its view. The navigator calls it when a move or a
+   * leg lands (and for instant moves). Returns true when the wall changed.
+   */
+  function applyPlace(p) {
+    var v = ROOM.normView(p.view || ROOM.state.view);
+    var changed = v !== ROOM.normView(ROOM.state.view);
+    if (changed) {
+      ROOM.state.view = v;
+      CAM.configure(ROOM.viewConf(v));
+      pan.x = CAM.CORE_W / 2;
+      pan.v = 0;
+      pan.target = null;
+    }
+    var zid = p.mode === 'zone' ? p.zone : p.mode === 'skill' && p.base === 'zone' ? p.baseZone || p.zone : null;
+    if (zid) lastZone = zid;
+    sceneDirty = true;
+    invalidate();
+    return changed;
   }
 
   /* ------------------------------------------------------------------ scheduler */
@@ -1183,19 +1415,18 @@
       buildScene();
       dirty = true;
     }
-    if (turn) {
-      if (renderTurn(now)) {
-        kick();
-        return;
-      }
-    }
-    if (dolly) {
-      if (renderDolly(now)) {
-        kick();
-        return;
-      }
-    }
     var busy = false;
+    // The navigator runs moves on this clock: a camera leg draws the frame itself; live legs (lift, drop, swap)
+    // and light-state tweens ask for rest frames at display rate.
+    var nv = ROOM.nav && ROOM.nav.tick ? ROOM.nav.tick(now) : null;
+    if (nv === 'drawn') {
+      kick();
+      return;
+    }
+    if (nv === 'live') {
+      dirty = true;
+      busy = true;
+    }
     // On the GPU path the sun clock decides night (night sky, lamps on), unless ?night= says otherwise.
     if (gpuOn() && ROOM.light && ROOM.light.current && !/[?&]night=/.test(window.location.search)) {
       var nt = !!ROOM.light.current().night;
@@ -1214,7 +1445,7 @@
       var r = CAM.springStep(pan.x, pan.v, pan.target, Math.min(0.05, dt / 1000));
       pan.x = r.x;
       pan.v = r.v;
-      if (CAM.springSettled(pan.x, pan.v, pan.target)) {
+      if (ROOM.state.reducedMotion || CAM.springSettled(pan.x, pan.v, pan.target)) {
         pan.x = pan.target;
         pan.v = 0;
         pan.target = null;
@@ -1244,10 +1475,6 @@
       busy = true;
     }
     if ((ROOM.statue && ROOM.statue.busy(now)) || (ROOM.weather && ROOM.weather.busy(now)) || (gpuOn() && ROOM.gl.busy && ROOM.gl.busy(now))) {
-      dirty = true;
-      busy = true;
-    }
-    if (ROOM.overlay && ROOM.overlay.busy(now)) {
       dirty = true;
       busy = true;
     }
@@ -1283,8 +1510,8 @@
     if (canvas.width !== Wd) canvas.width = Wd;
     if (canvas.height !== Hd) canvas.height = Hd;
     ctx.imageSmoothingEnabled = false; // resizing a canvas resets its context state
-    if (turn) endTurn();
-    if (dolly) endDolly();
+    if (ROOM.nav && ROOM.nav.snapMove) ROOM.nav.snapMove(); // a resize lands any move at once (D4 5.5)
+    dropSnapshots();
     var b = CAM.panBounds(view);
     pan.x = CAM.clamp(pan.x, b.min, b.max);
     document.documentElement.dataset.roomMode = view.mode;
@@ -1292,9 +1519,8 @@
     invalidate();
   }
 
-  function init(canvasEl, stageEl) {
+  function init(canvasEl) {
     canvas = canvasEl;
-    stage = stageEl;
     ctx = canvas.getContext('2d', { alpha: false, colorSpace: 'srgb' });
     // Exact device pixels where the browser reports them; otherwise round(css * dpr).
     var ro = new ResizeObserver(function (entries) {
@@ -1314,6 +1540,7 @@
     }
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) {
+        if (ROOM.nav && ROOM.nav.snapMove) ROOM.nav.snapMove();
         if (raf) cancelAnimationFrame(raf);
         raf = 0;
         clearTimeout(timer);
@@ -1325,112 +1552,30 @@
     });
     ROOM.on('data', function () {
       sceneDirty = true;
+      dataStamp++;
       invalidate();
     });
     ROOM.on('state', function () {
       sceneDirty = true;
+      dataStamp++;
       invalidate();
     });
+    ROOM.on('gltier', dropSnapshots);
   }
 
   /* ------------------------------------------------------------------ public API */
-  /**
-   * Step into a zone (id) or back out to the room (null) with the dolly.
-   * opts.push (default true) asks the router to push a history entry; opts.instant skips the dolly.
-   * opts.item: the clicked object (spotlight pulse on landing); opts.onArrive: called once the camera
-   * is at rest (also when already in that zone).
-   */
+  // v3.5: the navigator (engine/nav.js) is the only way to move; these are thin wrappers over it (one release).
   ROOM.go = function (zoneId, opts) {
-    opts = opts || {};
-    var zone = zoneId ? ROOM.zoneById(zoneId) : null;
-    if (zoneId && !zone) return false;
-    var id = zone ? zone.id : null;
-    var prev = ROOM.state.zone;
-    if (id === prev) {
-      if (opts.item || opts.onArrive) {
-        arrive = { item: opts.item || null, fn: opts.onArrive || null };
-        if (!dolly) landed();
-      }
-      return false;
-    }
-    if (dolly) endDolly();
-    if (turn) endTurn();
-    arrive = opts.item || opts.onArrive ? { item: opts.item || null, fn: opts.onArrive || null } : null;
-    if (id !== 'window' && ROOM.state.statueLight) ROOM.state.statueLight = false;
-    // A zone in another view: walk and turn straight into it.
-    var toView = zone ? ROOM.viewOf(zone) : ROOM.normView(ROOM.state.view);
-    if (toView !== ROOM.normView(ROOM.state.view)) {
-      var dir = ROOM.turnDir(ROOM.state.view, toView);
-      ROOM.state.zone = id;
-      if (id) lastZone = id;
-      if (view && !opts.instant && !ROOM.state.reducedMotion) startTurn(toView, dir);
-      else applyView(toView);
-      ROOM.emit('zone', { zone: id, from: prev, push: opts.push !== false });
-      if (!turn) landed();
-      invalidate();
-      return true;
-    }
-    var from = view ? restCamera() : null;
-    if (!id && prev && view && view.mode === 'pan') {
-      // Back to the room on the phone: settle on the zone's stop.
-      pan.x = ROOM.zoneById(prev).stop;
-      pan.v = 0;
-      pan.target = null;
-    }
-    ROOM.state.zone = id;
-    if (id) lastZone = id;
-    if (view && from && !opts.instant && !ROOM.state.reducedMotion) {
-      if (sceneDirty) buildScene();
-      startDolly(from, restCamera(), prev, id);
-    }
-    ROOM.emit('zone', { zone: id, from: prev, push: opts.push !== false });
-    if (!dolly) landed();
-    invalidate();
-    return true;
+    return ROOM.nav ? ROOM.nav.go(zoneId, opts) : false;
   };
-
-  /**
-   * Turn to the next view left (dir -1) or right (dir +1): left and right are the side views, the opposite
-   * direction comes back to the centre. Leaves any zone. Returns false when there is no view that way.
-   */
   ROOM.turn = function (dir, opts) {
-    opts = opts || {};
-    var to = ROOM.viewToward ? ROOM.viewToward(ROOM.state.view, dir) : null;
-    if (!to || turn) return false;
-    if (dolly) endDolly();
-    var prev = ROOM.state.zone;
-    arrive = null;
-    if (ROOM.state.statueLight) ROOM.state.statueLight = false;
-    ROOM.state.zone = null;
-    if (view && !opts.instant && !ROOM.state.reducedMotion) startTurn(to, dir);
-    else applyView(to);
-    if (prev) ROOM.emit('zone', { zone: null, from: prev, push: opts.push !== false });
-    invalidate();
-    return true;
+    return ROOM.nav ? ROOM.nav.turn(dir, opts) : false;
   };
-
-  /** Turn to view v (the shortest way round). opts.push false: no history entry; opts.instant: no pan. */
   ROOM.turnTo = function (v, opts) {
-    opts = opts || {};
-    v = ROOM.normView(v);
-    var cur = ROOM.normView(ROOM.state.view);
-    if (v === cur || turn || ROOM.viewList().indexOf(v) < 0) return false;
-    if (dolly) endDolly();
-    var prev = ROOM.state.zone;
-    arrive = null;
-    if (ROOM.state.statueLight) ROOM.state.statueLight = false;
-    ROOM.state.zone = null;
-    pushView = opts.push !== false;
-    if (view && !opts.instant && !ROOM.state.reducedMotion) startTurn(v, ROOM.turnDir(cur, v));
-    else applyView(v);
-    pushView = true;
-    if (prev) ROOM.emit('zone', { zone: null, from: prev, push: opts.push !== false });
-    invalidate();
-    return true;
+    return ROOM.nav ? ROOM.nav.turnTo(v, opts) : false;
   };
-
   ROOM.setDim = function (on) {
-    dimOn = !!on;
+    if (ROOM.nav && ROOM.nav.setBoardDim) ROOM.nav.setBoardDim(!!on);
     invalidate();
   };
 
@@ -1441,7 +1586,7 @@
     if (!view) return null;
     var d = null;
     for (var i = 0; i < drawables.length; i++) if (drawables[i].id === itemId) d = drawables[i];
-    if (!d || (d.layer === 6 && ROOM.state.zone)) return null;
+    if (!d || (d.layer === 6 && currentLs().zone)) return null;
     var r = cssRectOf(d);
     var c = canvas.getBoundingClientRect();
     var box = { left: r.left + c.left, top: r.top + c.top, width: r.width, height: r.height };
@@ -1455,7 +1600,7 @@
 
   // A drawable's hit box in CSS px relative to the canvas, for the camera at rest.
   function cssRectOf(d) {
-    var cam = restCamera(), org = CAM.origin(cam, view), z = cam.z, o = offsetsFor(z)[d.layer];
+    var cam = restCamera(), org = CAM.origin(cam, view), z = cam.z, o = offsetsFor(z)[d.layer] || 0;
     var h = d.hit;
     return {
       left: ((h[0] + o) * z - org.ox) / view.dpr,
@@ -1474,6 +1619,25 @@
   ROOM.render = {
     init: init,
     enableGpu: enableGpu,
+    // v3.5 moves (nav.js drives them on ROOM.now())
+    beginLeg: beginLeg,
+    drawLeg: drawLeg,
+    endLeg: endLeg,
+    retargetTurn: retargetTurn,
+    turnAngle: turnAngle,
+    applyPlace: applyPlace,
+    cameraFor: function (p) {
+      return view ? camOf(p) : null;
+    },
+    snap: snap,
+    shot: shot,
+    dropSnapshots: dropSnapshots,
+    get snapStats() {
+      return snapStats;
+    },
+    get sceneOverride() {
+      return sceneOverride;
+    },
     get gpu() {
       return gpuOn();
     },
@@ -1509,11 +1673,14 @@
     get sceneVersion() {
       return sceneVersion;
     },
+    // compat getters (one release): true while a DOLLY / TURN leg runs
     get dolly() {
-      return dolly;
+      var l = ROOM.nav && ROOM.nav.leg;
+      return l && l.kind === 'dolly' ? { u: l.u } : null;
     },
     get turning() {
-      return !!turn;
+      var l = ROOM.nav && ROOM.nav.leg;
+      return !!(l && l.kind === 'turn');
     },
     get lastZone() {
       return lastZone;
@@ -1523,6 +1690,9 @@
     },
     get offsets() {
       return view ? offsetsFor(restCamera().z) : ZERO;
+    },
+    get lastRest() {
+      return lastRest;
     },
     get canvas() {
       return canvas;
@@ -1558,13 +1728,16 @@
       return ctx.getImageData(0, 0, canvas.width, canvas.height);
     },
     debugInfo: function () {
+      var l = ROOM.nav && ROOM.nav.leg;
       return {
-        view: view,
+        view: ROOM.state.view,
+        viewport: view,
         camera: view ? restCamera() : null,
         zone: ROOM.state.zone,
-        view: ROOM.state.view,
-        turn: turn ? { dir: turn.dir, t: ROOM.now() - turn.t0, seams: turn.seams || [] } : null,
-        dolly: dolly ? { u: lastDollyU, from: dolly.plan.from, to: dolly.plan.to } : null,
+        nav: ROOM.nav && ROOM.nav.debug ? ROOM.nav.debug() : null,
+        turn: l && l.kind === 'turn' ? { dir: l.dir, u: l.u } : null,
+        dolly: l && l.kind === 'dolly' ? { u: l.u } : null,
+        snaps: snapStats,
         light: { key: light.key, step: light.step },
         offsets: view ? offsetsFor(restCamera().z) : ZERO,
         pan: { x: pan.x, v: pan.v, target: pan.target },

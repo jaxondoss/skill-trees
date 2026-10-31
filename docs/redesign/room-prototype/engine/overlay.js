@@ -4,12 +4,13 @@
  *   - nameplates: 3x5 pixel font on a GOLD_DK plate, "STRENGTH 52", shown for the hovered or focused
  *     hotspot, or for every visible hotspot in inspect mode, de-overlapped greedily upward;
  *   (the zone title is a DOM canvas, #zone-title: 5x7 pixel font, revealed in Bayer steps within
- *   ~120 ms of the click, also during the dolly; on a phone it sits below the HUD strip).
+ *   ~120 ms of the request, also during the move; on a phone it sits below the HUD strip).
  * DOM (accessible):
  *   - one transparent <button> per hotspot over its hit box, named like "Strength, 52";
- *     at least 24 CSS px on fine pointers, 44 on touch (where they exist only in zone view);
- *     nearer layer on top, then the smaller box; DOM order (left to right) is the tab order;
- *   - zone dots (1..7), and a polite live region announcing the zone.
+ *     at least 24 CSS px on fine pointers, 44 on touch (where they exist only in zone view) and everywhere in
+ *     the overview; nearer layer on top, then the smaller box; DOM order (left to right) is the tab order;
+ *   - zone dots (one per zone), the turn chevrons, #nav-up (Overview / Back to room) and a polite live region.
+ * Every activation goes through the navigator (ROOM.nav.request): a hotspot opens its skill view (PLAN 2.5).
  */
 (function () {
   'use strict';
@@ -137,11 +138,15 @@
 
   function currentTitle() {
     var R = ROOM.render;
-    if (ROOM.state.zone) return ROOM.zoneById(ROOM.state.zone).name;
+    var t = ROOM.nav ? ROOM.nav.target : null;
+    if (t && t.mode === 'overview') return 'OVERVIEW';
+    var zid = t ? (t.mode === 'zone' ? t.zone : t.mode === 'skill' && t.base === 'zone' ? t.baseZone : null) : ROOM.state.zone;
+    if (zid && ROOM.zoneById(zid)) return ROOM.zoneById(zid).name;
+    if (t && t.mode === 'skill') return null;
     if (R.view && R.view.mode === 'pan') {
-      // On the phone the room view pans; name the zone whose stop is nearest.
+      // On the phone the room view pans; name the zone (of this wall) whose stop is nearest.
       var x = R.pan.x, best = null;
-      ROOM.zones.forEach(function (z) {
+      ROOM.zonesInView(t ? t.view : ROOM.state.view).forEach(function (z) {
         if (!best || Math.abs(z.stop - x) < Math.abs(best.stop - x)) best = z;
       });
       return best ? best.name : null;
@@ -149,18 +154,19 @@
     return null;
   }
 
-  function drawMarks(f) {
+  function drawMarks(f, ls) {
     var R = ROOM.render;
+    ls = ls || f.ls || {};
     var visTop = Math.ceil(f.org.oy / f.z - f.y0);
     var visLeft = f.org.ox / f.z - f.x0;
     var visW = R.view.Wd / f.z;
 
     // Nameplates.
     var plates = [];
-    var inZone = !!ROOM.state.zone;
+    var inZone = !!ls.zone;
     R.drawables.forEach(function (d) {
       if (!d.hotspot || (inZone && d.layer === 6)) return;
-      if (!(ROOM.state.inspect || d.id === R.hoverId || d.id === R.focusId)) return;
+      if (!(ls.inspect || (ls.hover && d.id === ls.hover) || (ls.focus && d.id === ls.focus))) return;
       var text = plateOf(d);
       var w = textWidth(FONT3, text) + 4, h = 9;
       var cx = d.hit[0] + d.hit[2] / 2 + f.offs[d.layer] - f.x0;
@@ -189,16 +195,12 @@
       for (var y = 0; y < p.h; y++)
         for (var x = 0; x < p.w; x++) {
           var edge = x === 0 || y === 0 || x === p.w - 1 || y === p.h - 1;
-          R.plot(f, p.x + x, p.y + y, edge ? C.INK : C.GOLD_DK);
+          R.plotMark(f, p.x + x, p.y + y, edge ? C.INK : C.GOLD_DK);
         }
       eachPixel(FONT3, p.text, p.x + 2, p.y + 2, function (x, y) {
-        R.plot(f, x, y, C.CREAM);
+        R.plotMark(f, x, y, C.CREAM);
       });
     });
-  }
-
-  function busy() {
-    return false;
   }
 
   /* ------------------------------------------------------------------ DOM: zone title */
@@ -264,41 +266,39 @@
   }
 
   /**
-   * A click on an object: dolly into its zone (anticipation, push-in), spotlight pulse on landing,
-   * then its panel slides in. The statue zooms to the window and switches its downlight on.
+   * A click on an object: its skill view (the camera stays when it is on this wall; another wall turns first; the
+   * overview descends first). On touch on a wall the first tap steps into the zone. The Today feature opens its
+   * HUD without a move; the study wall calendar leads to the calendar wall (R23).
    */
   function activate(d) {
-    var zone = zoneOfItem(d.item);
-    if (!ROOM.state.zone && isTouch()) {
-      ROOM.go(zone.id); // on touch: tap a zone first, then the hotspot
+    var it = ROOM.stateItem(d.item);
+    var nav = ROOM.nav;
+    var t = nav.target;
+    var opener = document.activeElement;
+    ROOM.emit('hotspot', { item: it });
+    var feat = it.target && it.target.feature;
+    if (feat === 'today' || !it.target) {
+      if (ROOM.ui && typeof ROOM.ui.open === 'function') ROOM.ui.open(it.id, { opener: opener });
       return;
     }
-    ROOM.emit('hotspot', { item: d.item });
-    var statue = d.statue;
-    // the study wall calendar (and the board itself) lead to the calendar wall
-    var cal = d.item.target && d.item.target.feature === 'calendar' && ROOM.zoneById('calendar');
-    var target = statue ? 'window' : cal ? 'calendar' : zone.id;
-    var opener = document.activeElement;
-    ROOM.go(target, {
-      item: d.id,
-      onArrive: function () {
-        if (statue) {
-          ROOM.state.statueLight = true;
-          ROOM.invalidate();
-        }
-        if (ROOM.ui && typeof ROOM.ui.open === 'function') ROOM.ui.open(d.id, { opener: opener });
-      },
-    });
+    if (t && t.mode === 'wall' && isTouch() && feat !== 'calendar') {
+      var zone = zoneOfItem(it);
+      if (zone) {
+        nav.request({ mode: 'zone', zone: zone.id }, { source: 'click' });
+        return;
+      }
+    }
+    nav.request({ mode: 'skill', item: it.id }, { source: t && t.mode === 'overview' ? 'overview' : 'click', opener: opener });
   }
 
   // (Re)create the buttons when the scene changes; order them left to right by zone, then x.
   function build() {
     var R = ROOM.render;
     var hot = R.drawables.filter(function (d) {
-      return d.hotspot;
+      return d.hotspot && zoneOfItem(ROOM.stateItem(d.item));
     });
     hot.sort(function (a, b) {
-      return zoneOfItem(a.item).n - zoneOfItem(b.item).n || a.hit[0] - b.hit[0];
+      return zoneOfItem(ROOM.stateItem(a.item)).n - zoneOfItem(ROOM.stateItem(b.item)).n || a.hit[0] - b.hit[0];
     });
     var keep = {};
     hot.forEach(function (d) {
@@ -326,8 +326,12 @@
         });
         buttons[d.id] = b;
       }
-      b.dataset.zone = zoneOfItem(d.item).id;
-      b.setAttribute('aria-label', nameOf(d));
+      var room = ROOM.stateItem(d.item);
+      b.dataset.zone = zoneOfItem(room).id;
+      if (d.item.of) b.dataset.of = d.item.of;
+      else delete b.dataset.of;
+      var ms = d.item.of && ROOM.markStateOf && d.skill ? ROOM.markStateOf(d.skill.slug) : null;
+      b.setAttribute('aria-label', nameOf(d) + (ms && !d.skill ? ', ' + ms : ''));
       layer.appendChild(b); // appending in order sets the DOM (tab) order
       keep[d.id] = true;
     });
@@ -356,11 +360,27 @@
     }
     var touch = isTouch();
     updateTitle();
+    updateNavUp();
     var key = rest.key + '|' + touch + '|' + ROOM.state.photo;
     if (key === lastKey) return;
     lastKey = key;
-    var v = R.view, dpr = v.dpr, zone = ROOM.state.zone;
-    var minSize = touch ? 44 : 24;
+    var ls = rest.ls || {};
+    var top = ls.scene === 'top';
+    var v = R.view, dpr = v.dpr, zone = top ? null : ls.zone;
+    // the overview: every pointer gets 44 px targets; touch uses the canvas handler (nearest item, A3)
+    var minSize = touch || top ? 44 : 24;
+    layer.classList.toggle('overview', top);
+    if (top) {
+      layer.setAttribute('role', 'navigation');
+      layer.setAttribute('aria-label', 'Room overview');
+    } else {
+      layer.removeAttribute('role');
+      layer.removeAttribute('aria-label');
+    }
+    if (dotsNav) dotsNav.hidden = top;
+    [-1, 1].forEach(function (dir) {
+      if (chev[dir]) chev[dir].classList.toggle('in-overview', top);
+    });
     var W = v.Wd / dpr, H = v.Hd / dpr;
     R.drawables.forEach(function (d) {
       var b = buttons[d.id];
@@ -379,7 +399,7 @@
         hh = minSize;
       }
       var onScreen = left + w > 0 && top + hh > 0 && left < W && top < H;
-      var usable = onScreen && !(touch && !zone) && !(zone && d.layer === 6);
+      var usable = top ? onScreen && !touch : onScreen && !(touch && !zone) && !(zone && d.layer === 6);
       b.hidden = !usable;
       // In a zone, Tab walks that zone's hotspots only.
       b.tabIndex = usable && (!zone || b.dataset.zone === zone) ? 0 : -1;
@@ -414,15 +434,19 @@
       b.dataset.zone = z.id;
       b.setAttribute('aria-label', titleCase(z.name) + ' (' + z.n + ')');
       b.addEventListener('click', function () {
-        ROOM.go(ROOM.state.zone === z.id ? null : z.id);
+        var t = ROOM.nav.target;
+        if (t && t.mode === 'zone' && t.zone === z.id) ROOM.nav.request({ mode: 'wall', view: t.view });
+        else ROOM.nav.request({ mode: 'zone', zone: z.id });
       });
       dotsNav.appendChild(b);
     });
     updateDots();
   }
   function updateDots() {
+    var t = ROOM.nav ? ROOM.nav.target : null;
+    var zid = t ? (t.mode === 'zone' ? t.zone : null) : ROOM.state.zone;
     Array.prototype.forEach.call(dotsNav.children, function (b) {
-      if (b.dataset.zone === ROOM.state.zone) b.setAttribute('aria-current', 'true');
+      if (b.dataset.zone === zid) b.setAttribute('aria-current', 'true');
       else b.removeAttribute('aria-current');
     });
   }
@@ -438,8 +462,9 @@
     return el;
   }
 
-  /* ------------------------------------------------------------------ DOM: side-view chevrons (art pass 5) */
-  // Small pixel chevrons at the far left and right edges: turn to a side view, or back to the centre.
+  /* ------------------------------------------------------------------ DOM: turn chevrons and #nav-up */
+  // Small pixel chevrons at the far left and right edges turn to the next wall; #nav-up (top centre) rises to the
+  // overview, and in the overview goes back to the room.
   var chev = {};
   function buildChevrons() {
     if (!ROOM.hasViews || !ROOM.hasViews()) return;
@@ -455,22 +480,50 @@
         '</svg>';
       b.addEventListener('click', function () {
         if (ROOM.state.panel) return;
-        ROOM.turn(dir);
+        ROOM.nav.turn(dir);
       });
       chev[dir] = b;
     });
     updateChevrons();
   }
-  var VIEW_LABEL = { front: 'window and knight', right: 'desks and gym', back: 'calendar wall', left: 'bed and kitchen', main: 'window and knight' };
+  var VIEW_LABEL = { front: 'window and knight', right: 'desks and gym', back: 'calendar wall', left: 'bed and kitchen' };
   function updateChevrons() {
+    var t = ROOM.nav ? ROOM.nav.target : null;
     [-1, 1].forEach(function (dir) {
       var b = chev[dir];
       if (!b) return;
-      var to = ROOM.viewToward(ROOM.state.view, dir);
+      var to = ROOM.viewToward(t ? t.view : ROOM.state.view, dir);
       b.hidden = !to;
       b.setAttribute('aria-label', (dir < 0 ? 'Turn left: ' : 'Turn right: ') + (VIEW_LABEL[to] || to));
       b.title = b.getAttribute('aria-label');
     });
+  }
+
+  var navUp = null, navUpMode = '';
+  var UP_SVG = '<path d="M5 0h1v1h1v1h1v1h1v1h1v1h1v2h-2v-1h-1v-1h-1v-1h-1v-1h-1v-1h-1v1h-1v1h-1v1h-1v1h-1v1h-2v-2h1v-1h1v-1h1v-1h1v-1h1z"/>';
+  var DOWN_SVG = '<path d="M0 0h2v1h1v1h1v1h1v1h1v-1h1v-1h1v-1h1v-1h2v2h-1v1h-1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1h-1z"/>';
+  function buildNavUp() {
+    navUp = ensure('nav-up', 'button', document.body, 'nav-up');
+    navUp.type = 'button';
+    navUp.addEventListener('click', function () {
+      if (ROOM.state.panel) return;
+      var t = ROOM.nav.target;
+      if (t && t.mode === 'overview') ROOM.nav.down();
+      else ROOM.nav.up();
+    });
+    updateNavUp();
+  }
+  function updateNavUp() {
+    if (!navUp) return;
+    var on = !!(ROOM.nav && ROOM.nav.overviewOn && ROOM.nav.overviewOn());
+    navUp.hidden = !on;
+    var t = ROOM.nav ? ROOM.nav.target : null;
+    var mode = t && t.mode === 'overview' ? 'down' : 'up';
+    if (mode === navUpMode) return;
+    navUpMode = mode;
+    navUp.innerHTML = '<svg viewBox="0 0 11 7" width="22" height="14" aria-hidden="true" shape-rendering="crispEdges">' + (mode === 'down' ? DOWN_SVG : UP_SVG) + '</svg>';
+    navUp.setAttribute('aria-label', mode === 'down' ? 'Back to room' : 'Overview');
+    navUp.title = navUp.getAttribute('aria-label');
   }
 
   function init(stage) {
@@ -483,12 +536,18 @@
     live.setAttribute('aria-live', 'polite');
     buildDots();
     buildChevrons();
+    buildNavUp();
     ROOM.on('view', updateChevrons);
-    ROOM.on('zone', function (d) {
+    // at the start of a move: the title, dots, chevrons and #nav-up name the destination (nav.target)
+    ROOM.on('nav', function (d) {
       updateDots();
-      updateTitle(); // within ~120 ms of the click, while the dolly runs
-      var z = d.zone && ROOM.zoneById(d.zone);
-      live.textContent = z ? titleCase(z.name) : 'Room';
+      updateChevrons();
+      updateTitle();
+      updateNavUp();
+      if (d.phase !== 'land') return;
+      var p = d.place || {};
+      var z = p.mode === 'zone' && ROOM.zoneById(p.zone);
+      live.textContent = p.mode === 'overview' ? 'Overview' : z ? titleCase(z.name) : p.mode === 'skill' ? '' : 'Room';
     });
     ROOM.on('data', function () {
       builtVersion = -1;
@@ -498,7 +557,6 @@
   ROOM.overlay = {
     init: init,
     drawMarks: drawMarks,
-    busy: busy,
     sync: sync,
     setHidden: setHidden,
     zoneButtons: zoneButtons,
