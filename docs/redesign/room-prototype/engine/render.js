@@ -1124,9 +1124,9 @@
    * horizon by cos(a) / cos(phi). Each wall in the chain is one lit master (whole art rect); the walls hand over at
    * the room corners (45 degrees) with a 10 degree blend. TURN+ZOOM adds a geometric zoom and a vanishing-point
    * slide between the two cameras. The exact first and last frames are re-projected the same way and dissolve
-   * into the masters over the first 100 ms and out of them over the last 120 ms, so both ends are pixel exact
+   * into the masters over the first 120 ms and out of them over the last 200 ms, so both ends are pixel exact
    * even where a master is a magnified snapshot (TURN_EDGE_DISSOLVE, D4 3.4). */
-  var SEAM_BAND = (10 * Math.PI) / 180, EDGE_IN = 100, EDGE_OUT = 120;
+  var SEAM_BAND = (10 * Math.PI) / 180, EDGE_IN = 120, EDGE_OUT = 200;
   function vpOf(v) {
     var vc = ROOM.viewConf(v) || {};
     return vc.vp || [CAM.CORE_W / 2, CAM.HORIZON];
