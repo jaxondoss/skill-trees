@@ -18,8 +18,13 @@ Art pass 6 (v3.4, four walls): python3 art/room-r6/build.py, then python3 art/ro
 (the replaced R5 bundle is kept as art-v3.r5.js; each sprite's <name>.mat.png sidecar, the material ID per pixel
 from TEXTURE_SPEC section 4, is encoded the same way as images[path].mat, 255 = transparent; then the texture gate
 art/room-r6/texture_check.py runs when present).
+v3.5: every other art/<src>/*_check.py gate with run(items, zones) -> errors runs after parity (overview_check.py, ...);
+byte-identical images are stored once (later paths in variants/anim point to the first copy); items with `of`
+(overview twins, <id>.hero overlays) need no target/label; the bundle must stay under 3,145,728 bytes raw, and the
+v3.5 budgets (heroes <= 250 KB, wires <= 100 KB) are reported and gated.
 """
 import argparse
+import importlib.util
 import shutil
 import base64
 import json
@@ -133,6 +138,72 @@ def grain_check(paths) -> None:
     print(f"grain check: {len(paths)} sprites ok")
 
 
+def run_checks(no_gate: bool) -> None:
+    """Run every art/<src>/*_check.py gate exposing run(items, zones) -> errors (texture_check runs separately)."""
+    items = json.loads((SRC / "manifest.json").read_text())["items"]
+    for path in sorted(SRC.glob("*_check.py")):
+        if path.name == "texture_check.py":
+            continue
+        spec = importlib.util.spec_from_file_location(path.stem, path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        if not hasattr(mod, "run"):
+            continue
+        errs = mod.run(items, ZONES)
+        print(f"{path.name}: {len(errs)} problems")
+        if errs and no_gate:
+            print("  (skipped: --no-gate)\n  " + "\n  ".join(errs))
+        elif errs:
+            sys.exit(f"{path.name} failed:\n  " + "\n  ".join(errs))
+
+
+def dedupe(items: list, images: dict) -> tuple[dict, int]:
+    """Store byte-identical images once: every reference to a later copy points to the first (a path without
+    ".night." preferred, so the texture gate's albedo paths keep their names). Returns (images, bytes saved)."""
+    first: dict[tuple, str] = {}
+    canon: dict[str, str] = {}
+    order = sorted(images, key=lambda p: (".night." in p or p.endswith(".night.png"), p))
+    for p in order:
+        e = images[p]
+        k = (e["w"], e["h"], e["rle"], e.get("mat"))
+        canon[p] = first.setdefault(k, p)
+    saved = sum(len(json.dumps({p: images[p]}, separators=(",", ":"))) for p in images if canon[p] != p)
+    for it in items:
+        it["variants"] = {k: canon[v] for k, v in it["variants"].items()}
+        anim = it.get("anim")
+        if anim:
+            for f in ("frames", "night"):
+                if f in anim:
+                    anim[f] = [canon[v] for v in anim[f]]
+    return {p: e for p, e in images.items() if canon[p] == p}, saved
+
+
+SIZE_RAW = 3 * 1024 * 1024
+HERO_BUDGET = 250 * 1024
+WIRE_BUDGET = 100 * 1024
+
+
+def budget(items: list, images: dict, raw: int) -> list:
+    """v3.5 budgets (PLAN 3.8 / 5.2): bundle raw size, heroes (images only <id>.hero items use), wires."""
+    def js(o):
+        return len(json.dumps(o, separators=(",", ":")))
+    hero_paths = {p for i in items if i["id"].endswith(".hero") for p in i["variants"].values()}
+    other = {p for i in items if not i["id"].endswith(".hero") for p in i["variants"].values()}
+    hero = sum(js({p: images[p]}) for p in hero_paths - other)
+    wire = sum(js(i["wire"]) for i in items if i.get("wire"))
+    print(f"budget: bundle {raw / 1024:.0f} KB raw (max {SIZE_RAW // 1024}), heroes {hero / 1024:.0f} KB "
+          f"(max {HERO_BUDGET // 1024}, {len([i for i in items if i['id'].endswith('.hero')])} items), "
+          f"wires {wire / 1024:.0f} KB (max {WIRE_BUDGET // 1024})")
+    errs = []
+    if raw > SIZE_RAW:
+        errs.append(f"art-v3.js {raw} bytes raw > {SIZE_RAW}")
+    if hero > HERO_BUDGET:
+        errs.append(f"heroes {hero / 1024:.0f} KB > {HERO_BUDGET // 1024} KB")
+    if wire > WIRE_BUDGET:
+        errs.append(f"wires {wire / 1024:.0f} KB > {WIRE_BUDGET // 1024} KB")
+    return errs
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=None, help="art source dir under art/ (e.g. room-r3); default: the v3 parts")
@@ -147,6 +218,7 @@ def main() -> None:
         errs = parity.run()
         if errs:
             sys.exit("parity check failed:\n  " + "\n  ".join(errs))
+        run_checks(args.no_gate)
         name = ROLLBACK.get(args.src, "art-v3.prev.js")
         prev = PROTO / name
         if not prev.exists() and (PROTO / "art-v3.js").exists():
@@ -158,7 +230,7 @@ def main() -> None:
         part = json.loads(mf.read_text())
         for it in part["items"]:
             it["part"] = part["part"]
-            if it["kind"] == "hotspot" and not (it.get("target") and it.get("label") and it.get("led")):
+            if it["kind"] == "hotspot" and not it.get("of") and not (it.get("target") and it.get("label") and it.get("led")):
                 sys.exit(f"{it['id']}: hotspot needs target, label and led")
             anim = it.get("anim") or {}
             for p in list(it["variants"].values()) + anim.get("frames", []) + anim.get("night", []):
@@ -183,6 +255,7 @@ def main() -> None:
             print(f"texture gate: {len(errs)} problems, skipped (--no-gate: local preview only)")
         elif errs:
             sys.exit("texture gate failed:\n  " + "\n  ".join(errs))
+    images, saved = dedupe(items, images)
     bundle = {"version": 3, "palette": PAL, "zones": ZONES, "items": items, "images": images}
     if SRC and (SRC / "materials.json").exists():
         bundle["materials"] = json.loads((SRC / "materials.json").read_text())
@@ -191,7 +264,13 @@ def main() -> None:
     out.write_text(f"// GENERATED by art/room-v3/merge.py from {src} output.\nwindow.ROOM_ART = "
                    + json.dumps(bundle, separators=(",", ":")) + ";\n")
     kinds = {k: sum(1 for i in items if i["kind"] == k) for k in ("shell", "hotspot", "decor", "overlay")}
-    print(f"{len(items)} items {kinds}, {len(images)} images, art-v3.js {out.stat().st_size // 1024} KB")
+    print(f"{len(items)} items {kinds}, {len(images)} images, art-v3.js {out.stat().st_size // 1024} KB "
+          f"({saved // 1024} KB of duplicate images stored once)")
+    errs = budget(items, images, out.stat().st_size)
+    if errs and args.no_gate:
+        print("budget: " + "; ".join(errs) + " (skipped: --no-gate)")
+    elif errs:
+        sys.exit("budget gate failed:\n  " + "\n  ".join(errs))
     per_zone = {}
     for i in items:
         if i["kind"] == "decor":
