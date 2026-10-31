@@ -167,7 +167,7 @@ if (mode === 'framing') {
     for (const sn of ['el4', 'el-25']) {
       await open(A, STATES[sn], hash);
       await open(B, STATES[sn], hash);
-      const va = await A.evaluate(VISIBLE), vb = await B.evaluate(VISIBLE);
+      const va = await A.evaluate(`(${VISIBLE})()`), vb = await B.evaluate(`(${VISIBLE})()`);
       const R = { x: Math.max(va.x0, vb.x0) + 2, y: Math.max(va.y0, vb.y0) + 2 };
       R.w = Math.min(va.x1, vb.x1) - 2 - R.x;
       R.h = Math.min(va.y1, vb.y1) - 2 - R.y;
@@ -300,10 +300,10 @@ if (mode === 'hero') {
       const cfg = { id, x: 180, y: 160, dim: 1, selK: 1, halo: true };
       await open(page, STATES[sn] + '&light=albedo', WALLS[wn]);
       const h0 = await page.evaluate(`(${FORCE})(${JSON.stringify(cfg)})`);
-      const alb = await page.evaluate(MEASURE);
+      const alb = await page.evaluate(`(${MEASURE})()`);
       await open(page, STATES[sn], WALLS[wn]);
       await page.evaluate(`(${FORCE})(${JSON.stringify(cfg)})`);
-      const lit = await page.evaluate(MEASURE);
+      const lit = await page.evaluate(`(${MEASURE})()`);
       save(`hero-${wn}-${h0.id}-${sn}`, await grab(page));
       // the same item in the room, not selected (for the "follows the room" ratio)
       const r = { wall: wn, id: h0.id, state: sn, albL: +alb.meanL.toFixed(2), heroL: +lit.meanL.toFixed(2), dL: +(lit.meanL - alb.meanL).toFixed(2), ratioRing: +(lit.meanY / lit.ringY).toFixed(2), hero: lit.stats };
