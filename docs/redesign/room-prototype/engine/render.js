@@ -236,7 +236,7 @@
       d.led = it.led ? [it.led[0] + dx, it.led[1] + dy] : null;
       list.push(d);
     });
-    if (ROOM.glow) ROOM.glow.relicDrawables().forEach(function (d) {
+    if (ROOM.glow && curView !== 'top') ROOM.glow.relicDrawables().forEach(function (d) {
       list.push(d);
     });
     // Layer, then shell plates before objects (a full-height shell plate would otherwise sort last
@@ -462,7 +462,8 @@
       if (opts.marks) {
         if (d.dust) ROOM.fx.drawDust(f, img, dx, dy);
         if (ROOM.fx.drawScreen && d.item.screen) ROOM.fx.drawScreen(f, d, dx, dy);
-        if (ROOM.glow) {
+        if (ROOM.glow && (!f.ls || f.ls.scene !== 'top')) {
+          // A5: embers and glows assume a wall view; the overview has its own light
           if (opts.outline && !wireOn()) ROOM.glow.drawSkillGlow(f, d, img, dx, dy);
           ROOM.glow.drawEmbers(f, d, img, dx, dy);
         }
@@ -471,7 +472,7 @@
       var ls = f.ls || NO_LS;
       if (opts.outline && !wireOn() && d.hotspot && !(d.skill && ROOM.glow) && (d.id === ls.hover || d.id === ls.focus || ls.inspect)) {
         var ring = D.ring(img), col = lightCatColor(d.cat);
-        for (var k = 0; k < ring.length; k += 2) plot(f, dx + ring[k], dy + ring[k + 1], col);
+        for (var k = 0; k < ring.length; k += 2) plotMark(f, dx + ring[k], dy + ring[k + 1], col, markDepth(d));
       }
     }
   }
@@ -780,7 +781,7 @@
     if (ROOM.weather && ls.scene !== 'top') ROOM.weather.draw(f);
     if (marks) {
       if (ROOM.glow) ROOM.glow.post(f, ls, gpu);
-      if (ROOM.fx) ROOM.fx.drawMotes(f);
+      if (ROOM.fx && ls.scene !== 'top') ROOM.fx.drawMotes(f);
       if (ROOM.overlay && !ROOM.state.photo) ROOM.overlay.drawMarks(f, ls);
     }
     var tc = target.ctx;
@@ -1230,6 +1231,13 @@
         if (exact) turnColumns(c, leg, geo, exact, which);
       };
     };
+    // within a hundredth of a degree of either end the exact frame is drawn as it is (no column resampling)
+    var nearEnd = Math.abs(leg.th1 - th) < 2e-4 && t > leg.dur - 32;
+    if (nearEnd || (Math.abs(th) < 2e-4 && !leg.retargeted)) {
+      clearVoid(ctx);
+      ctx.drawImage(nearEnd ? leg.exB.c : leg.exA.c, 0, 0);
+      return;
+    }
     if (t < EDGE_IN && !leg.retargeted) dissolve(paint(null), paint(leg.exA, 0), 1 - t / EDGE_IN, zc, 0, 0);
     else if (t > leg.dur - EDGE_OUT) dissolve(paint(null), paint(leg.exB, leg.steps), Math.min(1, (t - (leg.dur - EDGE_OUT)) / (EDGE_OUT - 32)), zc, 0, 0);
     else paint(null)(ctx);
