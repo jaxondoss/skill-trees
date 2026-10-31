@@ -712,6 +712,12 @@
     angleDiff: angleDiff,
     smoothstep: smoothstep,
     flags: {},
+    /**
+     * v3.5 SELECT light (PLAN R8): reserved light slot 0 (hero, heroI * selK) and slot 1 (hover/focus, I). The
+     * colour is white mixed toward the key colour by tint; lift = art px toward the camera; rimGain on bit6 texels.
+     * heroI is tuned by the light package.
+     */
+    SELECT: { I: 0.35, heroI: 0.9, tint: 0.5, lift: 24, radiusK: 0.9, radiusPad: 6, rimGain: 2 },
   };
 
   if (typeof window !== 'undefined') {

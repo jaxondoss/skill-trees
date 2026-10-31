@@ -139,12 +139,25 @@
     ROOM.emit('data', {});
   };
 
+  /**
+   * v3.5: the item whose state drives this one. Overview twins and hero overlays carry "of" (the room item's id);
+   * their stage, skill, alert and growth come from that room item. Plain room items are their own state item.
+   */
+  ROOM.stateItem = function (it) {
+    return it && it.of ? ROOM.itemById(it.of) || it : it;
+  };
   ROOM.skillOf = function (item) {
+    item = ROOM.stateItem(item);
     var slug = item && item.target && item.target.skill;
     if (!slug) return null;
     var skills = ROOM.data.skills || [];
     for (var i = 0; i < skills.length; i++) if (skills[i].slug === slug) return skills[i];
     return null;
+  };
+  /** The feature an item opens (calendar, overall, relic-left...), read through its state item. */
+  ROOM.featureOf = function (item) {
+    item = ROOM.stateItem(item);
+    return (item && item.target && item.target.feature) || null;
   };
   ROOM.itemsForSkill = function (slug) {
     return ROOM.art.items.filter(function (it) {
@@ -274,6 +287,7 @@
 
   /** Is this item's alert on? Backpack: due within 48 h. Doormat: a review is waiting. */
   ROOM.alertOn = function (item) {
+    item = ROOM.stateItem(item);
     var a = ROOM.alerts();
     if (/doormat/.test(item.id)) return a.doormat;
     if (/backpack/.test(item.id)) return a.backpack;
@@ -282,6 +296,7 @@
 
   /** The score that picks an item's stage: its skill's display score, or the overall score for the statue. */
   ROOM.scoreOf = function (item) {
+    item = ROOM.stateItem(item);
     var sk = ROOM.skillOf(item);
     if (sk) return sk.display;
     if (item.target && item.target.feature === 'overall' && ROOM.data.overall) return ROOM.data.overall.display;
@@ -297,9 +312,14 @@
   ROOM.variantOf = function (item) {
     var v = item.variants || {};
     var st = ROOM.state;
-    if (item.kind === 'overlay') {
+    // v3.5 hero overlays (<id>.hero) float in the skill view only; they never draw in the room.
+    if (/\.hero$/.test(item.id)) return null;
+    // Twins ("of") keep their own variant images but take every state decision from the room item.
+    var own = item;
+    item = ROOM.stateItem(item);
+    if (own.kind === 'overlay') {
       // Panel-only art (the statue close-up) is never drawn in the room.
-      if (/closeup/.test(item.id)) return null;
+      if (/closeup/.test(own.id)) return null;
       // The statue's ceiling downlight is on only after the statue was clicked.
       if (/downlight/.test(item.id)) return st.statueLight && v.base ? 'base' : null;
       if (st.holiday && v[st.holiday]) return st.holiday;
@@ -343,6 +363,7 @@
    * month, medal wall from races finished. Data fields are optional; the linked skill's score stands in.
    */
   ROOM.growthOf = function (item) {
+    item = ROOM.stateItem(item);
     var d = ROOM.data, id = item.id || '', frac = 0;
     function skillFrac(slug) {
       var s = (d.skills || []).filter(function (x) {
@@ -354,6 +375,52 @@
     else if (/money|tree/.test(id)) frac = d.revenue && d.revenue.goal ? d.revenue.month / d.revenue.goal : skillFrac('dropshipping');
     else if (/medal/.test(id)) frac = d.races ? Math.min(1, (d.races.length || d.races) / 6) : skillFrac('running');
     return Math.max(0, Math.min(3, Math.floor(frac * 4)));
+  };
+
+  /* ------------------------------------------------------------------ v3.5 places and heroes */
+  /**
+   * The hero (skill view) art of a room item: {item, img, hero:{anchor, float, rimSide, authored, led}}.
+   * Uses "<id>.hero" with the room item's current variant key (missing key: base); without a hero item, the room
+   * sprite of the current variant (authored false, float false). Null for an unknown id or nothing to draw.
+   */
+  ROOM.heroOf = function (id) {
+    var item = ROOM.itemById(id);
+    if (!item) return null;
+    var key = ROOM.variantOf(item);
+    var h = ROOM.itemById(id + '.hero');
+    var hv = h && h.variants;
+    var img = hv ? hv[key] || hv.base || null : null;
+    var meta = (h && img && h.hero) || {};
+    if (!img) {
+      img = key && item.variants ? item.variants[key] : null;
+      if (!img) return null;
+      meta = {};
+    }
+    var w = item.w || 0, hh = item.h || 0;
+    return {
+      item: item,
+      img: img,
+      hero: {
+        anchor: meta.anchor || [Math.round(item.x + w / 2), item.y + hh],
+        float: !!meta.float,
+        rimSide: meta.rimSide || null,
+        authored: !!meta.authored,
+        led: meta.led || null,
+      },
+    };
+  };
+  /** Which scene the renderers draw: 'top' in the overview, else the current wall view. */
+  ROOM.sceneKey = function () {
+    var p = ROOM.nav && ROOM.nav.place;
+    if (p && p.mode === 'overview') return 'top';
+    return normView(ROOM.state && ROOM.state.view);
+  };
+  /** Where an item lives: {view, zone, feature, calendar} (calendar: the study wall calendar feature). */
+  ROOM.placeOfItem = function (id) {
+    var it = ROOM.stateItem(ROOM.itemById(id));
+    if (!it) return null;
+    var feature = ROOM.featureOf(it);
+    return { view: normView(it.view), zone: it.zone || null, feature: feature, calendar: feature === 'calendar' };
   };
 
   /* ------------------------------------------------------------------ clock (debug can freeze it) */

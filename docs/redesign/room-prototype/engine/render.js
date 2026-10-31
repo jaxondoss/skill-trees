@@ -53,6 +53,7 @@
   /* ------------------------------------------------------------------ palette and LUTs */
   // Index -> packed RGBA for a little-endian Uint32Array view of ImageData (0xAABBGGRR). 255 = clear.
   var RGBA = new Uint32Array(256);
+  var EXPAND = RGBA; // Canvas2D index -> RGBA for unmarked pixels (v3.5 hook; marks always use RGBA)
   var RGB = [];
   ROOM.art.palette.colors.forEach(function (c, i) {
     var h = c[1];
@@ -192,7 +193,7 @@
   /** Pick variants, place the dog, sort by layer, shell first, contact y, item order. */
   function buildScene() {
     var list = [];
-    var curView = ROOM.normView(ROOM.state.view);
+    var curView = ROOM.sceneKey(); // 'top' in the overview (v3.5), else the wall view
     var noRim = noRimTest();
     ROOM.art.items.forEach(function (it, order) {
       if (ROOM.viewOf(it) !== curView) return;
@@ -346,7 +347,7 @@
     }
     if (x0 >= x1 || y0 >= y1) return;
     var H = CAM.CORE_H || 352, hz = CAM.HORIZON || H * 0.4;
-    var objDepth = d.shell ? 0 : Math.max(1, Math.min(254, 1 + Math.round((253 * (d.contact - hz)) / Math.max(1, H - hz))));
+    var objDepth = markDepth(d);
     var base = d.auxFlags | (d.id === hoverId || d.id === focusId ? 64 : 0);
     var m0 = d.mat0;
     for (var y = y0; y < y1; y++) {
@@ -371,6 +372,53 @@
         aux[o + 2] = m;
       }
     }
+  }
+
+  /**
+   * Aux depth (byte 0) of a drawable: shell plates 0, objects their contact row (1..254). Takes a drawable or a
+   * contact row (world y). Engine marks drawn on an item use its depth.
+   */
+  function markDepth(d) {
+    if (d && typeof d === 'object' && d.shell) return 0;
+    var contact = typeof d === 'number' ? d : d.contact;
+    var H = CAM.CORE_H || 352, hz = CAM.HORIZON || H * 0.4;
+    return Math.max(1, Math.min(254, 1 + Math.round((253 * (contact - hz)) / Math.max(1, H - hz))));
+  }
+
+  /**
+   * v3.5: the only writer of engine marks (wires, nodes, LEDs, plates). Buffer coordinates, bounds-checked.
+   * Writes the palette index, aux depth and flags (default bit4 engine mark + bit7 no rim; bit6 is always cleared),
+   * material 0, and sets f.mark so the Canvas2D expansion shows the raw palette colour.
+   */
+  function plotMark(f, x, y, c, depth, flags) {
+    x = Math.round(x);
+    y = Math.round(y);
+    if (x < 0 || y < 0 || x >= f.w || y >= f.h) return;
+    var i = y * f.w + x;
+    f.buf[i] = c;
+    if (f.aux) {
+      var o = i * 3;
+      f.aux[o] = depth == null ? 0 : depth;
+      f.aux[o + 1] = (flags == null ? 16 | 128 : flags) & ~64;
+      f.aux[o + 2] = 0;
+    }
+    if (f.mark) f.mark[i] = 1;
+  }
+
+  /* v3.5 mark passes (wire, overview heading): run after drawItems, before weather, in registration order. */
+  var markPasses = [];
+  function addMarkPass(name, fn) {
+    for (var i = 0; i < markPasses.length; i++) {
+      if (markPasses[i].name === name) {
+        markPasses[i].fn = fn;
+        return;
+      }
+    }
+    markPasses.push({ name: name, fn: fn });
+  }
+  /** v3.5 wire.js replaces the skill glow and the feature ring once it is active (PLAN R16). */
+  function wireOn() {
+    return !!(ROOM.wire && ROOM.wire.active);
   }
 
   /** Write one palette index at buffer coordinates (bounds-checked). Used by the engine marks. */
@@ -441,13 +489,13 @@
         if (d.dust) ROOM.fx.drawDust(f, img, dx, dy);
         if (ROOM.fx.drawScreen && d.item.screen) ROOM.fx.drawScreen(f, d, dx, dy);
         if (ROOM.glow) {
-          if (opts.outline) ROOM.glow.drawSkillGlow(f, d, img, dx, dy);
+          if (opts.outline && !wireOn()) ROOM.glow.drawSkillGlow(f, d, img, dx, dy);
           ROOM.glow.drawEmbers(f, d, img, dx, dy);
           ROOM.glow.drawSpotRing(f, d, img, dx, dy);
         }
         if (d.led && d.hotspot) ROOM.fx.drawLed(f, d, d.led[0] + f.offs[d.layer] - f.x0, d.led[1] - f.y0);
       }
-      if (opts.outline && d.hotspot && !(d.skill && ROOM.glow) && (d.id === hoverId || d.id === focusId || ROOM.state.inspect)) {
+      if (opts.outline && !wireOn() && d.hotspot && !(d.skill && ROOM.glow) && (d.id === hoverId || d.id === focusId || ROOM.state.inspect)) {
         var ring = D.ring(img), col = lightCatColor(d.cat);
         for (var k = 0; k < ring.length; k += 2) plot(f, dx + ring[k], dy + ring[k + 1], col);
       }
@@ -579,8 +627,36 @@
     return ROOM.state.zone ? ROOM.zoneById(ROOM.state.zone) : null;
   }
 
+  /**
+   * v3.5 LightState from the legacy globals (PLAN 2.4). nav.js replaces this with its own tweened state; every
+   * renderer reads ls instead of ROOM.state.zone, dimOn or the hover id.
+   */
+  function legacyLs() {
+    var zone = ROOM.state.zone || null;
+    return {
+      scene: ROOM.sceneKey(),
+      zone: zone,
+      focusK: zone ? 1 : 0,
+      dimK: dimOn ? 1 : 0,
+      poolK: zone ? 1 : 0,
+      hover: hoverId,
+      focus: focusId,
+      inspect: !!ROOM.state.inspect,
+      skill: null,
+      statueLight: !!ROOM.state.statueLight,
+      snap: false,
+    };
+  }
+  function currentLs() {
+    return ROOM.nav && typeof ROOM.nav.ls === 'function' ? ROOM.nav.ls() : legacyLs();
+  }
+
   /** The camera at rest for the current state (zone view, room view, or the phone pan position). */
   function restCamera() {
+    if (ROOM.sceneKey() === 'top' && ROOM.overview && ROOM.overview.camera) {
+      var oc = ROOM.overview.camera(view.Wd, view.Hd, view.dpr, CAM.roomCamera(view, pan.x).z);
+      if (oc) return oc;
+    }
     var z = zoneObj();
     if (z) return CAM.zoneCamera(view, z.focus);
     var cam = CAM.roomCamera(view, pan.x);
@@ -594,15 +670,22 @@
   }
 
   /* ------------------------------------------------------------------ rest frame */
-  var fb = null, fbAux = null, fbW = 0, fbH = 0, fbCanvas = null, fbCtx = null, fbImage = null, fbU32 = null;
+  var fb = null, fbAux = null, fbMark = null, fbW = 0, fbH = 0, fbA = 0;
+  var fbCanvas = null, fbCtx = null, fbImage = null, fbU32 = null;
   var lastRest = null;
 
+  // Buffers hold w x (h + atlas rows): the skill view's hero atlas sits below the room rows (f.h stays the room).
   function ensureFb(w, h) {
-    if (w === fbW && h === fbH && fb) return;
+    var A = ROOM.skill && ROOM.skill.atlasRows ? ROOM.skill.atlasRows() | 0 : 0;
+    if (w === fbW && h === fbH && A === fbA && fb) return;
+    var sameCanvas = w === fbW && h === fbH && fbCanvas;
     fbW = w;
     fbH = h;
-    fb = new Uint8Array(w * h);
-    fbAux = new Uint8Array(w * h * 3);
+    fbA = A;
+    fb = new Uint8Array(w * (h + A));
+    fbAux = new Uint8Array(w * (h + A) * 3);
+    fbMark = new Uint8Array(w * (h + A));
+    if (sameCanvas) return;
     fbCanvas = fbCanvas || document.createElement('canvas');
     fbCanvas.width = w;
     fbCanvas.height = h;
@@ -669,15 +752,20 @@
    * Draw the room at rest into target {ctx, W, H} (device px) for camera cam with device origin org.
    * The main canvas uses this every frame; the pan draws each view's full master with it once.
    */
-  function drawFrame(now, cam, org, target, marks) {
+  function drawFrame(now, cam, org, target, marks, ls) {
+    ls = ls || currentLs();
     var z = cam.z;
     var x0 = Math.floor(org.ox / z), y0 = Math.floor(org.oy / z);
     ensureFb(Math.ceil(target.W / z) + 1, Math.ceil(target.H / z) + 1);
     fb.fill(C.VOID); // beyond the painted art is VOID
     fbAux.fill(0);
+    fbMark.fill(0);
     var offs = marks ? offsetsFor(z) : ZERO;
     var inZone = !!ROOM.state.zone;
-    var f = { buf: fb, aux: fbAux, w: fbW, h: fbH, x0: x0, y0: y0, offs: offs, now: now, lutA: light.from, lutB: light.to, step: light.step, z: z, cam: cam, org: org };
+    var f = {
+      buf: fb, aux: fbAux, mark: fbMark, w: fbW, h: fbH, x0: x0, y0: y0, offs: offs, now: now,
+      lutA: light.from, lutB: light.to, step: light.step, z: z, cam: cam, org: org, atlas: null,
+    };
     drawItems(
       f,
       function (d) {
@@ -685,6 +773,8 @@
       },
       { marks: marks, outline: marks }
     );
+    for (var mp = 0; mp < markPasses.length; mp++) markPasses[mp].fn(f, ls, now);
+    var sk = ROOM.skill && ROOM.skill.frame ? ROOM.skill.frame(f, ls, now) : null;
     if (ROOM.weather) ROOM.weather.draw(f);
     if (marks) {
       if (ROOM.glow) ROOM.glow.post(f, dimOn && !gpuOn());
@@ -697,17 +787,27 @@
     if (gpuOn()) {
       ROOM.gl.setView(ROOM.normView(ROOM.state.view), (ROOM.viewConf(ROOM.state.view) || {}).lighting || null);
       f.sceneVersion = sceneVersion;
-      lit = ROOM.gl.frame(f, gpuOpts(now));
+      var go = gpuOpts(now);
+      if (sk) {
+        go.hero = sk.hero || null;
+        go.halo = sk.halo || null;
+        go.atlas = f.atlas;
+      }
+      lit = ROOM.gl.frame(f, go);
       if (!lit && !ROOM.gl.lost && ROOM.gl.tier === 'off') gpuReady = false;
     }
     if (lit) {
       tc.drawImage(lit, 0, 0, fbW * z, fbH * z, x0 * z - org.ox, y0 * z - org.oy, fbW * z, fbH * z);
     } else {
       // Expand indices to RGBA and draw once at z, then the Canvas2D light (the v3.3 path).
-      for (var i = 0; i < fb.length; i++) fbU32[i] = RGBA[fb[i]];
+      // Marked pixels (f.mark) always take the raw palette colour; EXPAND is the hook for a room-wide remap.
+      var n = fbW * fbH, ex = EXPAND;
+      for (var i = 0; i < n; i++) fbU32[i] = fbMark[i] ? RGBA[fb[i]] : ex[fb[i]];
       fbCtx.putImageData(fbImage, 0, 0);
       tc.drawImage(fbCanvas, x0 * z - org.ox, y0 * z - org.oy, fbW * z, fbH * z);
-      drawLight({ z: z, tx: -org.ox, ty: -org.oy }, now, dimOn, target);
+      var tr = { z: z, tx: -org.ox, ty: -org.oy };
+      drawLight(tr, now, dimOn, target);
+      if (ROOM.skill && ROOM.skill.drawCanvas2D) ROOM.skill.drawCanvas2D(tc, f, tr, now, ls);
     }
     return { offs: offs, x0: x0, y0: y0, gpu: !!lit };
   }
@@ -1384,6 +1484,15 @@
     RGBA: RGBA,
     LUT: LUT,
     plot: plot,
+    // v3.5 seams (PLAN 2.4)
+    blit: blit,
+    blitAux: blitAux,
+    plotMark: plotMark,
+    markDepth: markDepth,
+    drawLight: drawLight,
+    addMarkPass: addMarkPass,
+    ls: currentLs,
+    legacyLs: legacyLs,
     lightCatColor: lightCatColor,
     cssRectOf: cssRectOf,
     worldFromCss: worldFromCss,

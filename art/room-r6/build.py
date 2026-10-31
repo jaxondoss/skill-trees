@@ -4254,17 +4254,24 @@ def export_live():
     for v in VIEW_IDS:
         res[v] = export_view(v, manifest)
         print(f"  view {v}: {sum(1 for r in manifest if r.get('view') == v)} items")
+    zone_light = {}
+    for v in res:
+        zone_light.update(res[v][1])
+    zones = make_zones(manifest, res, zone_light)
+    # v3.5 overview hook (PLAN 2.6): art/room-r6/overview.py, when present, appends the top.* items to the manifest
+    # and writes zones["views"]["top"]. It gets this module as B.
+    if os.path.exists(os.path.join(HERE, "overview.py")):
+        sys.path.insert(0, HERE)
+        import overview  # noqa: E402
+        overview.export(sys.modules[__name__], manifest, zones)
     ids = [r["id"] for r in manifest]
     dup = {i for i in ids if ids.count(i) > 1}
     if dup:
         raise SystemExit(f"duplicate ids: {sorted(dup)}")
     with open(os.path.join(HERE, "manifest.json"), "w") as f:
         json.dump({"part": "room-r6", "items": manifest}, f, indent=1)
-    zone_light = {}
-    for v in res:
-        zone_light.update(res[v][1])
     with open(os.path.join(HERE, "zones.json"), "w") as f:
-        json.dump(make_zones(manifest, res, zone_light), f, indent=1)
+        json.dump(zones, f, indent=1)
     write_live_palette()
     kinds = {}
     for r in manifest:

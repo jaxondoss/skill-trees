@@ -1,5 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { resetUser, signIn, sql } from "./helpers";
+import { openRoom, roomState, settled } from "./room-helpers";
 import { USER_ID } from "./stack/config.mjs";
 
 // The v3 room at / (spec docs/SPEC-v3-room.md), on a laptop screen.
@@ -7,17 +8,6 @@ test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: fa
 
 const ZONES = ["kitchen", "bed", "library", "window", "study", "computer", "gym"];
 
-async function openRoom(page: Page, path = "/") {
-  await page.goto(path);
-  await page.waitForFunction(() => Boolean((window as unknown as { ROOM?: { debug?: unknown } }).ROOM?.debug));
-}
-// Hotspots are switched off while the camera moves (dolly or pan); wait for it to land before clicking one.
-const settled = (page: Page) =>
-  page.waitForFunction(() => {
-    const r = (window as unknown as { ROOM: { render: { dolly: unknown; turning: boolean } } }).ROOM.render;
-    return !r.dolly && !r.turning;
-  });
-const roomState = (page: Page) => page.evaluate(() => (window as unknown as { ROOM: { state: Record<string, unknown> } }).ROOM.state);
 
 test.beforeEach(async ({ page }) => {
   resetUser();

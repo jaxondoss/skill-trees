@@ -18,7 +18,10 @@ export default defineConfig({
   webServer: {
     command: "bash scripts/e2e-stack.sh",
     url: `http://localhost:${PORT}/login`,
-    reuseExistingServer: true,
+    // Reuse a running stack only on request: another checkout's server would otherwise be picked up silently.
+    reuseExistingServer: process.env.E2E_REUSE === "1",
     timeout: 180_000,
+    // Let scripts/e2e-stack.sh stop Postgres and its children (a SIGKILL leaks them).
+    gracefulShutdown: { signal: "SIGTERM", timeout: 10_000 },
   },
 });

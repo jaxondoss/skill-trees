@@ -16,6 +16,7 @@ cleanup() {
   pg_stop
 }
 trap cleanup EXIT
+trap 'exit 143' INT TERM # a signal runs the EXIT trap (stops Postgres and the children)
 
 if [[ ! -x "$POSTGREST" ]]; then
   echo "downloading PostgREST $POSTGREST_VERSION"
@@ -60,9 +61,12 @@ export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$(cfg ANON_KEY)"
 export FORGE_OWNER_EMAIL="$(cfg USER_EMAIL)"
 export FORGE_OWNER_PASSWORD="$(cfg OWNER_PASSWORD)"
 cd "$ROOT"
+# The server runs in the background and the shell waits on it, so INT/TERM reach the trap at once.
 if [[ "${E2E_MODE:-dev}" == "start" ]]; then
   pnpm exec next build >/dev/null
-  pnpm exec next start -p "$(cfg APP_PORT)"
+  pnpm exec next start -p "$(cfg APP_PORT)" &
 else
-  pnpm exec next dev -p "$(cfg APP_PORT)"
+  pnpm exec next dev -p "$(cfg APP_PORT)" &
 fi
+PIDS+=($!)
+wait "$!"

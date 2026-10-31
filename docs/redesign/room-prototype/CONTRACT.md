@@ -98,3 +98,117 @@ engine/fx.js, ui/sound.js, ui/strip.js, ui/today.js, ui/panel.js, ui/drawer.js, 
   (1-7, arrows, Enter, Esc, Tab, Shift hold, T, P, ?, D for drawer) and routing (`#/room`, `#/room/<zone>`).
   The ui agent owns: corner strip (score, today %, streak), TODAY button, mute, phone magnifier button,
   Today HUD, pixel panel, demo drawer, help sheet, sound.
+
+## v3.5 contracts
+
+Copied from the v3.5 implementation plan (sections 2.4 to 2.6), landed with the W0 seams. P/ is
+docs/redesign/room-prototype/, A/ is art/room-r6/. Owners in brackets; W0 landed stubs with these names (nav.js,
+skill.js, overview.js, wire.js are inert until their packages replace them).
+
+### 4 Shared runtime contracts (owner in brackets)
+
+**LightState `ls`** [P1 defines; W0 lands a legacy builder]. Navigation light state, NOT light.js's sun state `st`:
+`{scene:'front'|'right'|'back'|'left'|'top', zone:id|null, focusK, dimK, poolK (0..1 floats), hover:id|null,
+focus:id|null, inspect:bool, skill:id|null, statueLight:bool, snap:bool /* true inside snapshots: grain frozen, hover null */}`.
+`ROOM.nav.ls()` returns the current one. Every renderer reads `ls`, never `ROOM.state.zone`/dimOn/hoverId.
+
+**core.js** [W0, then P1]:
+- `ROOM.stateItem(it)` -> `it.of ? ROOM.itemById(it.of) : it`; `variantOf`, `skillOf`, `featureOf`, `alertOn`, `scoreOf`,
+  `growthOf` read through it.
+- `ROOM.variantOf(it)` returns null for ids matching `/\.hero$/` (like `/closeup/`): heroes never draw in the room.
+- `ROOM.heroOf(id) -> {item, img:imageId, hero:{anchor, float, rimSide, authored}}`: `<id>.hero` with the room item's
+  current variant key (missing key -> `base`); fallback = the room sprite of the current variant, `authored:false`,
+  `float:false`.
+- `ROOM.sceneKey()` -> `'top'` when `ROOM.nav.place.mode === 'overview'`, else `normView(ROOM.state.view)`.
+- `ROOM.placeOfItem(id) -> {view, zone, feature}` (zone from item.zone; `calendar` feature flagged).
+- `ROOM.VIEWS` stays 4. strip.js `K.itemForSkill/itemForFeature` skip items with `of` or id `/\.hero$/` (W0).
+
+**render.js exports** [W0 lands, P1 owns]: `ROOM.render.{blit, blitAux, plotMark, markDepth, drawLight, addMarkPass,
+drawables, snap, ls}`.
+- `plotMark(f, x, y, paletteIndex, depth, flags = 16|128)`: writes `f.buf`, aux (depth, flags, material 0), clears bit6,
+  sets `f.mark[i] = 1`. The only writer of engine marks.
+- `markDepth(d)`: contact-row depth (factored from blitAux).
+- `addMarkPass(name, fn(f, ls, now))`: passes run after drawItems, before weather.draw, in registration order
+  (`wire` P5, `heading` P4). Also run inside snapshots.
+- `snap(place, ls, rectWorld, zS) -> {canvas, rect, z}` [P1].
+- Frame `f`: `{buf, aux, mark, w, h, x0, y0, z, now, cam, org, atlas:{y, w, h, off:[dx,dy]}|null}`; `f.h` = room rows;
+  buffers are `w x (h + atlasRows)`.
+
+**Aux flag bits** (unchanged, INTERFACES 5): bit0 emissive, bit1 floor, bit2 floor seam, bit3 glass/sky, bit4 engine
+mark (lit = albedo*1.15, never dimmed), bit5 leaf, bit6 hovered/focused hotspot OR hero texel (SELECT light applies),
+bit7 no rim. Atlas texels are identified by row (`y >= f.h`), not a bit. Material 31 = "no cast" (R24, optional).
+
+**gl.js** [P2]: `ROOM.gl.frame(f, opts)`; all new fields optional, absent = today's behaviour (except D4 3.3 changes):
+```
+opts = { dim: 0..1, focus: {rect:{x,y,w,h}, k} | null, hover: rect|null, pools, statueBurst, flash, state,
+         atlas: f.atlas | null,
+         hero: {x, y, k, K /* heroK dissolve 0..1 */, selK} | null,      // device px, integers
+         halo: {cx, cy, r, k, pool:{cx,cy,rx,ry}, shadow:{cx,cy,rx,ry}} | null }  // world px
+```
+Removed: `opts.spot`, `opts.regions`, `focusAnim`. `ROOM.gl.setView('top', zones.views.top.lighting)` works like any view.
+Reserved slots R7. `ROOM.emit('gltier', {tier})`. Tier steps only when `!ROOM.nav.busy` on a rest frame.
+Pure helper exported for vitest: `ROOM.gl.selectLights(lights, artRect, reserved) -> array` (module.exports in a tiny
+`gl-lights.js` section is acceptable only if P2 splits it; otherwise test via Playwright).
+
+**nav.js** [P1]: `ROOM.nav = {place, target, busy, ls(), request(place, opts{history, instant, source, opener}),
+up(), down(), back(), heading(dir), whenIdle()}`; events `'nav' {phase:'start'|'land'|'cancel', from, to, kind}`,
+`'overview' {on, ret}` (at land/leave), legacy `'zone'`/`'view'` at land. Wrappers: `ROOM.go/turn/turnTo` (3 lines
+each), `ROOM.feature.busy = () => ROOM.nav.busy`, `ROOM.render.dolly/turning` getters for one release.
+`nav.busy` true while a move runs, a request is queued, an ls tween or hero leg runs, or onLand is pending.
+
+**skill.js** [P3] (D1 4): `ROOM.skill = {open(id, {opener, source:'click'|'board'|'overview'|'route', instant}) -> bool,
+close({instant, restoreFocus=true}), isOpen(), current(), rectCss(), layout({vw,vh,dpr,board,sheetTop,heroW,heroH,
+zRoom,zZone}) -> {x,y,k} (pure, module.exports), heroState(now) -> {rectDev:{x,y,w,h}, k, heroK, selK, id, variant} | null,
+backdropCamera(place, from), atlasRows() -> int, frame(f, ls, now) -> {hero, halo} | null, drawCanvas2D(ctx, f, tr, now, ls),
+lift(id, {fromRectDev, instant, source}) -> ms, drop({instant}) -> ms, swap(id) -> ms, cancel('reverse'|'snap'), busy()}`.
+`open/close` are façades over `ROOM.nav.request` / `ROOM.nav.back`; nav calls the legs. Event `'skill' {id, phase:
+'lift'|'shown'|'drop'|'closed'}`. `ROOM.debug.state.skill`. skill.js opens the board itself at LIFT u = 0.66 (laptop)
+or u = 0 (phone) via `ROOM.ui.open(id, {side:'right', hero:true, opener})`.
+
+**overview.js** [P4] (D2 3): `ROOM.overview = {camera(vw, vh, dpr, zRoom) -> {z, ox, oy}, snapshot(ls) -> {canvas, z, rect}
+(wrapper over render.snap with scene 'top'), anchor(place) -> {x,y,w,h} (overview art px), placeAt(xCss, yCss) -> Place|null,
+heading /* getter = nav.place.ret.view */, toggleList(), onEnter(), onLeave()}`; registers mark pass `'heading'`
+(only when `ls.scene === 'top'`). DOM: `#overview-list button[data-of]` rows, hint and LIST plates; CSS `P/ui/overview.css`.
+Hotspot buttons are built by overlay.js from scene-'top' drawables: `.hs[data-id="top.<roomId>"][data-of="<roomId>"]`.
+
+**wire.js** [P5] (D3 3): `ROOM.wire = {active:true, data(item, variantKey) -> {hull, nodes, cage|null, cageNodes|null},
+styleOf(id, ls) -> {kind:'wire'|'hot'|'cage'|'socket'|null, line, node, ink, breathe, dash, bit4}, draw(f, id, style)}`,
+`ROOM.markStateOf(slug) -> 'off'|'pending'|'top'|'half'|'full'|'neglect'|null`, `D.wire(img)` runtime fallback in
+decode.js, mark pass `'wire'`. Styles `'rest'|'hot'|'cage'|'socket'` (`'hover'` alias = cage-or-hot by gate).
+Overview items: rest/hot only.
+
+**light.js** [W0 creates, P2 owns]: `ROOM.light.SELECT` (R8).
+
+### 5 overlay.js duties for the new places [P1 implements]
+- `activate(d)`: `ROOM.nav.request(skillPlaceOf(d.item.of || d.item.id), {source, opener})`; calendar feature -> zone
+  calendar. Touch on a wall: zone first.
+- In overview (`ls.scene === 'top'`): buttons for `top.*` hotspots only (decor never), min 44x44 CSS for all pointers,
+  touch enabled, ties = nearest centre, smaller box on top; aria-label `"<Label>, <stage or state>"` via
+  `ROOM.markStateOf`; chevrons and zone dots hidden; title "OVERVIEW"; `nav` landmark "Room overview" on the button layer.
+- `#nav-up` (44x44, pixel chevron up/down like turn chevrons, in photo-mode hide list), chevrons/dots/nav-up call nav.
+- `drawMarks` plates go through `plotMark`.
+
+### 6 Bundle data formats [producers P6/P4; consumers P3/P4/P5]
+- **Hero items** (P6): `{id:'<id>.hero', kind:'overlay', of:'<id>', view, zone, layer:6, x, y, w, h,
+  variants:{<key>: imageId} /* subset of the room item's keys */, hero:{anchor:[x,y] /* world px, default room bbox
+  bottom-centre */, float:bool, rimSide:'left'|'right'|null, authored:bool, led:[x,y]|null /* hero-local */}}` +
+  `.mat.png` sidecars. NO `target`, NO `hit`. Authored (v3.5): library.bookshelf READING stack (54x47; s0/s1/s2 =
+  3/5/7 books, ribbon at s2), bed alarm clock (~34x26), visualization plasma globe (~30x34), food bowl (~42x30),
+  meditation cushion + candle (~50x30). All other hotspots: isolate export (complete, un-occluded).
+- **Overview items** (P4): hotspot twins `{id:'top.<roomId>', kind:'hotspot', view:'top', of:'<roomId>', zone, layer,
+  x, y, w, h, variants (same keys as the room item), hit, led?, screen?, wire?}`, never `target`/`label` (label comes
+  from the twin). Decor `top.<decorId>` kind `deco`; shell `shell.top-*` (base + night); `.mat.png` sidecars.
+- **zones.views.top** (P4): `{art:{x,y,w,h}, core:[x0,y0,x1,y1], lighting:{same schema as views.<v>.lighting:
+  floor, ambient, facing:null, yaw:null, window:{rect:null}, key:{centre, radius, mullions}, lights:[{id:'top-N',
+  type:'point', pos:[x,y], rgb, intensity, radius, when}], lightsNight, materials, noRim:['top.*']}, light:{day, night}
+  (Canvas2D glows), anchors:{front|right|back|left|<zoneId>: [x,y,w,h]}, territory:[{zone, poly:[[x,y],...]}]}`.
+  `ROOM.VIEWS` never includes 'top'.
+- **item.wire** (P6 for room hotspots, P4 for `top.*`): `wire:{<variantKey>: {hull:[x,y,...], nodes:[x,y,x,y,x,y,x,y],
+  cage:[x,y,...]|null, cageNodes:[x,y,...]|null, gate:{over:[l,t,r,b], under:[l,t,r,b]}}}`; flat int arrays of art px
+  RELATIVE to the item's x,y, occlusion already removed; keys only for silhouette-changing variants, else `base`.
+- **Box table** (P6, build-internal): `B.box_table() -> {id: {view, kind:'box3d'|'card'|'anchors'|'billboard',
+  world:[X0,Y0,Z0,X1,Y1,Z1] ft, src:'exact'|'fitted'|'BOUNDS'}}`; dumped to `A/boxes.json` (generated, ignored by merge).
+  Until P6-M1 lands, P4 uses `S/u4/r6b/dump/hotspots.json` (same fields).
+- Build hook (W0): `export_live()` calls `overview.export(B, manifest, zones)` when `A/overview.py` exists
+  (`B` = the build module, `sys.modules[__name__]`). merge.py runs every `A/*_check.py` with a `run(items, zones) -> errs` (P6-M1), so
+  P4's `A/overview_check.py` needs no merge.py edit.
