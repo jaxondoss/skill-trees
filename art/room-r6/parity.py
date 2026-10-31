@@ -72,6 +72,53 @@ def check_v35(items) -> list:
         h = it.get("hero") or {}
         if not (isinstance(h.get("anchor"), list) and len(h["anchor"]) == 2 and "float" in h and "authored" in h):
             errs.append(f"{it['id']}: hero meta needs anchor, float, authored")
+        if h.get("authored"):
+            errs += check_authored(it)
+    return errs
+
+
+INK_RGB = (0x14, 0x15, 0x17)
+
+
+def check_authored(it) -> list:
+    """Authored hero art (PLAN 3.8 step 3): long side 24..140 art px, no interior holes, a 1 px INK silhouette.
+    (Palette-only and alpha 0/255 are merge.py's encode rules for every sprite.)"""
+    import numpy as np
+    from PIL import Image
+    errs = []
+    for k, rel in sorted(set((k, v) for k, v in it["variants"].items())):
+        a = np.array(Image.open(PROTO / rel).convert("RGBA"))
+        op = a[..., 3] == 255
+        ys, xs = np.nonzero(op)
+        if not len(xs):
+            errs.append(f"{it['id']} {k}: empty")
+            continue
+        long_side = max(xs.max() - xs.min() + 1, ys.max() - ys.min() + 1)
+        if not 24 <= long_side <= 140:
+            errs.append(f"{it['id']} {k}: long side {long_side} outside 24..140")
+        # interior holes: transparent pixels not 4-connected to the border
+        out = np.pad(~op, 1, constant_values=True)
+        reach = np.zeros_like(out)
+        reach[0, :] = reach[-1, :] = reach[:, 0] = reach[:, -1] = True
+        while True:
+            g = reach.copy()
+            g[1:, :] |= reach[:-1, :]
+            g[:-1, :] |= reach[1:, :]
+            g[:, 1:] |= reach[:, :-1]
+            g[:, :-1] |= reach[:, 1:]
+            g &= out
+            if (g == reach).all():
+                break
+            reach = g
+        holes = int((out & ~reach).sum())
+        if holes:
+            errs.append(f"{it['id']} {k}: {holes} interior hole pixels")
+        p = np.pad(op, 1, constant_values=False)
+        edge = op & ~(p[:-2, 1:-1] & p[2:, 1:-1] & p[1:-1, :-2] & p[1:-1, 2:])
+        ink = (a[..., 0] == INK_RGB[0]) & (a[..., 1] == INK_RGB[1]) & (a[..., 2] == INK_RGB[2])
+        bad = int((edge & ~ink).sum())
+        if bad:
+            errs.append(f"{it['id']} {k}: {bad} silhouette pixels are not INK")
     return errs
 
 
