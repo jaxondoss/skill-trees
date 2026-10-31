@@ -4,7 +4,6 @@ import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 
 const require = createRequire(import.meta.url);
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const G = require("../../docs/redesign/room-prototype/engine/gl.js");
 
 type L = { id: string; bb: number[]; sk: number };

@@ -34,6 +34,7 @@ const OUT = path.resolve(opt('out', 'room-v35-light-out'));
 const TIER = opt('tier', 'high');
 const EXTRA = opt('q', '');
 const ONLY = opt('only', '');
+const BASE = opt('base', ''); // stills: also render this prototype dir and report the mean abs diff
 fs.mkdirSync(OUT, { recursive: true });
 
 const WALLS = { front: '#/room', right: '#/room/right', back: '#/room/back', left: '#/room/left' };
@@ -85,8 +86,8 @@ async function newPage(w, h) {
   });
   return page;
 }
-async function open(page, q, hash) {
-  const url = `file://${ROOT}/index.html?gltier=${TIER}&p=85&seed=1&weather=clear&${q}${EXTRA ? '&' + EXTRA : ''}${hash}`;
+async function open(page, q, hash, root = ROOT) {
+  const url = `file://${root}/index.html?gltier=${TIER}&p=85&seed=1&weather=clear&${q}${EXTRA ? '&' + EXTRA : ''}${hash}`;
   await page.goto(url);
   await page.waitForFunction(() => window.ROOM && window.ROOM.debug && window.ROOM.render && window.ROOM.render.view, null, { timeout: 60000 });
   await page.evaluate(() => {
@@ -147,7 +148,15 @@ if (mode === 'stills') {
       await open(page, q, hash);
       const fr = await grab(page);
       save(`${wn}-${sn}`, fr);
-      report.results.push({ wall: wn, state: sn });
+      const r = { wall: wn, state: sn };
+      if (BASE) {
+        await open(page, q, hash, BASE);
+        const fb = await grab(page);
+        save(`${wn}-${sn}-base`, fb);
+        r.vsBase = meanAbs(fr.data, fb.data);
+      }
+      report.results.push(r);
+      console.log(JSON.stringify(r));
     }
   }
 }
@@ -193,7 +202,6 @@ if (mode === 'framing') {
   const before = await A.evaluate(() => window.ROOM.gl.stats().lightIds);
   const hov = await A.evaluate(() => {
     const ROOM = window.ROOM, d = ROOM.render.drawables.find((x) => x.hotspot && x.item.hit);
-    ROOM.render.setHover ? ROOM.render.setHover(d.id) : null;
     const g = ROOM.gl.frame;
     ROOM.gl.frame = (f, o) => g(f, Object.assign(o, { hover: { x: d.item.hit[0], y: d.item.hit[1], w: d.item.hit[2], h: d.item.hit[3] } }));
     ROOM.debug.advance(16);

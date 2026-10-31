@@ -18,6 +18,12 @@
  *   P5 grade    filmic shoulder, two generated 3D LUTs blended by keyframe, completion saturation and warmth,
  *               zone focus, vignette, engine-mark bypass, Bayer dither at world px (or retro palette snap)
  *   P6 output   nearest upscale to device px, bloom and grain (per world px) added
+ *   P7 hero     v3.5 skill view: the hero's atlas rows (lit in P1..P5 with the room, at their world anchor) drawn
+ *               at an integer zoom k at the hero's device rect, Bayer dissolve, grain per art texel
+ *
+ * v3.5 (PLAN 2.4, D4 3.3): every lighting term is framing independent: data lights are chosen from the whole view,
+ * masks are built over the view's art rect, vignette and bounce are anchored to the view; dim and focus are values
+ * (opts.dim, opts.focus.k) the navigation tweens, never state kept here.
  *
  * Coordinates: every world-res texture stores world row y at texel row y (y down); only P6 flips to the canvas.
  * Respects ROOM.state.reducedMotion: no flicker, no grain motion, no dust. No light strobes faster than 3 Hz.
@@ -206,13 +212,15 @@
     // light sits lift px toward the camera, so the falloff over the object is gentle (no hot spot).
     'vec3 selectAt(int s, vec2 p){ vec4 P = uLP[s]; vec4 C = uLC[s]; if (C.a < -0.5 || s >= uN) return vec3(0.0);',
     '  vec2 d = p - P.xy; float a = clamp(1.0 - (dot(d, d) + P.w * P.w) / max(P.z * P.z, 1.0), 0.0, 1.0); return C.rgb * a * a; }',
-    'vec3 auxAt(ivec2 q){ q = clamp(q, ivec2(0), uSize - 1); return floor(texelFetch(uAux, q, 0).rgb * 255.0 + 0.5); }',
-    'float lumAt(ivec2 q){ q = clamp(q, ivec2(0), uSize - 1); int i = int(texelFetch(uIndex, q, 0).r * 255.0 + 0.5); return lum(s2l(texelFetch(uPal, ivec2(i, 0), 0).rgb)); }',
+    'ivec2 gHi;', // neighbour clamp: room texels never read the atlas rows, atlas texels read their own rows
+    'vec3 auxAt(ivec2 q){ q = clamp(q, ivec2(0), gHi); return floor(texelFetch(uAux, q, 0).rgb * 255.0 + 0.5); }',
+    'float lumAt(ivec2 q){ q = clamp(q, ivec2(0), gHi); int i = int(texelFetch(uIndex, q, 0).r * 255.0 + 0.5); return lum(s2l(texelFetch(uPal, ivec2(i, 0), 0).rgb)); }',
     // 1 when the neighbour q is further back than depth dB (or is sky / window glass): a lit edge.
     'float edgeTo(ivec2 q, float dB){ vec3 a = auxAt(q); int f = int(a.g); if ((f & 8) != 0) return 1.0; if (a.b > 29.5 && a.b < 30.5) return 1.0; return (a.r < 254.5 && a.r + 2.0 < dB) ? 1.0 : 0.0; }',
     'void main(){',
     '  ivec2 ip = ivec2(gl_FragCoord.xy);',
     '  bool atl = isAtlas(ip);',
+    '  gHi = atl ? uSize - 1 : ivec2(uSize.x - 1, min(uSize.y, uRoomH) - 1);',
     '  vec2 p = worldOf(ip);',
     '  int idx = int(texelFetch(uIndex, ip, 0).r * 255.0 + 0.5);',
     '  vec3 ax = floor(texelFetch(uAux, ip, 0).rgb * 255.0 + 0.5);',
