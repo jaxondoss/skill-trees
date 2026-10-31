@@ -4047,8 +4047,11 @@ def drift_sprites(tod):
 # item that opens a board, a stand-alone hero (<id>.hero overlay) re-exported from an isolate render: the object's
 # own pixels, textured and outlined as in the room, with nothing in front of it.
 # Hand-tightened boxes (world ft [X0, Y0, Z0, X1, Y1, Z1]) for billboard hotspots whose fitted box is loose; an entry
-# here replaces the fitted box (src 'BOUNDS'). Filled from the measured fits (see boxes.json and the gate numbers).
-BOUNDS = {}
+# here replaces the fitted box (src 'BOUNDS'). Solved per item: near face = the sprite at its floor contact, depth grown
+# until the cage gate fails. Only the bike is promoted: a thin frame really is ~0.4 ft deep. The chess table, cushion,
+# gut plant and bookcase would need 0.25..0.35 ft slabs (the bookcase's exact box is 1.2 ft deep) to pass: a cage
+# that lies about the object, so they keep the hot wire (D3 2.1.3 fallback).
+BOUNDS = {"gym.bike": [13.05, 0.0, -12.04, 13.45, 3.38, -7.16]}
 # wire shape per hotspot: 'hull' (default, the orthogonal hull) or 'bbox' (a diagonal plant gives a staircase hull)
 WIRE_SHAPE = {"kitchen.gut": "bbox"}
 CAGE_OVER, CAGE_UNDER = 5, -2          # cage gate: per side overshoot <= 5 art px and >= -2 (D3 2.1.3)
