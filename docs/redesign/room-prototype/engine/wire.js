@@ -236,7 +236,7 @@
   }
 
   /* ---------------------------------------------------------------- drawing */
-  var plotMark;
+  var plotMark = ROOM.render.plotMark;
   function px(f, x, y, c, dep, fl, own) {
     if (x < 0 || y < 0 || x >= f.w || y >= f.h) return;
     plotMark(f, x, y, c, dep, fl);
