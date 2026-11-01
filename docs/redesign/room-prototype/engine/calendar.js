@@ -493,6 +493,7 @@
 
   /** Called by the renderer right after the board's or the day bar's sprite is drawn. */
   function draw(f, d) {
+    if (f.ls && f.ls.scene === 'top') return; // v3.5 (R19): no live calendar wall in the overview
     var r = rects();
     if (!r) return;
     var t = f.now != null ? f.now : ROOM.now();
@@ -549,7 +550,8 @@
     if (!layer) layer = document.getElementById('room-hotspots');
     if (!layer) return;
     var R = ROOM.render, r = rects();
-    var on = r && ROOM.state.zone === 'calendar' && ROOM.normView(ROOM.state.view) === 'back' && !R.turning && !R.dolly;
+    var top = ROOM.sceneKey && ROOM.sceneKey() === 'top';
+    var on = r && !top && ROOM.state.zone === 'calendar' && ROOM.normView(ROOM.state.view) === 'back' && !R.turning && !R.dolly;
     var key = on ? [curMonth(), selected(), R.sceneVersion, JSON.stringify(R.restCamera && R.restCamera())].join('|') : 'off';
     if (key === btnKey) return;
     btnKey = key;

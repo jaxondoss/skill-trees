@@ -1353,7 +1353,8 @@ def export(B, manifest, zones):
     zones.setdefault("views", {})["top"] = {
         "art": {"x": -OX, "y": -OY, "w": SIZE[0], "h": SIZE[1]}, "core": [0, 0, w, h],
         "camera": {"pos": list(POS), "target": list(TGT), "f": FOC, "master": list(SIZE), "crop": list(CORE)},
-        "lighting": lighting, "light": light, "anchors": anchors, "territory": territory_of(anchors, zone_ids),
+        "lighting": lighting, "light": light, "anchors": anchors, "marker": list(world_px(0.0, 0.0, 0.0)),
+        "territory": territory_of(anchors, zone_ids),
         "_note": "v3.5 overview (D2-FINAL): world px = master - crop top-left; core = the diorama rect the engine "
                  "fits; anchors = the overview rect of each wall's rest framing and each zone (anchor(place))."}
     print(f"  view top: {len(out)} items ({sum(1 for r in out if r['kind'] == 'hotspot')} twins)")

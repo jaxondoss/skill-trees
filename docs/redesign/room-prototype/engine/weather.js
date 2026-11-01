@@ -1103,6 +1103,8 @@
   function draw(f) {
     var t0 = typeof performance !== 'undefined' ? performance.now() : 0;
     if (!f || !f.buf || !f.aux) return;
+    // v3.5 (R19): the overview has no weather glass; its window keeps the front view's sky
+    if (f.ls && f.ls.scene === 'top') return;
     // clear and dry: nothing to draw, skip the mask scan
     if (state.kind === 'clear' && !(debug.drips !== false && wet())) {
       lastMs = 0;
