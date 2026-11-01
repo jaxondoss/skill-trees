@@ -21,7 +21,7 @@ art/room-r6/texture_check.py runs when present).
 v3.5: every other art/<src>/*_check.py gate with run(items, zones) -> errors runs after parity (overview_check.py, ...);
 byte-identical images are stored once (later paths in variants/anim point to the first copy); items with `of`
 (overview twins, <id>.hero overlays) need no target/label; the bundle must stay under 3,145,728 bytes raw, and the
-v3.5 budgets (heroes <= 250 KB, wires <= 100 KB) are reported and gated.
+v3.5 budgets (heroes <= 250 KB, wires <= 180 KB) are reported and gated.
 """
 import argparse
 import importlib.util
@@ -180,7 +180,7 @@ def dedupe(items: list, images: dict) -> tuple[dict, int]:
 
 SIZE_RAW = 3 * 1024 * 1024
 HERO_BUDGET = 250 * 1024
-WIRE_BUDGET = 100 * 1024
+WIRE_BUDGET = 180 * 1024     # raised from 100 KB by the orchestrator (P4 top.* wires count too)
 
 
 def budget(items: list, images: dict, raw: int) -> list:

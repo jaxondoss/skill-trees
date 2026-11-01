@@ -237,12 +237,18 @@
     var list = typeof ROOM.itemsForSkill === 'function' ? ROOM.itemsForSkill(slug) : K.items().filter(function (it) {
       return it.target && (it.target.skill === slug || (it.target.skills || []).indexOf(slug) >= 0);
     });
-    return list && list.length ? list[0].id : null;
+    list = (list || []).filter(roomItem);
+    return list.length ? list[0].id : null;
   };
+  // v3.5: overview twins ("of") and hero overlays ("<id>.hero") are never the item a board opens.
+  function roomItem(it) {
+    return !it.of && !/\.hero$/.test(it.id);
+  }
   /** The first hotspot whose target.feature is one of names. */
   K.itemForFeature = function (names) {
     var it = K.items();
     for (var i = 0; i < it.length; i++) {
+      if (!roomItem(it[i])) continue;
       var f = it[i].target && it[i].target.feature;
       if (f && names.indexOf(f) >= 0) return it[i].id;
     }
