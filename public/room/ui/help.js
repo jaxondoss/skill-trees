@@ -7,11 +7,14 @@
   var h = K.h;
 
   var KEYS = [
-    [['1', '7'], 'Step into a zone'],
-    [['Left', 'Right'], 'Next or previous zone'],
-    [['Enter'], 'Step in, then the first object'],
+    [['1', '8'], 'Step into a zone'],
+    [['Left', 'Right'], 'Turn, or next zone'],
+    [['Up'], 'Overview'],
+    [['Down'], 'Back (or Esc)'],
+    [['Enter'], 'Step in'],
     [['Tab'], "Walk the zone's objects"],
-    [['Esc'], 'Close, then step back out'],
+    [['Esc'], 'Step out'],
+    [['L'], 'List (overview)'],
     [['Shift'], 'Hold to show every name'],
     [['T'], 'Today'],
     [['P'], 'Photo mode'],
@@ -26,15 +29,16 @@
     [['S'], 'Swap the goal (one a day)'],
   ];
   var MOUSE = [
-    ['Move', 'The room shifts with the pointer'],
-    ['Click an object', 'Open its panel'],
-    ['Click the room', 'Step into that zone, or close a panel'],
+    ['Click an object', 'Lift it out and open its board'],
+    ['Click the room', 'Step into that zone, or close a board'],
+    ['Arrow buttons', 'Turn, or go up to the overview'],
     ['Right-click a goal', 'Pick a tier'],
     ['Drag a goal left', 'Swap it'],
   ];
   var TOUCH = [
     ['Drag', 'Pan along the room'],
     ['Tap', 'Step into a zone, then tap an object'],
+    ['Up button', 'Overview, then tap anything in it'],
     ['Swipe in a zone', 'Next zone'],
     ['Magnifier', 'Show every name'],
     ['Hold a goal', 'Pick a tier'],

@@ -34,10 +34,12 @@ const OUT = path.resolve(opt('out', 'room-v35-light-out'));
 const TIER = opt('tier', 'high');
 const EXTRA = opt('q', '');
 const ONLY = opt('only', '');
+const GAINS = Object.fromEntries((opt('gains', '') || '').split(',').filter(Boolean).map((kv) => [kv.split('=')[0], +kv.split('=')[1]]));
 const BASE = opt('base', ''); // stills: also render this prototype dir and report the mean abs diff
 fs.mkdirSync(OUT, { recursive: true });
 
-const WALLS = { front: '#/room', right: '#/room/right', back: '#/room/back', left: '#/room/left' };
+const WALLS_ALL = { front: '#/room', right: '#/room/right', back: '#/room/back', left: '#/room/left' };
+const WALLS = Object.fromEntries(Object.entries(WALLS_ALL).filter(([k]) => !ONLY || ONLY.split(',').includes(k)));
 const STATES = { el4: 'el=4', 'el-25': 'el=-25', rain: 'el=40&weather=rain&precip=60', el40: 'el=40', night: 'night=1&el=-25' };
 
 /* ---------------------------------------------------------------- PNG */
@@ -90,10 +92,11 @@ async function open(page, q, hash, root = ROOT) {
   const url = `file://${root}/index.html?gltier=${TIER}&p=85&seed=1&weather=clear&${q}${EXTRA ? '&' + EXTRA : ''}${hash}`;
   await page.goto(url);
   await page.waitForFunction(() => window.ROOM && window.ROOM.debug && window.ROOM.render && window.ROOM.render.view, null, { timeout: 60000 });
-  await page.evaluate(() => {
+  await page.evaluate((g) => {
+    Object.assign(window.ROOM.gl.gains, g); // --gains worldBloom=1 etc.
     window.ROOM.debug.freeze();
     window.ROOM.debug.advance(16);
-  });
+  }, GAINS);
   await page.waitForTimeout(300);
   await page.evaluate(() => {
     window.ROOM.debug.advance(16);
@@ -167,7 +170,7 @@ if (mode === 'framing') {
     for (const sn of ['el4', 'el-25']) {
       await open(A, STATES[sn], hash);
       await open(B, STATES[sn], hash);
-      const va = await A.evaluate(VISIBLE), vb = await B.evaluate(VISIBLE);
+      const va = await A.evaluate(`(${VISIBLE})()`), vb = await B.evaluate(`(${VISIBLE})()`);
       const R = { x: Math.max(va.x0, vb.x0) + 2, y: Math.max(va.y0, vb.y0) + 2 };
       R.w = Math.min(va.x1, vb.x1) - 2 - R.x;
       R.h = Math.min(va.y1, vb.y1) - 2 - R.y;
@@ -198,6 +201,9 @@ if (mode === 'framing') {
     }
   }
   // hover does not evict data lights (front-10 stays)
+  if (WALLS.front) await hoverCheck(A);
+}
+async function hoverCheck(A) {
   await open(A, STATES.el4, WALLS.front);
   const before = await A.evaluate(() => window.ROOM.gl.stats().lightIds);
   const hov = await A.evaluate(() => {
@@ -300,10 +306,10 @@ if (mode === 'hero') {
       const cfg = { id, x: 180, y: 160, dim: 1, selK: 1, halo: true };
       await open(page, STATES[sn] + '&light=albedo', WALLS[wn]);
       const h0 = await page.evaluate(`(${FORCE})(${JSON.stringify(cfg)})`);
-      const alb = await page.evaluate(MEASURE);
+      const alb = await page.evaluate(`(${MEASURE})()`);
       await open(page, STATES[sn], WALLS[wn]);
       await page.evaluate(`(${FORCE})(${JSON.stringify(cfg)})`);
-      const lit = await page.evaluate(MEASURE);
+      const lit = await page.evaluate(`(${MEASURE})()`);
       save(`hero-${wn}-${h0.id}-${sn}`, await grab(page));
       // the same item in the room, not selected (for the "follows the room" ratio)
       const r = { wall: wn, id: h0.id, state: sn, albL: +alb.meanL.toFixed(2), heroL: +lit.meanL.toFixed(2), dL: +(lit.meanL - alb.meanL).toFixed(2), ratioRing: +(lit.meanY / lit.ringY).toFixed(2), hero: lit.stats };

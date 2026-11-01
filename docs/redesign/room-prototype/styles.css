@@ -148,7 +148,7 @@ body {
 /* Zone title: a pixel-font canvas, revealed in Bayer steps within ~120 ms of the click. */
 #zone-title {
   position: fixed;
-  top: calc(14px + env(safe-area-inset-top, 0px));
+  top: calc(52px + env(safe-area-inset-top, 0px)); /* below #nav-up */
   left: 50%;
   transform: translateX(-50%);
   z-index: 25;
@@ -242,4 +242,50 @@ body.photo #room-hotspots {
 }
 body.photo .turn-chevron {
   display: none;
+}
+
+/* v3.5 #nav-up: Overview (Up), and Back to room in the overview. 44 px target, pixel chevron like the turns. */
+.nav-up {
+  position: fixed;
+  top: max(4px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--gold);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 21;
+  image-rendering: pixelated;
+  filter: drop-shadow(1px 1px 0 var(--ink)) drop-shadow(-1px -1px 0 var(--ink));
+}
+.nav-up[hidden] {
+  display: none;
+}
+.nav-up svg {
+  fill: currentColor;
+}
+.nav-up:hover {
+  color: var(--cream);
+}
+.nav-up:focus-visible {
+  outline: 1px dashed var(--gold);
+  outline-offset: -4px;
+}
+.turn-chevron.in-overview,
+body.photo .nav-up {
+  display: none;
+}
+/* phones: the Today strip spans the top centre; #nav-up moves to the top right corner */
+@media (max-width: 640px) {
+  .nav-up {
+    left: auto;
+    right: max(4px, env(safe-area-inset-right));
+    transform: none;
+  }
 }
