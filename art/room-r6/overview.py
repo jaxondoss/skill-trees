@@ -194,11 +194,19 @@ def _books_row_guard(orig):
 def patched(B):
     """Swap the build's projection and object primitives for the overview's, restore on exit."""
     Ctx.B = B
-    keep = {k: getattr(B, k) for k in ("pj", "sc", "box3d", "obj", "W", "H", "books_row", "face_record")}
+    keep = {k: getattr(B, k) for k in ("pj", "sc", "box3d", "obj", "W", "H", "books_row", "face_record", "sky")}
     B.W, B.H = SIZE
     B.pj, B.sc, B.box3d, B.obj = _pj, _sc, _box3d, _obj
     B.books_row = _books_row_guard(keep["books_row"])
     B.face_record = lambda *a, **k: None
+
+    def sky(x0, y0, x1, y1):
+        # the window is shorter in the overview: the night sky's star rows can run out of room
+        try:
+            keep["sky"](x0, y0, x1, y1)
+        except ValueError:
+            B.R(x0, y0, x1, y1, "NAVY" if B.TOD == "night" else "PLUM_2")
+    B.sky = sky
     try:
         yield
     finally:
@@ -502,13 +510,13 @@ def mini_relic(B, item, X, Y, Z):
 
 CAL_BOARD = """
 kkkkkkkkkkkkkkkkkkkk
-krRrRrRrRrRrRrRrRrRk
+krrrrrrrrrrrrrrrrrrk
 kpppppppppppppppppPk
-kpPpPpPpPpPpPpPpPpPk
+kpPPpPPpPPpPPpPPppPk
 kpppppppppppppppppPk
-kpPpPpPpPpPpRpPpPpPk
+kpPPpPPpPPpRRpPPppPk
 kpppppppppppppppppPk
-kpPpPpPpPpPpPpPpPpPk
+kpPPpPPpPPpPPpPPppPk
 kPPPPPPPPPPPPPPPPPPk
 kkkkkkkkkkkkkkkkkkkk
 """
@@ -635,10 +643,36 @@ kkkk
     put(B, n, 12.45, 4.4, 6.4, ay=0.5)
 
 
+ARCHIVE = """
+kkkkkkkkk
+kDwwwwwDk
+kDtssssDk
+kDtgggsDk
+kDtsgssDk
+kDtgggsDk
+kDSSSSSDk
+kDtssssDk
+kDtsTssDk
+kDtTTTsDk
+kDSSSSSDk
+kDtssssDk
+kDtaaasDk
+kDtAaasDk
+kDSSSSSDk
+kDDDDDDDk
+kkkkkkkkk
+"""
+
+
+def mini_archive(B):
+    put(B, tpl(ARCHIVE), -7.5, 0.0, 12.8)
+
+
 # object name -> (view the room draws it in, drawer). The room object is not drawn; the miniature takes its name,
 # so the hotspot twin's mask and the wire still come from that name.
 STAMPS = {
     "knight": ("front", mini_knight),
+    "trophy-case": ("front", mini_archive),
     "alarm-clock": ("left", mini_clock),
     "plasma-globe": ("left", mini_globe),
     "fruit-basket": ("left", mini_basket),
@@ -840,8 +874,10 @@ def shell_cast(B):
     capk = cap.astype(np.int8)
     ce = cap & ~(np.roll(cap, 1, 0) & np.roll(cap, -1, 0) & np.roll(cap, 1, 1) & np.roll(cap, -1, 1))
     img[ce] = N["INK"]
+    mat[ce] = MAT["cast_iron"]
     se = stub & ~(np.roll(stub, 1, 1) & np.roll(stub, -1, 1)) | (stub & ~np.roll(stub, -1, 0))
     img[se] = N["INK"]
+    mat[se] = MAT["cast_iron"]
     del capk
     for name, (oid, nm) in WALL_OID.items():
         m = sid == name
@@ -855,6 +891,19 @@ def shell_cast(B):
         G.dist[m] = best[m]
     G.shell_mask = sid != ""
     G.floor_xz = (HX, HZ, fl)
+
+
+def stamp_materials(B):
+    """Palette index -> material ID for miniature pixels."""
+    fam = {"OAK": "wood_furniture", "LEAF": "leaf", "SLATE": "metal_painted", "GOLD": "gold_metal", "SUN": "gold_metal",
+           "AMBER": "gold_metal", "PLUM": "fabric_cotton", "TERRA": "fabric_cotton", "CRT": "fabric_cotton",
+           "CREAM": "paper", "PAPER": "paper", "ENERGY": "neon", "VIOLET": "glass_crt", "NAVY": "glass_crt",
+           "COOL": "glass_crt", "INK": "cast_iron", "VOID": "cast_iron", "BROWN": "cast_iron", "GLOW": "bulb",
+           "ORANGE": "bulb", "RIM": "fabric_cotton", "PLASTER": "plaster"}
+    out = np.zeros(256, np.uint8)
+    for i, nm in B.N_INV.items():
+        out[i] = B.MAT[fam.get(nm.split("_")[0], "plastic")]
+    return out
 
 
 def composite(B, layers):
@@ -884,16 +933,431 @@ def render(B, var=None, tod="golden", textured=True, tier=3):
     st_ids = [L["oid"] for L in layers if L.get("stamp")]
     st_m = np.isin(G.oid, st_ids)
     st_px = G.img[st_m].copy()
+    # miniatures: material by colour family, their INK outline its own (cast iron) region, so each flat cluster is
+    # judged as the cluster it is (the texture gate measures per material region)
+    fam = stamp_materials(B)
+    G.mat[st_m] = fam[G.img[st_m]]
     if textured:
         wx, wy = proj(3.4, 6.0, RS)
         textures.apply(G.img, G.mat, {"kind": G.kind, "u": G.su, "v": G.sv, "dist": G.dist}, G.oid, G.names,
                        np.full(G.img.shape, 0.7, np.float32), "top", 3, seed=0,
                        opts={"window_px": (int(wx), int(wy)), "wear_paths": B.WEAR_PATHS})
+        # hotspots read against their backdrop (TEXTURE_SPEC 5.13), as build.apply_textures does in the room
+        hs = set()
+        for v in B.VIEW_IDS:
+            hs |= B.hotspot_objects(v)
+        for nm in sorted(hs - set(STAMPS)):
+            ids = [o for o, n in G.names.items() if n.split("@")[0] == nm and o >= 10]
+            m = np.isin(G.oid, ids)
+            if not m.any():
+                continue
+            before = G.img.copy()
+            textures.selout(G.img, m, backdrop=G.shell_img, light_px=(int(wx), int(wy)), hotspot=True, add=True)
+            grown = (G.img != before) & ~m & ~st_m
+            if grown.any():
+                vals, cnt = np.unique(G.mat[m], return_counts=True)
+                G.oid[grown] = ids[0]
+                G.mat[grown] = vals[np.argmax(cnt)]
+            _, fail = textures.hotspot_contrast(G.img, m | grown, G.shell_img, steps=4.0)
+            G.img[fail & ~st_m] = B.N["INK"]
         B.fold_lone()
-        B.cap_3x3()
+        B.cap_3x3(passes=20)
         G.img[st_m] = st_px
     G.stamp_mask = st_m
     return G
+
+
+# ---------------------------------------------------------------- export (build.py hook)
+GLOW_K = 0.4            # overview px per room px at a typical depth (glow radii drawn in room px by the scenes)
+MIN_HIT = 11            # same floor as the room's hotspots (overlay.js grows every target to 44 CSS)
+
+
+def _render_key(B, k, tod="golden"):
+    """One state render: the room's per-key variable map across the four views (build.tag_state rules)."""
+    if k.startswith("t") and k[1:].isdigit():
+        return render(B, {}, tod, tier=int(k[1:]))
+    var = {}
+    if k not in ("base", "night"):
+        for v in B.VIEW_IDS:
+            var.update(B.TAGVAR.get((v, k), {}))
+    return render(B, var, tod)
+
+
+def _snap(G):
+    return {"img": G.img.copy(), "mat": G.mat.copy(), "oid": G.oid.copy(), "names": dict(G.names),
+            "screens": dict(G.screens), "glows": list(G.glows)}
+
+
+def _mask(r, objs):
+    want = {o.split("@")[0] for o in objs}
+    ids = [o for o, n in r["names"].items() if o >= 10 and n.split("@")[0] in want]
+    return np.isin(r["oid"], ids)
+
+
+def _shell_only(B, tod):
+    """The complete shell plate (floor, three walls, stub, caps) with no objects, textured (world u/v)."""
+    import textures
+    B.TOD = tod
+    B.new_scene()
+    shell_cast(B)
+    G = B.G
+    wx, wy = proj(3.4, 6.0, RS)
+    textures.apply(G.img, G.mat, {"kind": G.kind, "u": G.su, "v": G.sv, "dist": G.dist}, G.oid, G.names,
+                   np.full(G.img.shape, 0.7, np.float32), "top", 3, seed=0,
+                   opts={"window_px": (int(wx), int(wy)), "wear_paths": B.WEAR_PATHS})
+    fold_shell(G.img, G.mat, G.shell_mask)
+    return {"img": G.img.copy(), "mat": G.mat.copy(), "mask": G.shell_mask.copy()}
+
+
+def _write(B, item_id, view, arrays, mats, rel_dir):
+    """Crop every variant to the union bbox and save PNG + .mat.png. Returns (x0, y0, x1, y1) master, variants."""
+    box = B.union([B.bbox(a) for a in arrays.values()])
+    if box is None:
+        return None, {}
+    x0, y0, x1, y1 = box
+    zone, name = item_id.split(".", 1) if "." in item_id else ("shell", item_id)
+    variants = {}
+    for k, a in arrays.items():
+        rel = f"{SPR}/{rel_dir or zone}/{name}.{k}.png"
+        B.save_png(a[y0:y1, x0:x1], os.path.join(B.PROTO, rel))
+        B.save_mat(mats[k][y0:y1, x0:x1], a[y0:y1, x0:x1], os.path.join(B.PROTO, rel[:-4] + ".mat.png"))
+        variants[k] = rel
+    return box, variants
+
+
+def _dedupe(arrays, mats):
+    """Variant arrays identical to base become aliases (one image)."""
+    alias = {}
+    base = arrays.get("base")
+    for k in list(arrays):
+        if k != "base" and base is not None and np.array_equal(arrays[k], base):
+            alias[k] = "base"
+            del arrays[k]
+            mats.pop(k, None)
+    return alias
+
+
+def fold_shell(img, mat, mask, passes=4):
+    """A lone pixel (no 4-neighbour of its colour in its material region) takes its region neighbours' commonest
+    colour: the compressed side walls turn fine plaster marks into specks (TEXTURE_SPEC 9 noise rule)."""
+    H, W = img.shape
+    for _ in range(passes):
+        nb = []
+        for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            c = np.full((H, W), -1, np.int32)
+            m = np.full((H, W), -1, np.int32)
+            ys0, ys1 = max(0, dy), H + min(0, dy)
+            xs0, xs1 = max(0, dx), W + min(0, dx)
+            c[ys0 - dy:ys1 - dy, xs0 - dx:xs1 - dx] = img[ys0:ys1, xs0:xs1]
+            m[ys0 - dy:ys1 - dy, xs0 - dx:xs1 - dx] = np.where(mask[ys0:ys1, xs0:xs1], mat[ys0:ys1, xs0:xs1].astype(np.int32), -1)
+            nb.append((c, m))
+        same = np.zeros((H, W), bool)
+        has = np.zeros((H, W), bool)
+        for c, m in nb:
+            inr = m == mat
+            same |= inr & (c == img)
+            has |= inr
+        lone = mask & has & ~same
+        if not lone.any():
+            break
+        ys, xs = np.nonzero(lone)
+        for y, x in zip(ys, xs):
+            vals = [int(c[y, x]) for c, m in nb if m[y, x] == mat[y, x]]
+            img[y, x] = max(set(vals), key=vals.count)
+
+
+def anchors_of(B, items, zone_items):
+    """zones.views.top.anchors: per wall the overview rect its rest framing covers (the wall and the floor wedge in
+    front of it), per zone the union of its twins (padded): D4's anchor(place) data."""
+    out = {}
+    walls = {"front": [(-RS, 0, RS), (RS, 0, RS), (-RS, CUT, RS), (RS, CUT, RS)],
+             "back": [(-RS, 0, -RS), (RS, 0, -RS), (-RS, STUB, -RS - WT), (RS, STUB, -RS - WT)],
+             "left": [(-RS, 0, -RS), (-RS, 0, RS), (-RS, CUT, -RS), (-RS, CUT, RS)],
+             "right": [(RS, 0, -RS), (RS, 0, RS), (RS, CUT, -RS), (RS, CUT, RS)]}
+    for v, pts in walls.items():
+        pp = [world_px(*p) for p in pts + [(0.0, 0.0, 0.0)]]
+        x0, y0 = min(p[0] for p in pp), min(p[1] for p in pp)
+        x1, y1 = max(p[0] for p in pp), max(p[1] for p in pp)
+        x0, y0, x1, y1 = max(x0, 0), max(y0, 0), min(x1, CORE[2] - CORE[0]), min(y1, CORE[3] - CORE[1])
+        out[v] = [x0, y0, x1 - x0, y1 - y0]
+    for z, its in zone_items.items():
+        if not its:
+            continue
+        x0 = min(i["x"] for i in its) - 6
+        y0 = min(i["y"] for i in its) - 6
+        x1 = max(i["x"] + i["w"] for i in its) + 6
+        y1 = max(i["y"] + i["h"] for i in its) + 6
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        w, h = max(40, x1 - x0), max(30, y1 - y0)
+        cw, ch = CORE[2] - CORE[0], CORE[3] - CORE[1]
+        ax0, ay0 = max(0, int(round(cx - w / 2))), max(0, int(round(cy - h / 2)))
+        ax1, ay1 = min(cw, int(round(cx + w / 2))), min(ch, int(round(cy + h / 2)))
+        out[z] = [ax0, ay0, ax1 - ax0, ay1 - ay0]
+    return out
+
+
+def territory_of(anchors, zones_list):
+    """Floor territory per zone for placeAt (empty-floor click = DESCEND into that zone): the floor quad split by
+    nearest zone centre, as polygons in overview px; plus the whole room outline (outside = nothing)."""
+    floor = [world_px(-RS, 0, -RS), world_px(RS, 0, -RS), world_px(RS, 0, RS), world_px(-RS, 0, RS)]
+    top = [world_px(-RS, CUT, RS), world_px(RS, CUT, RS)]
+    room = [floor[0], floor[1], world_px(RS, CUT, -RS), top[1], top[0], world_px(-RS, CUT, -RS)]
+    cells = []
+    cs = {z: (a[0] + a[2] / 2, a[1] + a[3] / 2) for z, a in anchors.items() if z in zones_list}
+    # raster Voronoi over the room outline at 4 px, then each cell's convex hull
+    from PIL import ImageDraw
+    w, h = CORE[2] - CORE[0], CORE[3] - CORE[1]
+    m = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(m).polygon([tuple(p) for p in room], fill=1)
+    M = np.array(m) > 0
+    ys, xs = np.nonzero(M[::4, ::4])
+    ys, xs = ys * 4, xs * 4
+    names = list(cs)
+    C = np.array([cs[z] for z in names])
+    d = (xs[:, None] - C[None, :, 0]) ** 2 + (ys[:, None] - C[None, :, 1]) ** 2
+    own = d.argmin(1)
+    for k, z in enumerate(names):
+        pts = np.stack([xs[own == k], ys[own == k]], 1)
+        if len(pts) < 3:
+            continue
+        cells.append({"zone": z, "poly": _hull(pts)})
+    return {"room": [list(map(int, p)) for p in room], "cells": cells}
+
+
+def _hull(pts):
+    pts = sorted(set(map(tuple, pts.tolist())))
+    if len(pts) < 3:
+        return [list(p) for p in pts]
+
+    def cross(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    lo, hi = [], []
+    for p in pts:
+        while len(lo) >= 2 and cross(lo[-2], lo[-1], p) <= 0:
+            lo.pop()
+        lo.append(p)
+    for p in reversed(pts):
+        while len(hi) >= 2 and cross(hi[-2], hi[-1], p) <= 0:
+            hi.pop()
+        hi.append(p)
+    return [[int(x), int(y)] for x, y in lo[:-1] + hi[:-1]]
+
+
+def lighting_top(B, r_day, r_night):
+    """zones.views.top.lighting: the same schema as the wall views (LIGHTING_SPEC 8), lights re-projected."""
+    tint_rgb = {"red": (255, 64, 40), "green": (70, 255, 130), "violet": (176, 104, 255), "cyan": (70, 226, 246),
+                "pink": (255, 112, 168), "ember": (255, 118, 44), "potion": (226, 112, 214), "lamp": (255, 186, 104),
+                "warm": (255, 176, 96), "sun": (255, 150, 64)}
+
+    def lights(glows, tag):
+        out, seen = [], set()
+        for i, g in enumerate(glows):
+            c = g["c"]
+            rgb = tint_rgb.get(c, (255, 176, 96)) if isinstance(c, str) else tuple(c)
+            x, y = g["x"] - OX, g["y"] - OY
+            if not (-20 <= x <= CORE[2] - CORE[0] + 20 and -20 <= y <= CORE[3] - CORE[1] + 20):
+                continue
+            key = (round(x / 5), round(y / 5), c if isinstance(c, str) else "rgb")
+            if key in seen:
+                continue
+            seen.add(key)
+            lt = {"id": f"top-{tag}{i}", "type": "point", "pos": [round(x, 1), round(y, 1)], "rgb": list(rgb),
+                  "intensity": round(min(2.0, g["a"] * 4.5), 3),
+                  "radius": round(max(8.0, max(g["rx"], g["ry"]) * 1.1 * GLOW_K), 1), "when": "always"}
+            if g.get("ch"):
+                lt["channel"] = g["ch"]
+            out.append(lt)
+        return out
+    kx, ky = world_px(3.4, 0.0, 9.0)
+    back = world_px(0.0, 0.0, RS)[1]
+    mull = [list(world_px(x, 0.0, 9.6)) for x in (1.7, 5.2)]
+    return {"floor": {"backLine": back, "bottom": CORE[3] - CORE[1], "squash": 1.0, "seam": "AMBER", "reflect": 0},
+            "ambient": {"day": "#2A3550", "golden": "#2A2E45", "night": "#1A2040"},
+            "facing": None, "yaw": None,
+            "window": {"rect": None},
+            "key": {"center": [kx, ky], "radius": [96, 44], "offscreen": None, "mullions": mull},
+            "lights": lights(r_day["glows"], ""), "lightsNight": lights(r_night["glows"], "n"),
+            "materials": {"LEAF_1": {"translucency": 0.5}}, "noRim": ["top.*"]}
+
+
+def light_top(r_day, r_night):
+    """zones.views.top.light: the Canvas2D (gl=off) overlay, same schema as build.fallback_spec."""
+    def spec(r, night):
+        wx, wy = world_px(3.4, 6.0, RS)
+        kx, ky = world_px(3.4, 0.0, 9.0)
+        gl = ([dict(x=wx, y=wy, rx=60, ry=26, rgb=[70, 96, 200], a=0.14)] if night else
+              [dict(x=kx, y=ky, rx=110, ry=60, rgb=[255, 150, 64], a=0.22),
+               dict(x=wx, y=wy + 6, rx=50, ry=24, rgb=[255, 150, 64], a=0.18)])
+        lamp = 1.45 if night else 1.0
+        for g in r["glows"]:
+            c = g["c"]
+            rgb = list(GLOW_RGB.get(c, (255, 176, 96)) if isinstance(c, str) else c)
+            gl.append(dict(x=round(g["x"] - OX, 1), y=round(g["y"] - OY, 1), rx=round(g["rx"] * GLOW_K, 1),
+                           ry=round(g["ry"] * GLOW_K, 1), rgb=rgb, a=round(min(0.95, g["a"] * lamp), 3)))
+            if g.get("ch"):
+                gl[-1]["ch"] = g["ch"]
+        amb = ((255, 120, 50), 0.06) if not night else ((40, 48, 110), 0.10)
+        vc = (0.30, 0.17, 0.20) if not night else (0.20, 0.17, 0.30)
+        w, h = CORE[2] - CORE[0], CORE[3] - CORE[1]
+        return {"ambient": {"rgb": list(amb[0]), "a": amb[1]}, "glows": gl,
+                "vignette": dict(x=w // 2, y=h // 2, rx=w * 0.75, ry=h * 0.75, inner=0.5, c=list(vc)),
+                "stops": STOPS_, "fall": FALL_, "vstops": VSTOPS_}
+    return {"day": spec(r_day, False), "night": spec(r_night, True)}
+
+
+GLOW_RGB = {"warm": (255, 176, 96), "red": (255, 64, 40), "green": (70, 255, 130), "violet": (176, 104, 255),
+            "cyan": (70, 226, 246), "pink": (255, 112, 168), "ember": (255, 118, 44), "potion": (226, 112, 214),
+            "lamp": (255, 186, 104), "sun": (255, 150, 64)}
+STOPS_ = [0.0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.0]
+FALL_ = [round((1 - d * d) ** 2, 4) for d in STOPS_]
+VSTOPS_ = [i / 8 for i in range(9)]
+
+
+def export(B, manifest, zones):
+    """build.py hook: append the top.* items to the manifest and write zones['views']['top'] (D2-FINAL 2.3)."""
+    import shutil
+    shutil.rmtree(os.path.join(B.PROTO, SPR), ignore_errors=True)
+    globals()["GLOW_RGB"].update(getattr(B, "GLOW_RGB", {}))
+    set_cam()
+    room = [r for r in manifest if r.get("view") in B.VIEW_IDS]
+    by_id = {r["id"]: r for r in room}
+    defs = {}
+    for v in B.VIEW_IDS:
+        for it in B.ITEMS[v]():
+            defs[it["id"]] = it
+    hotspots = [r for r in room if r["kind"] == "hotspot" and not r.get("of") and not r["id"].endswith(".hero")]
+    keys = sorted({k for r in hotspots for k in defs[r["id"]]["keys"]} - {"night"})
+    out = []
+    with patched(B):
+        renders = {}
+        for k in ["base"] + [k for k in keys if k != "base"]:
+            renders[k] = _snap(_render_key(B, k))
+        renders["night"] = _snap(render(B, {}, "night"))
+        shell_day = _shell_only(B, "golden")
+        shell_night = _shell_only(B, "night")
+        base = renders["base"]
+        claimed = np.zeros(base["img"].shape, bool)
+        zone_items = {}
+        # 1) hotspot twins
+        for r in hotspots:
+            it = defs[r["id"]]
+            ks = [k for k in it["keys"] if k != "night"] or ["base"]
+            arrays, mats = {}, {}
+            for k in ks:
+                rr = renders[k] if k in renders else base
+                m = _mask(rr, it["objs"])
+                arrays[k] = np.where(m, rr["img"], B.T).astype(np.uint8)
+                mats[k] = rr["mat"]
+            if "night" in it["keys"]:
+                m = _mask(renders["night"], it["objs"])
+                arrays["night"] = np.where(m, renders["night"]["img"], B.T).astype(np.uint8)
+                mats["night"] = renders["night"]["mat"]
+            claimed |= _mask(base, it["objs"])
+            alias = dict(it["alias"])
+            ali2 = _dedupe(arrays, mats) if "base" in arrays else {}
+            box, variants = _write(B, r["id"], "top", arrays, mats, None)
+            if box is None:
+                raise SystemExit(f"overview: {r['id']} has no pixels in the overview")
+            for k, src in ali2.items():
+                variants[k] = variants[src]
+            for k, src in alias.items():
+                if src in variants and k not in variants:
+                    variants[k] = variants[src]
+            for k in r["variants"]:          # same keys as the room twin
+                if k not in variants:
+                    variants[k] = variants.get(alias.get(k, "base")) or next(iter(variants.values()))
+            x0, y0, x1, y1 = box
+            rec = {"id": "top." + r["id"], "zone": r["zone"], "kind": "hotspot", "view": "top", "of": r["id"],
+                   "layer": 4, "x": x0 - OX, "y": y0 - OY, "w": x1 - x0, "h": y1 - y0, "variants": variants}
+            pw, ph = max(0, MIN_HIT - (x1 - x0)), max(0, MIN_HIT - (y1 - y0))
+            rec["hit"] = [x0 - OX - pw // 2, y0 - OY - ph // 2, x1 - x0 + pw, y1 - y0 + ph]
+            a = next(iter(arrays.values()))
+            ys, xs = np.nonzero(a != B.T)
+            i = int(np.argmax(xs + ys))
+            rec["led"] = [min(max(int(xs[i]) - 2, x0), x1 - 2) - OX, min(max(int(ys[i]) - 2, y0), y1 - 2) - OY]
+            if r.get("screen") and it.get("screen") in base["screens"]:
+                sx0, sy0, sx1, sy1 = base["screens"][it["screen"]]
+                if sx1 - sx0 >= 3 and sy1 - sy0 >= 2:
+                    rec["screen"] = [int(sx0) - OX, int(sy0) - OY, int(sx1 - sx0), int(sy1 - sy0)]
+            # D3 wire for the overview twin (rest / hot only: no cage)
+            wires = {}
+            for k, aa in arrays.items():
+                if k == "night":
+                    continue
+                w = B.wire_from_mask(aa != B.T, None, B.WIRE_SHAPE.get(r["id"], "hull"))
+                if w is None:
+                    continue
+                wires[k] = {"hull": [int(v) for q in w["pts"] for v in (q[0] - x0, q[1] - y0)],
+                            "nodes": [int(v) for q in w["nodes"] for v in (q[0] - x0, q[1] - y0)],
+                            "cage": None, "cageNodes": None, "gate": None}
+            bk = "base" if "base" in wires else next(iter(wires))
+            rec["wire"] = {"base": wires[bk]}
+            rec["wire"].update({k: d for k, d in wires.items() if k != bk and d != wires[bk]})
+            rec["note"] = "v3.5 overview twin (D2): " + ("authored miniature" if any(
+                o.split("@")[0] in STAMPS for o in it["objs"]) else "re-projected through the overview camera")
+            out.append(rec)
+            zone_items.setdefault(r["zone"], []).append(rec)
+        # 2) decor: the room's decor items, visible pixels (base, + night where the room has a night variant)
+        used = set()
+        for v in B.VIEW_IDS:
+            for it in B.ITEMS[v]():
+                if it["kind"] != "decor" or not it["objs"] or it["id"] in used:
+                    continue
+                m = _mask(base, it["objs"]) & ~claimed
+                if m.sum() < 4:
+                    continue
+                used.add(it["id"])
+                claimed |= m
+                arrays = {"base": np.where(m, base["img"], B.T).astype(np.uint8)}
+                mats = {"base": base["mat"]}
+                if "night" in it["keys"]:
+                    mn = _mask(renders["night"], it["objs"]) & m
+                    arrays["night"] = np.where(mn, renders["night"]["img"], B.T).astype(np.uint8)
+                    mats["night"] = renders["night"]["mat"]
+                    _dedupe(arrays, mats)
+                box, variants = _write(B, it["id"], "top", arrays, mats, None)
+                if "night" not in variants and "night" in it["keys"]:
+                    variants["night"] = variants["base"]
+                x0, y0, x1, y1 = box
+                out.append({"id": "top." + it["id"], "zone": it["zone"], "kind": "decor", "view": "top", "layer": 3,
+                            "x": x0 - OX, "y": y0 - OY, "w": x1 - x0, "h": y1 - y0, "variants": variants,
+                            "note": "v3.5 overview decor (D2 M1/M5)"})
+        # 3) the rest of the objects (window, curtains, corner pieces): one shell overlay, base + night
+        rest = (base["oid"] >= 10) & ~claimed
+        restn = (renders["night"]["oid"] >= 10) & rest
+        arrays = {"base": np.where(rest, base["img"], B.T).astype(np.uint8),
+                  "night": np.where(restn, renders["night"]["img"], B.T).astype(np.uint8)}
+        mats = {"base": base["mat"], "night": renders["night"]["mat"]}
+        box, variants = _write(B, "shell.top-window", "top", arrays, mats, "shell")
+        x0, y0, x1, y1 = box
+        out.append({"id": "shell.top-window", "zone": "shell", "kind": "shell", "view": "top", "layer": 2,
+                    "x": x0 - OX, "y": y0 - OY, "w": x1 - x0, "h": y1 - y0, "variants": variants,
+                    "note": "v3.5 overview: window, curtains and corner pieces"})
+        # 4) the shell plate: floor, three cut walls, the back-wall stub, section caps (complete under everything)
+        sm = shell_day["mask"]
+        arrays = {"base": np.where(sm, shell_day["img"], B.T).astype(np.uint8)}
+        mats = {"base": shell_day["mat"]}
+        box, variants = _write(B, "shell.top", "top", arrays, mats, "shell")
+        variants["night"] = variants["base"]
+        x0, y0, x1, y1 = box
+        out.append({"id": "shell.top", "zone": "shell", "kind": "shell", "view": "top", "layer": 1,
+                    "x": x0 - OX, "y": y0 - OY, "w": x1 - x0, "h": y1 - y0, "variants": variants,
+                    "note": "v3.5 overview shell plate (D2 2.1): lid off, back wall cut to a stub, section caps"})
+        del shell_night
+        lighting = lighting_top(B, renders["base"], renders["night"])
+        light = light_top(renders["base"], renders["night"])
+    manifest.extend(out)
+    anchors = anchors_of(B, out, zone_items)
+    zone_ids = [z["id"] for z in zones.get("zones", [])]
+    w, h = CORE[2] - CORE[0], CORE[3] - CORE[1]
+    zones.setdefault("views", {})["top"] = {
+        "art": {"x": -OX, "y": -OY, "w": SIZE[0], "h": SIZE[1]}, "core": [0, 0, w, h],
+        "camera": {"pos": list(POS), "target": list(TGT), "f": FOC, "master": list(SIZE), "crop": list(CORE)},
+        "lighting": lighting, "light": light, "anchors": anchors, "territory": territory_of(anchors, zone_ids),
+        "_note": "v3.5 overview (D2-FINAL): world px = master - crop top-left; core = the diorama rect the engine "
+                 "fits; anchors = the overview rect of each wall's rest framing and each zone (anchor(place))."}
+    print(f"  view top: {len(out)} items ({sum(1 for r in out if r['kind'] == 'hotspot')} twins)")
+    return out
 
 
 def preview(path=None, scale=2):
@@ -933,3 +1397,20 @@ def crop4(img_or_path, box, path, scale=4):
     a = np.load(img_or_path) if isinstance(img_or_path, str) else img_or_path
     x0, y0, x1, y1 = box
     Image.fromarray(B.RGB[a[y0:y1, x0:x1]]).resize(((x1 - x0) * scale, (y1 - y0) * scale), Image.NEAREST).save(path)
+
+
+def dev_export():
+    """Development: run export() against the committed manifest/zones (no full build); prints a summary."""
+    import json
+    import build as B
+    man = json.load(open(os.path.join(HERE, "manifest.json")))["items"]
+    man = [r for r in man if r.get("view") != "top"]
+    for v in B.VIEW_IDS:
+        for it in B.ITEMS[v]():
+            if it["kind"] != "shell" and it["id"] != "window.statue":
+                for k in it["keys"]:
+                    if k not in ("base", "night"):
+                        B.TAGVAR.setdefault((v, k), {})[it["id"]] = k
+    zones = json.load(open(os.path.join(HERE, "zones.json")))
+    out = export(B, man, zones)
+    return out, zones
