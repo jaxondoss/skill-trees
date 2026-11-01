@@ -281,3 +281,11 @@ body.photo .turn-chevron {
 body.photo .nav-up {
   display: none;
 }
+/* phones: the Today strip spans the top centre; #nav-up moves to the top right corner */
+@media (max-width: 640px) {
+  .nav-up {
+    left: auto;
+    right: max(4px, env(safe-area-inset-right));
+    transform: none;
+  }
+}
