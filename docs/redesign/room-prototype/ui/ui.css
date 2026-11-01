@@ -744,6 +744,10 @@ body.photo .ui-sample {
 }
 
 /* ------------------------------------------------------------------ panel */
+/* v3.5 skill view: the board takes the right side and the hero floats left of it; a pinned Today HUD steps out. */
+.ui-root.skill-open .today-hud:not(.is-sheet) {
+  visibility: hidden;
+}
 .ui-scrim {
   position: fixed;
   inset: 0;
@@ -1711,6 +1715,24 @@ body.ui-debug-hits #room-hotspots .hs:not([hidden]) {
   .ui-panel.is-sheet {
     max-height: 84svh;
   }
+  /* v3.5 skill view: the sheet is fixed at 58svh so the floating hero has its band above it; dragged tall it
+     takes 84svh and the hero steps out (ROOM.skill.sheetTall). The content scrolls inside. */
+  .ui-panel.is-sheet.has-hero {
+    height: 58svh;
+    max-height: 58svh;
+  }
+  .ui-panel.is-sheet.has-hero.is-tall {
+    height: 84svh;
+    max-height: 84svh;
+  }
+  .ui-panel.is-sheet.has-hero .pxw-bar {
+    touch-action: none;
+    cursor: grab;
+  }
+  .pxw.is-sheet .px-tool {
+    min-width: 44px;
+    height: 44px;
+  }
   .ui-help.is-sheet {
     max-height: 86svh;
   }
@@ -1728,10 +1750,6 @@ body.ui-debug-hits #room-hotspots .hs:not([hidden]) {
     position: relative;
     min-height: 44px;
     padding-top: 6px;
-  }
-  .pxw.is-sheet .px-tool {
-    min-width: 40px;
-    height: 36px;
   }
   .help-cols {
     grid-template-columns: 1fr;
@@ -1757,17 +1775,17 @@ body.ui-debug-hits #room-hotspots .hs:not([hidden]) {
 /* Touch: bigger targets. */
 @media (pointer: coarse) {
   .px-tool {
-    min-width: 40px;
-    height: 36px;
+    min-width: 44px;
+    height: 44px;
   }
   .px-btn {
     min-height: 44px;
   }
   .px-tabs [role='tab'] {
-    min-height: 40px;
+    min-height: 44px;
   }
   .px-seg button {
-    min-height: 40px;
+    min-height: 44px;
   }
   .t-row {
     min-height: 52px;
