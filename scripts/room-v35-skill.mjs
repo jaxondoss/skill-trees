@@ -98,13 +98,18 @@ async function open(page, q, hash = '#/room') {
   });
 }
 async function grab(page) {
-  return page.evaluate(() => {
+  // base64 over CDP: a JSON number array of a 4 MB frame takes seconds
+  const r = await page.evaluate(() => {
     const f = window.ROOM.debug.readFrame();
-    return { w: f.width, h: f.height, data: Array.from(f.data) };
+    const u = new Uint8Array(f.data.buffer);
+    let s = '';
+    for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000));
+    return { w: f.width, h: f.height, b64: btoa(s) };
   });
+  return { w: r.w, h: r.h, data: new Uint8Array(Buffer.from(r.b64, 'base64')) };
 }
 function save(name, fr) {
-  png(path.join(OUT, name + '.png'), fr.w, fr.h, Uint8Array.from(fr.data));
+  png(path.join(OUT, name + '.png'), fr.w, fr.h, fr.data);
 }
 const skillState = (page) => page.evaluate(() => window.ROOM.debug.state.skill);
 const advance = (page, ms) => page.evaluate((m) => window.ROOM.debug.advance(m), ms);
@@ -148,10 +153,13 @@ if (mode === 'stills') {
   const cases = [
     [1280, 800, 1], [1440, 900, 1], [1920, 1080, 1], [390, 844, 3],
   ];
+  const VP = opt('vp', '');
   for (const [w, h, d] of cases) {
+    if (VP && !VP.split(',').includes(String(w))) continue;
     const page = await newPage(w, h, d);
     for (const [sn, q] of Object.entries(STATES)) {
       if (w !== 1280 && sn !== 'sunset' && !(w === 390 && sn === 'night')) continue;
+      if (opt('state', '') && sn !== opt('state', '')) continue;
       await open(page, q);
       await openSkill(page, ITEM);
       await settle(page);
