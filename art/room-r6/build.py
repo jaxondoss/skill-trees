@@ -168,7 +168,15 @@ def xshift(dx):
 
 def pj(X, Y, z):
     s = sc(z)
+    if REC["view"] is not None and REC["view"] == VIEW and REC["stack"]:
+        REC["pj"].setdefault(REC["stack"][-1], []).append((float(X) + XS["dx"], float(Y), float(z) + ZS["dz"]))
     return (CX + (X + XS["dx"] - XCAM) * s, CY - (Y - EYE) * s)
+
+
+# v3.5 (P6): REC records, for the view being exported, every projected anchor (pj) and box3d call per object name
+# (the box table's input); ISO["names"], when set, composites only those objects (plus the shell): the isolate pass.
+REC = {"view": None, "stack": [], "pj": {}, "box": {}}
+ISO = {"names": None}
 
 
 def wp(X, Y, Z):
@@ -306,9 +314,18 @@ def obj(name, oid=None, emit=False, mat=None):
         G.objmat[oid] = mat
     prev = (S.im, S.d, S.em, S.de, S.face)
     _begin()
-    yield oid
+    REC["stack"].append(name)
+    try:
+        yield oid
+    finally:
+        REC["stack"].pop()
     a = np.array(S.im)
     m = a != T
+    iso = ISO["names"]
+    if iso is not None and name not in iso and name not in SHELL_NAMES:
+        # v3.5 isolate pass: drawn (so the scene code runs unchanged) but never composited
+        S.im, S.d, S.em, S.de, S.face = prev
+        return
     if G.ghost and name not in SHELL_NAMES:
         G.gmask[name] = G.gmask.get(name, np.zeros((H, W), bool)) | m
         S.im, S.d, S.em, S.de, S.face = prev
@@ -499,6 +516,9 @@ def box3d(X0, X1, Y0, Y1, z0, z1, front, side=None, top=None, ol="INK", bottom=N
     z1 = min(z1, D0 - NEAR)
     if z1 <= z0:
         return {}
+    if REC["view"] is not None and REC["view"] == VIEW and REC["stack"]:
+        dx = XS["dx"]
+        REC["box"].setdefault(REC["stack"][-1], []).append(dict(X0=X0 + dx, X1=X1 + dx, Y0=Y0, Y1=Y1, z0=z0, z1=z1))
     a, b, c, d = pj(X0, Y1, z1), pj(X1, Y1, z1), pj(X1, Y0, z1), pj(X0, Y0, z1)
     faces = {}
     if Y1 < EYE:
@@ -3793,9 +3813,11 @@ class LR:
     cache = {}
 
 
-def render(tag, tod="golden", var=None, tier=3, beam=False, ghost=False, anim=None, view="front"):
-    """Full albedo render of a view (+ margins). Returns a dict of buffers and metadata."""
-    key = (view, tag, tod)
+def render(tag, tod="golden", var=None, tier=3, beam=False, ghost=False, anim=None, view="front", iso=None):
+    """Full albedo render of a view (+ margins). Returns a dict of buffers and metadata.
+    iso: a set of object names: the isolate pass (only those objects composited over the shell, no margins);
+    cached under its own key. The plain base render also records anchors and boxes (r["rec"], the box table)."""
+    key = (view, tag, tod) if iso is None else (view, tag, tod, "iso", tuple(sorted(iso)))
     if key in LR.cache:
         return LR.cache[key]
     VAR.clear()
@@ -3805,13 +3827,29 @@ def render(tag, tod="golden", var=None, tier=3, beam=False, ghost=False, anim=No
     AF.update(anim or {})
     PARTS.clear()
     PARTS.update(STATIC_PARTS)
-    build(tod, tier, beam=beam, ghost=ghost, view=view)
+    rec = tag == "base" and not ghost and iso is None and not anim
+    if rec:
+        REC.update(view=view, pj={}, box={})
+    ISO["names"] = set(iso) if iso is not None else None
+    try:
+        build(tod, tier, beam=beam, ghost=ghost, view=view, margins=iso is None)
+    finally:
+        REC["view"] = None
+        ISO["names"] = None
     PARTS.update({"clouds", "birds", "tram"})
     names = {}
     for o in sorted(G.names):
         names.setdefault(G.names[o], []).append(o)
     r = {"img": G.img.copy(), "mat": G.mat.copy(), "oid": G.oid.copy(), "names": names, "gmask": dict(G.gmask),
-         "screens": dict(G.screens), "win": G.win, "glows": list(G.glows), "emit": G.emit.copy()}
+         "screens": dict(G.screens), "win": G.win, "glows": list(G.glows), "emit": G.emit.copy(),
+         "order": dict(G.order)}
+    if rec:
+        r["rec"] = {"pj": REC["pj"], "box": REC["box"]}
+    if iso is not None:
+        VAR.clear()
+        AF.clear()
+        LR.cache[key] = r
+        return r
     if view == "front" or True:
         r["light"] = lighting_block(view, OX, OY)
         r["fallback"] = fallback_spec(OX, OY)
@@ -4003,6 +4041,430 @@ def drift_sprites(tod):
     return out
 
 
+# ---------------------------------------------------------------- v3.5 (P6): box table, wires, isolate heroes
+# PLAN 2.6. Every hotspot gets: a recovered 3D box (box_table, dumped to boxes.json), a wire per silhouette-changing
+# variant (item.wire: hull line + 4 nodes, and for skills a projected cage that passes the gate), and, for every
+# item that opens a board, a stand-alone hero (<id>.hero overlay) re-exported from an isolate render: the object's
+# own pixels, textured and outlined as in the room, with nothing in front of it.
+# Hand-tightened boxes (world ft [X0, Y0, Z0, X1, Y1, Z1]) for billboard hotspots whose fitted box is loose; an entry
+# here replaces the fitted box (src 'BOUNDS'). Solved per item: near face = the sprite at its floor contact, depth grown
+# until the cage gate fails. Only the bike is promoted: a thin frame really is ~0.4 ft deep. The chess table, cushion,
+# gut plant and bookcase would need 0.25..0.35 ft slabs (the bookcase's exact box is 1.2 ft deep) to pass: a cage
+# that lies about the object, so they keep the hot wire (D3 2.1.3 fallback).
+BOUNDS = {"gym.bike": [13.05, 0.0, -12.04, 13.45, 3.38, -7.34]}   # passes both base and awake
+# wire shape per hotspot: 'hull' (default, the orthogonal hull) or 'bbox' (a diagonal plant gives a staircase hull)
+WIRE_SHAPE = {"kitchen.gut": "bbox"}
+CAGE_OVER, CAGE_UNDER = 5, -2          # cage gate: per side overshoot <= 5 art px and >= -2 (D3 2.1.3)
+AUTHORED_HEROES = {"library.bookshelf"}  # drawn by heroes.py (A1: READING only)
+BOX_KIND = {"box3d": "box3d", "wall card": "card", "wall (mask)": "card", "anchors (3D spread)": "anchors",
+            "anchors (billboard)": "billboard", "floor contact": "billboard"}
+
+
+def opens_board(it):
+    """Hotspots that get the skill view (R23): everything but the calendar feature (it opens the calendar wall)."""
+    return (it.get("target") or {}).get("feature") != "calendar"
+
+
+def _mbox(m):
+    """Inclusive pixel bbox (x0, y0, x1, y1) of a bool mask, or None."""
+    ys, xs = np.nonzero(m)
+    if not len(xs):
+        return None
+    return int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())
+
+
+def _s_of(z):
+    return F / max(NEAR, D0 - z)
+
+
+def _proj(x, y, z):
+    s = _s_of(z)
+    return (CX + (x - XCAM) * s, CY - (y - EYE) * s)
+
+
+def _cover(box, mb):
+    """Grow a local box (x0, x1, y0, y1, z0, z1) until its projection covers the mask bbox mb (L, T, R, B, px)."""
+    x0, x1, y0, y1, z0, z1 = box
+    L, T_, R, Bm = mb
+    sn, sf = _s_of(z1), _s_of(z0)
+    xl = (L - CX) / (sn if L < CX else sf)
+    xr = (R - CX) / (sn if R > CX else sf)
+    yt = EYE + (CY - T_) / (sn if T_ < CY else sf)
+    yb = EYE - (Bm - CY) / (sn if Bm > CY else sf)
+    return (min(x0, xl), max(x1, xr), min(y0, yb), max(y1, yt), z0, z1)
+
+
+def _floor_clamp(full, core, mb):
+    """A floor-standing box never goes under Y = 0: bring its near face forward to the mask's bottom row."""
+    x0, x1, y0, y1, z0, z1 = full
+    if y0 < -0.05 and core[2] >= -0.01 and mb[3] > CY:
+        zn = D0 - EYE * F / (mb[3] - CY)
+        if zn > z1:
+            g = _cover((core[0], core[1], max(0.0, core[2]), core[3], core[4], zn), mb)
+            return (g[0], g[1], max(0.0, g[2]), g[3], g[4], g[5])
+        return (x0, x1, 0.0, y1, z0, z1)
+    return full
+
+
+def _fit(mask, boxes, anchors, wall_depth=0.12, max_depth=1.5):
+    """Recover a local 3D box for one drawn object (U4 fit.py): box3d calls are exact; 2D objects take depth from
+    the anchors that project onto the sprite (all on the wall: a card; spread: a 3D quad; one depth: a billboard);
+    no anchor: the floor contact row or the wall plane. The box is then grown to cover the silhouette."""
+    m = _mbox(mask)
+    if m is None:
+        return None
+    L, T_, R, Bm = m[0], m[1], m[2] + 1, m[3] + 1
+    mb = (L, T_, R, Bm)
+    fb = CY + EYE * F / D0
+    if boxes:
+        core = (min(b["X0"] for b in boxes), max(b["X1"] for b in boxes), min(b["Y0"] for b in boxes),
+                max(b["Y1"] for b in boxes), min(b["z0"] for b in boxes), max(b["z1"] for b in boxes))
+        how = "box3d"
+    else:
+        an = []
+        for (x, y, z) in anchors:
+            if z > D0 - NEAR:
+                continue
+            sx, sy = _proj(x, y, z)
+            if L - 6 <= sx <= R + 6 and T_ - 6 <= sy <= Bm + 6:
+                an.append((x, y, z))
+        if an and max(a[2] for a in an) <= 0.02:
+            xs = [a[0] for a in an]
+            ys = [a[1] for a in an]
+            core = (min(xs), max(xs), min(ys), max(ys), 0.0, wall_depth)
+            how = "wall card"
+        elif an:
+            z1 = max(a[2] for a in an)
+            zmin = min(a[2] for a in an)
+            if z1 - zmin > 0.2:
+                s1 = _s_of(z1)
+                X0, X1 = (L - CX) / s1, (R - CX) / s1
+                ybase = min(a[1] for a in an)
+                ybm = EYE - (Bm - CY) / s1
+                Y0 = ybase if abs(ybase - ybm) < 0.6 else ybm
+                core = (X0, X1, Y0, Y0, zmin, z1)
+                how = "anchors (3D spread)"
+            else:
+                zc = (z1 + zmin) / 2
+                s_ = _s_of(zc)
+                X0, X1 = (L - CX) / s_, (R - CX) / s_
+                ybase = min(a[1] for a in an)
+                ybm = EYE - (Bm - CY) / s_
+                Y0 = 0.0 if (ybase <= 0.02 and ybm < 0.6) else ybm
+                Y1 = EYE + (CY - T_) / s_
+                hd = min(0.75, max(0.15, 0.5 * (X1 - X0) * 0.6))
+                b = (X0, X1, Y0, Y1, max(0.0, zc - hd), zc + hd)
+                return dict(how="anchors (billboard)", core=b, fit=b, mask_bbox=mb)
+        elif Bm > fb + 1:
+            t = EYE * F / (Bm - CY)
+            z1 = D0 - t
+            X0, X1 = (L - CX) * t / F, (R - CX) * t / F
+            d = min(max_depth, max(0.3, X1 - X0))
+            core = (X0, X1, 0.0, 0.0, max(0.0, z1 - d), z1)
+            how = "floor contact"
+        else:
+            t = D0
+            core = ((L - CX) * t / F, (R - CX) * t / F, EYE - (Bm - CY) * t / F, EYE - (T_ - CY) * t / F, 0.0, wall_depth)
+            how = "wall (mask)"
+    return dict(how=how, core=core, fit=_floor_clamp(_cover(core, mb), core, mb), mask_bbox=mb)
+
+
+def _local_to_world(b, view):
+    x0, x1, y0, y1, z0, z1 = b
+    (Xa, Za), (Xb, Zb) = to_world(x0, z0, view), to_world(x1, z1, view)
+    return [min(Xa, Xb), y0, min(Za, Zb), max(Xa, Xb), y1, max(Za, Zb)]
+
+
+def _world_to_local(wb, view):
+    X0, Y0, Z0, X1, Y1, Z1 = wb
+    (xa, za), (xb, zb) = to_local(X0, Z0, view), to_local(X1, Z1, view)
+    return (min(xa, xb), max(xa, xb), Y0, Y1, min(za, zb), max(za, zb))
+
+
+def hotspot_box(view, it, base, ghost):
+    """The hotspot's 3D box in the view's local frame: the main box3d body (exact; 2D attachments only raise or
+    lower it) or the union of the parts' fitted boxes. Returns (local box, kind, src, how)."""
+    rec = base["rec"]
+    parts = []
+    for o in it["objs"]:
+        nm = o.split("@")[0]
+        m = ghost["gmask"].get(nm)
+        if m is None or not m.any():
+            continue
+        r = _fit(m, rec["box"].get(nm, []), rec["pj"].get(nm, []))
+        if r:
+            parts.append(r)
+    if not parts:
+        return None
+    b3 = [p for p in parts if p["how"] == "box3d"]
+    if b3:
+        b = [min(p["core"][0] for p in b3), max(p["core"][1] for p in b3), min(p["fit"][2] for p in b3),
+             max(p["fit"][3] for p in b3), min(p["core"][4] for p in b3), max(p["core"][5] for p in b3)]
+        b[2] = max(b[2], min(p["core"][2] for p in b3) - 0.05)
+        for p in parts:
+            if p["how"] == "box3d":
+                continue
+            f = p["fit"]
+            if f[1] > b[0] and f[0] < b[1]:
+                b[2] = min(b[2], max(0.0, f[2]))
+                b[3] = max(b[3], f[3])
+        how = "box3d"
+    else:
+        fs = [p["fit"] for p in parts]
+        b = [min(f[0] for f in fs), max(f[1] for f in fs), min(f[2] for f in fs), max(f[3] for f in fs),
+             min(f[4] for f in fs), max(f[5] for f in fs)]
+        how = max(parts, key=lambda p: (p["mask_bbox"][2] - p["mask_bbox"][0]) * (p["mask_bbox"][3] - p["mask_bbox"][1]))["how"]
+    kind = BOX_KIND[how]
+    src = "exact" if kind in ("box3d", "card") else "fitted"
+    if it["id"] in BOUNDS:
+        return _world_to_local(BOUNDS[it["id"]], view), kind, "BOUNDS", how
+    return tuple(b), kind, src, how
+
+
+BOXES = {}
+
+
+def box_table(views=VIEW_IDS):
+    """PLAN 2.6: {id: {view, kind 'box3d'|'card'|'anchors'|'billboard', world [X0, Y0, Z0, X1, Y1, Z1] ft,
+    src 'exact'|'fitted'|'BOUNDS', local [x0, x1, y0, y1, z0, z1]}} for every hotspot (renders are cached)."""
+    out = {}
+    for v in views:
+        if v not in BOXES:
+            base = render("base", view=v)
+            ghost = render("ghost", ghost=True, view=v)
+            BOXES[v] = {}
+            for it in ITEMS[v]():
+                if it["kind"] != "hotspot":
+                    continue
+                hb = hotspot_box(v, it, base, ghost)
+                if hb is None:
+                    continue
+                lb, kind, src, how = hb
+                BOXES[v][it["id"]] = {"view": v, "kind": kind, "world": [round(float(x), 3) for x in _local_to_world(lb, v)],
+                                      "src": src, "local": [round(float(x), 3) for x in lb], "how": how}
+        out.update(BOXES[v])
+    return out
+
+
+def _dilate(m, r):
+    """Chebyshev (square) dilation by r px; m is padded by the caller."""
+    out = m.copy()
+    for _ in range(r):
+        o = out.copy()
+        o[1:, :] |= out[:-1, :]
+        o[:-1, :] |= out[1:, :]
+        o2 = o.copy()
+        o2[:, 1:] |= o[:, :-1]
+        o2[:, :-1] |= o[:, 1:]
+        out = o2
+    return out
+
+
+def _erode(m, r):
+    return ~_dilate(~m, r)
+
+
+def wire_from_mask(mask, nearer=None, shape="hull"):
+    """D3 2.1 skill wire for an object mask: the orthogonal hull (every row and column filled between its extremes,
+    3 passes, then closed by 2 px), the line at Chebyshev distance 2 outside it (one clear pixel between the object
+    and the line), minus `nearer` (pixels owned by objects in front), and 4 nodes at the line's diagonal extremes
+    (top-left min x+y, top-right max x-y, bottom-right max x+y, bottom-left max y-x; ties: first in row-major
+    order). shape 'bbox' uses the mask's bounding box. Coordinates are the mask's; the line may extend 3 px beyond
+    the mask bbox (the caller's array must leave room, or the line is cut at the array edge).
+    Returns {"pts": int array (n, 2) of (x, y) in row-major order, "nodes": [(x, y) x 4]} or None (empty mask)."""
+    if not mask.any():
+        return None
+    P = 8
+    m = np.pad(mask, P)
+    if shape == "bbox":
+        x0, y0, x1, y1 = _mbox(m)
+        h = np.zeros_like(m)
+        h[y0:y1 + 1, x0:x1 + 1] = True
+    else:
+        h = m.copy()
+        for _ in range(3):
+            h = np.maximum.accumulate(h, 1) & np.maximum.accumulate(h[:, ::-1], 1)[:, ::-1]
+            h = np.maximum.accumulate(h, 0) & np.maximum.accumulate(h[::-1, :], 0)[::-1, :]
+        h = _erode(_dilate(h, 2), 2)
+    line = _dilate(h, 2) & ~_dilate(h, 1)
+    line = line[P:-P, P:-P]
+    if nearer is not None:
+        line &= ~nearer
+    ys, xs = np.nonzero(line)
+    if not len(xs):
+        return None
+    pts = np.stack([xs, ys], 1)
+    nodes = [pts[int(np.argmin(xs + ys))], pts[int(np.argmax(xs - ys))], pts[int(np.argmax(xs + ys))],
+             pts[int(np.argmax(ys - xs))]]
+    return {"pts": pts, "nodes": [(int(p[0]), int(p[1])) for p in nodes]}
+
+
+def _bres(x0, y0, x1, y1):
+    x0, y0, x1, y1 = int(round(x0)), int(round(y0)), int(round(x1)), int(round(y1))
+    dx, dy = abs(x1 - x0), -abs(y1 - y0)
+    sx, sy = (1 if x0 < x1 else -1), (1 if y0 < y1 else -1)
+    err = dx + dy
+    out = []
+    while True:
+        out.append((x0, y0))
+        if x0 == x1 and y0 == y1:
+            return out
+        e2 = 2 * err
+        if e2 >= dy:
+            err += dy
+            x0 += sx
+        if e2 <= dx:
+            err += dx
+            y0 += sy
+
+
+_EDGES_OF = {"front": [(4, 5), (5, 7), (7, 6), (6, 4)], "top": [(2, 3), (3, 7), (7, 6), (6, 2)],
+             "bottom": [(0, 1), (1, 5), (5, 4), (4, 0)], "left": [(0, 2), (2, 6), (6, 4), (4, 0)],
+             "right": [(1, 3), (3, 7), (7, 5), (5, 1)]}
+
+
+def cage_of(b):
+    """Projected visible edges of a local box (box3d's face rule; corner index bits x 1, y 2, z 4).
+    Returns (edge pixels [(x, y)], corner points {index: (x, y)} of the visible edges), master px."""
+    x0, x1, y0, y1, z0, z1 = b
+    z1 = min(z1, D0 - NEAR)
+    c = [(x1 if i & 1 else x0, y1 if i & 2 else y0, z1 if i & 4 else z0) for i in range(8)]
+    p = [_proj(*q) for q in c]
+    vis = {"front": True, "top": y1 < EYE, "bottom": y0 > EYE, "left": x0 > XCAM, "right": x1 < XCAM}
+    edges = sorted({tuple(sorted(e)) for f, on in vis.items() if on for e in _EDGES_OF[f]})
+    px, corners = [], {}
+    for a, bb in edges:
+        px += _bres(p[a][0], p[a][1], p[bb][0], p[bb][1])
+        corners[a] = (int(round(p[a][0])), int(round(p[a][1])))
+        corners[bb] = (int(round(p[bb][0])), int(round(p[bb][1])))
+    return sorted(set(px), key=lambda q: (q[1], q[0])), corners
+
+
+def nearer_mask(r, objs):
+    """Pixels of render r owned by an object drawn after the item's first object (it is in front), incl. margins."""
+    own = [o for nm in objs for o in r["names"].get(nm.split("@")[0], [])]
+    if not own:
+        return np.zeros((H, W), bool)
+    first = min(r["order"][o] for o in own)
+    ordarr = np.zeros(int(r["oid"].max()) + 1, np.int32)
+    for o, k in r["order"].items():
+        if 0 <= o < len(ordarr):
+            ordarr[o] = k
+    return (ordarr[r["oid"]] > first) & ~np.isin(r["oid"], own)
+
+
+def item_mask(r, objs):
+    own = [o for nm in objs for o in r["names"].get(nm.split("@")[0], []) if o >= 10]
+    return np.isin(r["oid"], own)
+
+
+def iso_groups(items, ghost):
+    """Split hotspots into groups whose objects never touch (4 px apart), so one isolate render serves a group."""
+    groups = []
+    for it in items:
+        m = np.zeros((H, W), bool)
+        for o in it["objs"]:
+            g = ghost["gmask"].get(o.split("@")[0])
+            if g is not None:
+                m |= g
+        m = _dilate(m, 4)
+        for g in groups:
+            if not (g["m"] & m).any():
+                g["items"].append(it)
+                g["m"] |= m
+                break
+        else:
+            groups.append({"items": [it], "m": m})
+    return [g["items"] for g in groups]
+
+
+def iso_renders(view, items, ghost):
+    """{(item id, key): isolate render} for every hotspot key except night (state renders as the export's)."""
+    out = {}
+    keys = []
+    for it in items:
+        for k in it["keys"]:
+            if k != "night" and k not in keys:
+                keys.append(k)
+    for k in keys:
+        its = [it for it in items if k in it["keys"]]
+        for grp in iso_groups(its, ghost):
+            tag, var, tier = tag_state(grp[0], k)
+            names = {o.split("@")[0] for it in grp for o in it["objs"]}
+            r = render("iso-" + tag, var=var, tier=tier, view=view, iso=names)
+            for it in grp:
+                out[(it["id"], k)] = r
+    return out
+
+
+def wire_export(view, it, rec, isos, rooms):
+    """item.wire (PLAN 2.6): {key: {hull, nodes, cage, cageNodes, gate}} relative to the item's x, y; a key only when
+    its silhouette changes from base. Hull from the isolate (un-occluded) mask, cut where a nearer object is drawn."""
+    ox, oy = rec["x"] + OX, rec["y"] + OY
+    lb = BOXES[view][it["id"]]["local"] if it["id"] in BOXES.get(view, {}) else None
+    skill = "skill" in (it.get("target") or {})
+    data = {}
+    for k in [k for k in it["keys"] if k != "night"]:
+        mask = item_mask(isos[(it["id"], k)], it["objs"])
+        near = nearer_mask(rooms[k], it["objs"])
+        w = wire_from_mask(mask, near, WIRE_SHAPE.get(it["id"], "hull"))
+        if w is None:
+            raise SystemExit(f"{it['id']} {k}: empty wire")
+        d = {"hull": [int(v) for q in w["pts"] for v in (q[0] - ox, q[1] - oy)],
+             "nodes": [int(v) for q in w["nodes"] for v in (q[0] - ox, q[1] - oy)],
+             "cage": None, "cageNodes": None, "gate": None}
+        if lb is not None:
+            px, corners = cage_of(lb)
+            sx0, sy0, sx1, sy1 = _mbox(mask)
+            cx0, cy0 = min(p[0] for p in px), min(p[1] for p in px)
+            cx1, cy1 = max(p[0] for p in px), max(p[1] for p in px)
+            over = [sx0 - cx0, sy0 - cy0, cx1 - sx1, cy1 - sy1]
+            d["gate"] = {"over": over, "under": [max(0, -o) for o in over]}
+            if skill and all(CAGE_UNDER <= o <= CAGE_OVER for o in over):
+                keep = [(x, y) for x, y in px if 0 <= x < W and 0 <= y < H and not near[y, x]]
+                d["cage"] = [int(v) for x, y in keep for v in (x - ox, y - oy)]
+                d["cageNodes"] = [int(v) for i in sorted(corners) for v in (corners[i][0] - ox, corners[i][1] - oy)
+                                  if 0 <= corners[i][0] < W and 0 <= corners[i][1] < H
+                                  and not near[corners[i][1], corners[i][0]]][:16]
+        data[k] = d
+    base_k = it["alias"].get("base", "base") if "base" not in data else "base"
+    base = data[base_k]
+    out = {"base": base}
+    for k, d in data.items():
+        if k != base_k and d != base:
+            out[k] = d
+    return out
+
+
+def hero_export(view, it, rec, isos, manifest):
+    """<id>.hero overlay (PLAN 2.6) from the isolate renders: complete, un-occluded, per variant, + mat sidecars."""
+    keys = [k for k in it["keys"] if k != "night"]
+    arrays, mats = {}, {}
+    for k in keys:
+        r = isos[(it["id"], k)]
+        m = item_mask(r, it["objs"])
+        arrays[k] = np.where(m, r["img"], T).astype(np.uint8)
+        mats[k] = r["mat"]
+    x0, y0, x1, y1 = union([bbox(a) for a in arrays.values()])
+    zone, name = it["id"].split(".", 1)
+    variants = {}
+    for k, a in arrays.items():
+        rel = f"{SPR_DIR}/{view}/{zone}/{name}.hero.{k}.png"
+        save_png(a[y0:y1, x0:x1], os.path.join(PROTO, rel))
+        save_mat(mats[k][y0:y1, x0:x1], a[y0:y1, x0:x1], os.path.join(PROTO, rel[:-4] + ".mat.png"))
+        variants[k] = rel
+    for v, src in it["alias"].items():
+        if src in variants and v not in variants:
+            variants[v] = variants[src]
+    led = rec.get("led")
+    manifest.append({"id": it["id"] + ".hero", "zone": it["zone"], "kind": "overlay", "of": it["id"], "layer": 6,
+                     "x": x0 - OX, "y": y0 - OY, "w": x1 - x0, "h": y1 - y0, "variants": variants, "view": view,
+                     "hero": {"anchor": [int(rec["x"] + rec["w"] / 2 + 0.5), rec["y"] + rec["h"]], "float": False,
+                              "rimSide": None, "authored": False,
+                              "led": [led[0] - (x0 - OX), led[1] - (y0 - OY)] if led else None},
+                     "note": "v3.5 isolate hero: the object alone (nothing in front), for the skill view"})
+
+
 def export_view(view, manifest):
     items = ITEMS[view]()
     for it in items:
@@ -4106,6 +4568,15 @@ def export_view(view, manifest):
         manifest.append(rec)
         return rec
 
+    # v3.5 (P6): box table, isolate renders (un-occluded hotspots) for wires and heroes
+    hs = [it for it in items if it["kind"] == "hotspot"]
+    box_table((view,))
+    isos = iso_renders(view, hs, ghost)
+
+    def room_render(it, k):
+        tag, var, tier = tag_state(it, k)
+        return render(tag, var=var, tier=tier, view=view) if tag != "base" else base
+
     owner_layer = np.zeros((H, W), np.int8)
     for it, arrays, mats in built:
         if it["objs"] == ["margin"]:
@@ -4118,6 +4589,10 @@ def export_view(view, manifest):
             sx0, sy0, sx1, sy1 = base["screens"][it["screen"]]
             extra = {"screen": [sx0 - OX, sy0 - OY, sx1 - sx0, sy1 - sy0]}
         rec = write(it, arrays, mats, it["alias"], extra=extra)
+        if it["kind"] == "hotspot":
+            rec["wire"] = wire_export(view, it, rec, isos, {k: room_render(it, k) for k in it["keys"] if k != "night"})
+            if opens_board(it) and it["id"] not in AUTHORED_HEROES:
+                hero_export(view, it, rec, isos, manifest)
         if it["kind"] != "shell":
             a = arrays.get("base", arrays.get(it["keys"][0]))
             if a is not None:
@@ -4210,18 +4685,7 @@ def export_view(view, manifest):
         diff = (beam["img"] != base["img"]) & ~kn
         write(I("window.statue-downlight", "window", "overlay", []), {"base": np.where(diff, beam["img"], T).astype(np.uint8)}, {"base": beam["mat"]}, {},
               layer=top_layer(diff) if diff.any() else 3)
-        set_view("front")
-        kx = int(pj(KN_X, 0, 0)[0])
-        cb = (kx - 70, 150, kx + 70, 420)
-        arrays = {}
-        cmats = {}
-        for t in range(1, 6):
-            a = np.full((H, W), T, np.uint8)
-            r = render(f"t{t}", var={}, tier=t)
-            a[cb[1]:cb[3], cb[0]:cb[2]] = r["img"][cb[1]:cb[3], cb[0]:cb[2]]
-            arrays[f"t{t}"] = a
-            cmats[f"t{t}"] = r["mat"]
-        write(I("window.statue-closeup", "window", "overlay", []), arrays, cmats, {"base": "t1"}, layer=6)
+        # v3.5: window.statue-closeup (228 KB, never shown) is retired; window.statue.hero replaces it
     zone_light = {}
     for zid, (zv, nm) in ZONE_ON.items():
         if zv != view:
@@ -4258,6 +4722,15 @@ def export_live():
     for v in res:
         zone_light.update(res[v][1])
     zones = make_zones(manifest, res, zone_light)
+    # v3.5 (P6): authored heroes (art/room-r6/heroes.py) replace the isolate re-export for their items
+    if os.path.exists(os.path.join(HERE, "heroes.py")):
+        sys.path.insert(0, HERE)
+        import heroes  # noqa: E402
+        heroes.export(sys.modules[__name__], manifest)
+    with open(os.path.join(HERE, "boxes.json"), "w") as f:
+        json.dump({"_note": "GENERATED by art/room-r6/build.py (v3.5 box table, PLAN 2.6): per hotspot the recovered 3D "
+                            "box, world ft [X0, Y0, Z0, X1, Y1, Z1] and the view-local [x0, x1, y0, y1, z0, z1].",
+                   "boxes": box_table()}, f, indent=1)
     # v3.5 overview hook (PLAN 2.6): art/room-r6/overview.py, when present, appends the top.* items to the manifest
     # and writes zones["views"]["top"]. It gets this module as B.
     if os.path.exists(os.path.join(HERE, "overview.py")):
