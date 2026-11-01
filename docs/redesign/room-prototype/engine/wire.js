@@ -1,7 +1,7 @@
 /* FORGE room v3.5: skill wires and cages (ROOM.wire, D3-FINAL with PLAN amendments A2, A7, A8).
  *
  * - Skill wire (rest, every active skill): a 1 art px line one clear pixel outside the object's orthogonal hull
- *   plus 4 vertex nodes (2x2) at its diagonal extremes, coloured by state on one gold heat ramp: GOLD_DK idle,
+ *   plus 4 vertex nodes (2x2) at its diagonal extremes, coloured by state on one gold heat ramp: GOLD_MID idle,
  *   GOLD open goal, GOLD_HI logged, a Bayer breath GOLD/GOLD_DK for today's top priority, SLATE_1 when neglected.
  * - Attention (hover, keyboard focus, touch hold; Shift inspect for every hotspot): the item's 3D wire cage (visible
  *   box edges, INK keyline, 3x3 CREAM vertex nodes with an INK border) when its box passes the build's gate, else
@@ -31,7 +31,7 @@
 
   // Rest colours per mark state (D3 2.2): [line, node].
   var REST = {
-    off: ['GOLD_DK', 'GOLD_DK'],
+    off: ['GOLD_MID', 'GOLD_MID'], // D3 said GOLD_DK: measured 1.3:1 on the dark plaster (AC1), so one ramp step up
     pending: ['GOLD', 'GOLD_HI'],
     top: ['GOLD', 'SUN'],
     half: ['GOLD_HI', 'GOLD'],

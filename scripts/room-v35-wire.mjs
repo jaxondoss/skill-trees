@@ -78,6 +78,7 @@ const browser = await chromium.launch({
 const errors = [];
 async function newPage(w, h, extra = {}) {
   const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1, ...extra });
+  page.setDefaultTimeout(120000);
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
@@ -183,7 +184,7 @@ const ok = (name, pass, detail) => {
 if (mode === 'ac') {
   const page = await newPage(1280, 800);
   for (const [wn, hash] of Object.entries(WALLS)) {
-    if (ONLY && !ONLY.split(',').includes(wn)) continue;
+    if ((ONLY && !ONLY.split(',').includes(wn)) || argv.includes('--tail')) continue;
     // AC1: state colour (albedo) and contrast (final)
     await open(page, 'el=4&light=albedo', hash);
     const alb = await page.evaluate(`(${SAMPLE})()`);

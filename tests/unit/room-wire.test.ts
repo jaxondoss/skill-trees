@@ -150,7 +150,7 @@ describe("styleFor (D3 2.2 table)", () => {
   const pick = (s: Record<string, unknown> | null) => s && [s.kind, s.line, s.node, s.breathe, s.dash, s.bit4];
 
   it.each([
-    ["off", ["wire", "GOLD_DK", "GOLD_DK", false, false, true]],
+    ["off", ["wire", "GOLD_MID", "GOLD_MID", false, false, true]],
     ["pending", ["wire", "GOLD", "GOLD_HI", false, false, true]],
     ["top", ["wire", "GOLD", "SUN", true, false, true]],
     ["half", ["wire", "GOLD_HI", "GOLD", false, false, true]],
