@@ -8,6 +8,14 @@ test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: fa
 
 const ZONES = ["kitchen", "bed", "library", "window", "study", "computer", "gym"];
 
+type Nav = {
+  busy: boolean;
+  place: { mode: string; view: string; zone: string | null; item: string | null };
+  overviewOn: () => boolean;
+};
+type RoomW = Window & { ROOM: { nav: Nav; state: Record<string, unknown>; debug: { freeze: () => void; advance: (ms: number) => void; readFrame: () => ImageData } } };
+const place = (page: import("@playwright/test").Page) => page.evaluate(() => (window as unknown as RoomW).ROOM.nav.place);
+
 
 test.beforeEach(async ({ page }) => {
   resetUser();
@@ -21,7 +29,8 @@ test("the room loads at /, keys 1-7 step into each zone with its own URL, and Ba
   for (let i = 0; i < ZONES.length; i++) {
     await page.keyboard.press(String(i + 1));
     await expect(page).toHaveURL(new RegExp(`/room/${ZONES[i]}$`));
-    expect((await roomState(page)).zone).toBe(ZONES[i]);
+    // v3.5: the URL changes when the move starts, ROOM.state.zone when it lands
+    await expect.poll(async () => (await roomState(page)).zone).toBe(ZONES[i]);
   }
   await page.goBack();
   await expect(page).toHaveURL(/\/room\/computer$/);
@@ -75,8 +84,12 @@ test("a skill hotspot opens its panel, and holding Shift shows the nameplates", 
   await expect(panel).toBeVisible();
   await expect(panel).toHaveAttribute("aria-label", "Chess");
   await expect(panel.locator(".p-name")).toHaveText("Chess");
+  // v3.5: the skill view has its own URL, in the item's real zone (the chess table stands in the window zone)
+  await expect(page).toHaveURL(/\/room\/window\/chess$/);
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
+  await expect(page).toHaveURL(/\/room\/window$/);
+  await settled(page);
 
   await page.keyboard.down("Shift");
   await expect.poll(async () => (await roomState(page)).inspect).toBe(true);
@@ -197,4 +210,125 @@ test("v3.4: Time Blocking is retired: archived with its history, and the room ha
   );
   expect(items).toBe(0);
   expect(sql(`select status from public.skills where user_id = '${USER_ID}' and slug = 'time-blocking'`)).toBe("archived");
+});
+
+test("v3.5: the keyboard map (Up/Down overview, arrows, Esc), and Up/Down are left alone in a text field", async ({ page }) => {
+  await openRoom(page);
+  await settled(page);
+  const overview = await page.evaluate(() => (window as unknown as RoomW).ROOM.nav.overviewOn());
+  if (overview) {
+    await page.keyboard.press("ArrowUp");
+    await expect(page).toHaveURL(/\/room\/overview$/);
+    await expect.poll(async () => (await place(page)).mode).toBe("overview");
+    await expect(page.locator("#nav-up")).toHaveAccessibleName("Back to room");
+    await page.keyboard.press("ArrowDown");
+    await expect.poll(async () => (await place(page)).mode).toBe("wall");
+    await expect(page).toHaveURL("http://localhost:3200/");
+  } else {
+    // without the overview art the Up key and #nav-up do nothing
+    await page.keyboard.press("ArrowUp");
+    await settled(page);
+    expect((await place(page)).mode).toBe("wall");
+    await expect(page.locator("#nav-up")).toBeHidden();
+  }
+  // Right turns on a wall; in a zone Left/Right walk the zones in the global order (here across a wall)
+  await page.keyboard.press("4");
+  await expect.poll(async () => (await place(page)).zone).toBe("window");
+  await page.keyboard.press("ArrowRight");
+  await expect(page).toHaveURL(/\/room\/study$/);
+  await expect.poll(async () => (await place(page)).view).toBe("right");
+  await page.keyboard.press("Escape");
+  await expect.poll(async () => (await place(page)).mode).toBe("wall");
+  await expect(page).toHaveURL(/\/room\/right$/);
+  // a text field keeps its keys: the help sheet has none, so use a throwaway input
+  await page.evaluate(() => {
+    const i = document.createElement("input");
+    i.id = "probe";
+    document.body.appendChild(i);
+    i.focus();
+  });
+  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("ArrowLeft");
+  await settled(page);
+  expect(await place(page)).toMatchObject({ mode: "wall", view: "right" });
+});
+
+test("v3.5: reduced motion: every move lands in the same tick, the skill view opens and closes", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await openRoom(page);
+  const step = (src: string) =>
+    page.evaluate((src) => {
+      const R = (window as unknown as RoomW).ROOM;
+      R.debug.freeze();
+      new Function(src)();
+      const busy = R.nav.busy;
+      R.debug.advance(16);
+      const a = R.debug.readFrame().data;
+      R.debug.advance(800);
+      const b = R.debug.readFrame().data;
+      let same = a.length === b.length;
+      for (let i = 0; same && i < a.length; i += 97) same = a[i] === b[i];
+      return { busy, place: R.nav.place, same };
+    }, src);
+  for (const src of ["ROOM.go('window')", "ROOM.go('gym')", "ROOM.turn(1)", "ROOM.nav.up()", "ROOM.nav.down()", "ROOM.go('library')"]) {
+    const r = await step(src);
+    expect(r.busy, src).toBe(false);
+  }
+  const open = await step("ROOM.nav.request({mode: 'skill', item: 'library.chess'})");
+  expect(open.busy).toBe(false);
+  expect(open.place).toMatchObject({ mode: "skill", item: "library.chess", zone: "window" });
+  await expect(page.locator(".ui-panel")).toBeVisible();
+  await expect(page).toHaveURL(/\/room\/window\/chess$/);
+  const close = await step("ROOM.nav.back()");
+  expect(close.busy).toBe(false);
+  expect(close.place).toMatchObject({ mode: "zone", zone: "library" });
+  await expect(page.locator(".ui-panel")).toBeHidden();
+});
+
+test("v3.5: interruptions: Esc mid-dolly reverses, three Rights are one move, Back after a close", async ({ page }) => {
+  await openRoom(page);
+  await settled(page);
+  const before = await page.evaluate(() => history.length);
+  // Esc during the dolly into a zone: the move reverses, no panel, the URL is the wall again
+  await page.evaluate(() => {
+    const R = (window as unknown as RoomW).ROOM;
+    R.debug.freeze();
+    (R as unknown as { go: (z: string) => void }).go("window");
+    R.debug.advance(200);
+  });
+  await page.keyboard.press("Escape");
+  await page.evaluate(() => {
+    const R = (window as unknown as RoomW).ROOM;
+    for (let i = 0; i < 80 && R.nav.busy; i++) R.debug.advance(16);
+    (R as unknown as { debug: { thaw: () => void } }).debug.thaw();
+  });
+  await settled(page);
+  expect(await place(page)).toMatchObject({ mode: "wall", view: "front" });
+  await expect(page).toHaveURL("http://localhost:3200/");
+  // three quick presses retarget one turn: one history entry, lands three walls on
+  const h0 = await page.evaluate(() => history.length);
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowRight");
+  await settled(page);
+  const p = await place(page);
+  expect(["back", "left"]).toContain(p.view);
+  expect(await page.evaluate(() => history.length)).toBe(h0 + 1);
+  await page.goBack();
+  await expect.poll(async () => (await place(page)).view).toBe("front");
+  await settled(page);
+  // open a skill view from a zone, close it, Back: the place before the zone, never back into the board
+  await page.keyboard.press("4");
+  await expect.poll(async () => (await place(page)).zone).toBe("window");
+  await settled(page);
+  await page.locator('.hs[data-id="library.chess"]').click({ force: true });
+  await expect(page.locator(".ui-panel")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".ui-panel")).toBeHidden();
+  await expect(page).toHaveURL(/\/room\/window$/);
+  await settled(page);
+  await page.goBack();
+  await expect.poll(async () => (await place(page)).mode).toBe("wall");
+  await expect(page).toHaveURL("http://localhost:3200/");
+  expect(before).toBeGreaterThan(0);
 });
