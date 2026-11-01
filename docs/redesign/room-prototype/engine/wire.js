@@ -123,13 +123,15 @@
     return null;
   }
 
+  var passTop; // today's top-priority slug while a mark pass runs (undefined outside)
   /** 'off'|'pending'|'top'|'half'|'full'|'neglect' for an active skill, null otherwise (wire, LED, aria, board). */
   ROOM.markStateOf = function (slug) {
     var sk = skillBySlug(slug);
     if (!sk) return null;
     var fx = ROOM.fx;
     var led = fx ? fx.ledForSkill(slug) : 'off';
-    return markState(sk.status, led, !!(fx && fx.topSkill() === slug), !!sk.neglected);
+    var top = passTop !== undefined ? passTop : fx ? fx.topSkill() : null; // the mark pass computes it once
+    return markState(sk.status, led, top === slug, !!sk.neglected);
   };
 
   /* ---------------------------------------------------------------- data */
@@ -403,6 +405,7 @@
     }
     var list = ROOM.render.drawables;
     var inZone = !!ROOM.state.zone;
+    passTop = ROOM.fx ? ROOM.fx.topSkill() : null;
     for (var i = 0; i < list.length; i++) {
       var d = list[i];
       if (!d.hotspot || (inZone && d.layer === 6)) continue;
@@ -411,6 +414,7 @@
       if (ls.snap) s.static = true;
       draw(f, d, s);
     }
+    passTop = undefined;
     if (t0) lastPassMs = performance.now() - t0;
   }
 
