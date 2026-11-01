@@ -39,6 +39,11 @@
     for (var i = 0; i < ROOM.zones.length; i++) if (ROOM.zones[i].id === id) return ROOM.zones[i];
     return null;
   };
+  /** The zone an item lives in (its own zone field; the territory under it as a fallback). */
+  ROOM.zoneOf = function (item) {
+    if (!item) return null;
+    return ROOM.zoneById(item.zone) || (ROOM.camera && ROOM.camera.zoneAtX ? ROOM.camera.zoneAtX(item.x, ROOM.zonesInView(item.view)) : null);
+  };
   ROOM.itemById = function (id) {
     var items = ROOM.art.items;
     for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i];
@@ -49,10 +54,10 @@
   // One square room seen from its centre: four 90 degree views, front (the knight and the window), right (desks,
   // gym), back (the calendar wall), left (bed, kitchen). Turning right cycles front, right, back, left. Items carry
   // "view" and zones their view; zones.json views.<v> holds each view's frame (art, core, horizon, vp, yaw, f) and
-  // its lighting. Older bundles: "main" is the front view, and a bundle without views is all front.
+  // its lighting. A bundle without views is all front. The overview (v3.5) is a place, never a fifth view.
   ROOM.VIEWS = ['front', 'right', 'back', 'left'];
   function normView(v) {
-    return !v || v === 'main' ? 'front' : v;
+    return v || 'front';
   }
   ROOM.normView = normView;
   ROOM.viewOf = function (thing) {
@@ -63,13 +68,13 @@
     var Z = ROOM.art.zones || {};
     var V = Z.views || {};
     v = normView(v);
-    return V[v] || (v === 'front' && V.main) || Z;
+    return V[v] || Z;
   };
   /** The views this bundle has, in turning order. */
   ROOM.viewList = function () {
     var V = (ROOM.art.zones || {}).views || {};
     var out = ROOM.VIEWS.filter(function (v) {
-      return !!V[v] || (v === 'front' && !!V.main);
+      return !!V[v];
     });
     return out.length ? out : ['front'];
   };
@@ -83,34 +88,22 @@
       return ROOM.viewOf(z) === v;
     });
   };
-  /** The view a turn in direction dir (-1 left, +1 right) leads to from view v, or null. A four-view room
-   *  wraps around; an older three-view bundle (left, main, right) stops at the side views. */
+  /** The view a turn in direction dir (-1 left, +1 right) leads to from view v, or null: the views form a ring. */
   ROOM.viewToward = function (v, dir) {
     var list = ROOM.viewList();
     if (list.length < 2) return null;
-    v = normView(v);
-    var i = list.indexOf(v);
+    var i = list.indexOf(normView(v));
     if (i < 0) return null;
-    if (list.length === 4) return list[(i + (dir > 0 ? 1 : 3)) % 4];
-    // three views (front, right, left): left - front - right
-    var line = ['left', 'front', 'right'].filter(function (x) {
-      return list.indexOf(x) >= 0;
-    });
-    var j = line.indexOf(v) + (dir > 0 ? 1 : -1);
-    return j >= 0 && j < line.length ? line[j] : null;
+    return list[(i + (dir > 0 ? 1 : list.length - 1)) % list.length];
   };
   /** Turning direction (+1 right, -1 left) of the shortest turn from view a to view b (0 when equal). */
   ROOM.turnDir = function (a, b) {
     a = normView(a);
     b = normView(b);
     if (a === b) return 0;
-    var list = ROOM.viewList();
-    if (list.length === 4) {
-      var d = (list.indexOf(b) - list.indexOf(a) + 4) % 4;
-      return d === 3 ? -1 : 1;
-    }
-    var line = ['left', 'front', 'right'];
-    return line.indexOf(b) > line.indexOf(a) ? 1 : -1;
+    var list = ROOM.viewList(), n = list.length;
+    var d = (list.indexOf(b) - list.indexOf(a) + n) % n;
+    return d === n - 1 ? -1 : 1; // the opposite wall: always right
   };
 
   // Colour name -> palette index, and index -> name.
@@ -139,12 +132,25 @@
     ROOM.emit('data', {});
   };
 
+  /**
+   * v3.5: the item whose state drives this one. Overview twins and hero overlays carry "of" (the room item's id);
+   * their stage, skill, alert and growth come from that room item. Plain room items are their own state item.
+   */
+  ROOM.stateItem = function (it) {
+    return it && it.of ? ROOM.itemById(it.of) || it : it;
+  };
   ROOM.skillOf = function (item) {
+    item = ROOM.stateItem(item);
     var slug = item && item.target && item.target.skill;
     if (!slug) return null;
     var skills = ROOM.data.skills || [];
     for (var i = 0; i < skills.length; i++) if (skills[i].slug === slug) return skills[i];
     return null;
+  };
+  /** The feature an item opens (calendar, overall, relic-left...), read through its state item. */
+  ROOM.featureOf = function (item) {
+    item = ROOM.stateItem(item);
+    return (item && item.target && item.target.feature) || null;
   };
   ROOM.itemsForSkill = function (slug) {
     return ROOM.art.items.filter(function (it) {
@@ -274,6 +280,7 @@
 
   /** Is this item's alert on? Backpack: due within 48 h. Doormat: a review is waiting. */
   ROOM.alertOn = function (item) {
+    item = ROOM.stateItem(item);
     var a = ROOM.alerts();
     if (/doormat/.test(item.id)) return a.doormat;
     if (/backpack/.test(item.id)) return a.backpack;
@@ -282,6 +289,7 @@
 
   /** The score that picks an item's stage: its skill's display score, or the overall score for the statue. */
   ROOM.scoreOf = function (item) {
+    item = ROOM.stateItem(item);
     var sk = ROOM.skillOf(item);
     if (sk) return sk.display;
     if (item.target && item.target.feature === 'overall' && ROOM.data.overall) return ROOM.data.overall.display;
@@ -297,9 +305,14 @@
   ROOM.variantOf = function (item) {
     var v = item.variants || {};
     var st = ROOM.state;
-    if (item.kind === 'overlay') {
+    // v3.5 hero overlays (<id>.hero) float in the skill view only; they never draw in the room.
+    if (/\.hero$/.test(item.id)) return null;
+    // Twins ("of") keep their own variant images but take every state decision from the room item.
+    var own = item;
+    item = ROOM.stateItem(item);
+    if (own.kind === 'overlay') {
       // Panel-only art (the statue close-up) is never drawn in the room.
-      if (/closeup/.test(item.id)) return null;
+      if (/closeup/.test(own.id)) return null;
       // The statue's ceiling downlight is on only after the statue was clicked.
       if (/downlight/.test(item.id)) return st.statueLight && v.base ? 'base' : null;
       if (st.holiday && v[st.holiday]) return st.holiday;
@@ -343,6 +356,7 @@
    * month, medal wall from races finished. Data fields are optional; the linked skill's score stands in.
    */
   ROOM.growthOf = function (item) {
+    item = ROOM.stateItem(item);
     var d = ROOM.data, id = item.id || '', frac = 0;
     function skillFrac(slug) {
       var s = (d.skills || []).filter(function (x) {
@@ -354,6 +368,54 @@
     else if (/money|tree/.test(id)) frac = d.revenue && d.revenue.goal ? d.revenue.month / d.revenue.goal : skillFrac('dropshipping');
     else if (/medal/.test(id)) frac = d.races ? Math.min(1, (d.races.length || d.races) / 6) : skillFrac('running');
     return Math.max(0, Math.min(3, Math.floor(frac * 4)));
+  };
+
+  /* ------------------------------------------------------------------ v3.5 places and heroes */
+  /**
+   * The hero (skill view) art of a room item: {item, img, hero:{anchor, float, rimSide, authored, led}}.
+   * Uses "<id>.hero" with the room item's current variant key (missing key: base); without a hero item, the room
+   * sprite of the current variant (authored false, float false). Null for an unknown id or nothing to draw.
+   */
+  ROOM.heroOf = function (id) {
+    var item = ROOM.itemById(id);
+    if (!item) return null;
+    var key = ROOM.variantOf(item);
+    var h = ROOM.itemById(id + '.hero');
+    var hv = h && h.variants;
+    var img = hv ? hv[key] || hv.base || null : null;
+    var meta = (h && img && h.hero) || {};
+    if (!img) {
+      img = key && item.variants ? item.variants[key] : null;
+      if (!img) return null;
+      meta = {};
+    }
+    var w = item.w || 0, hh = item.h || 0;
+    return {
+      item: item,
+      img: img,
+      hero: {
+        anchor: meta.anchor || [Math.round(item.x + w / 2), item.y + hh],
+        float: !!meta.float,
+        rimSide: meta.rimSide || null,
+        authored: !!meta.authored,
+        led: meta.led || null,
+      },
+    };
+  };
+  /** Which scene the renderers draw: 'top' in the overview, else the current wall view. */
+  ROOM.sceneKey = function () {
+    var ov = ROOM.render && ROOM.render.sceneOverride;
+    if (ov) return ov; // a snapshot of another scene is being drawn
+    var p = ROOM.nav && (ROOM.nav.scenePlace || ROOM.nav.place);
+    if (p && p.mode === 'overview') return 'top';
+    return normView(ROOM.state && ROOM.state.view);
+  };
+  /** Where an item lives: {view, zone, feature, calendar} (calendar: the study wall calendar feature). */
+  ROOM.placeOfItem = function (id) {
+    var it = ROOM.stateItem(ROOM.itemById(id));
+    if (!it) return null;
+    var feature = ROOM.featureOf(it);
+    return { view: normView(it.view), zone: it.zone || null, feature: feature, calendar: feature === 'calendar' };
   };
 
   /* ------------------------------------------------------------------ clock (debug can freeze it) */

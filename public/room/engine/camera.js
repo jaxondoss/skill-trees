@@ -20,8 +20,8 @@
 (function () {
   'use strict';
 
-  // World frame. Defaults are the 640x270 core; configure() reads them from ROOM_ART.zones, so the
-  // same maths runs on art.js and art-v3.js (960x540 core, ~1200x720 painted art).
+  // World frame. Defaults are a 640x270 core; configure() reads the real frame from ROOM_ART.zones (v3.4: a
+  // 556x352 core per wall inside an 800x560 painted art rect).
   var CORE_W = 640;
   var CORE_H = 270;
   var ART = { x0: -80, y0: -96, x1: 720, y1: 384 };
@@ -39,8 +39,7 @@
   // Phone zone framing width (world px at the 640 core) used instead of the focus width in pan mode.
   var FW_PHONE_640 = 88;
   var FW_PHONE = FW_PHONE_640;
-  // Dolly: per-layer exponent on the eased progress (far layers lag, near layers lead).
-  var GAMMA = [1.5, 1.25, 1.0, 0.94, 0.88, 0.82];
+  // Dolly (v3.5): one lit plane, no per-layer parallax.
   var DOLLY_MS = 450;
   // Anticipation before a push-in: a short pull-back.
   var ANTICIPATE_MS = 80;
@@ -88,8 +87,8 @@
 
   /**
    * Pick the integer scale and the mode for a device-pixel canvas.
-   * Room mode: the whole core fits (s = min(floor(Wd/640), floor(Hd/270))) and one art pixel is at
-   * least 1.5 CSS px. Otherwise pan mode: s from the (small-viewport) height, at least 1.5 CSS px.
+   * Room mode: the whole core fits (s = min(floor(Wd/CORE_W), floor(Hd/CORE_H))) and one art pixel is at
+   * least MIN_CSS_PER_PX CSS px. Otherwise pan mode: s from the (small-viewport) height.
    * @param {number} Wd device px width
    * @param {number} Hd device px height
    * @param {number} dpr devicePixelRatio
@@ -141,7 +140,7 @@
 
   /**
    * Vertical camera centre for the room view: the horizon sits at 42% of the visible window
-   * (cy = horizon + 0.08*Hv), clamped so the core stays fully visible when Hv >= 270, and so the
+   * (cy = horizon + 0.08*Hv), clamped so the core stays fully visible when Hv >= CORE_H, and so the
    * window stays inside the painted art.
    */
   function horizonCy(Hv) {
@@ -259,35 +258,42 @@
     return { from: from, to: to, view: view, z0: from.z, z1: to.z, c0: c0, c1: c1, P: P, lateral: lateral };
   }
 
-  /** Eased per-layer progress e_L = e(u)^gamma_L (layers above 5 use layer 5's exponent). */
-  function layerProgress(L, u) {
-    return Math.pow(easeOut(u), GAMMA[Math.min(Math.max(L, 0), GAMMA.length - 1)]);
-  }
-
   /**
-   * Transform of layer L (0..5) at dolly progress u in [0, 1].
-   * oFrom/oTo are the layer's depth offsets (world px) at the two ends; they blend with e_L.
+   * Transform of the single dolly plane at progress u in [0, 1] (easeOutCubic). u = 0 and u = 1 are exactly the
+   * rest transforms of the two cameras; in between the zoom is geometric about the pivot (or a lateral slide).
    */
-  function dollyLayer(plan, L, u, oFrom, oTo) {
-    oFrom = oFrom || 0;
-    oTo = oTo || 0;
+  function dollyAt(plan, u) {
     var view = plan.view;
-    if (u <= 0) return restTransform(plan.from, view, oFrom);
-    if (u >= 1) return restTransform(plan.to, view, oTo);
-    var e = layerProgress(L, u);
-    var o = oFrom + (oTo - oFrom) * e;
+    if (u <= 0) return restTransform(plan.from, view, 0);
+    if (u >= 1) return restTransform(plan.to, view, 0);
+    var e = easeOut(u);
     if (plan.lateral) {
       var cx = plan.c0.x + (plan.c1.x - plan.c0.x) * e;
       var cy = plan.c0.y + (plan.c1.y - plan.c0.y) * e;
-      return { z: plan.z0, tx: (o - cx) * plan.z0 + view.Wd / 2, ty: -cy * plan.z0 + view.Hd / 2 };
+      return { z: plan.z0, tx: -cx * plan.z0 + view.Wd / 2, ty: -cy * plan.z0 + view.Hd / 2 };
     }
     var zL = plan.z0 * Math.pow(plan.z1 / plan.z0, e);
     var P = plan.P;
     return {
       z: zL,
-      tx: (o - P.x) * zL + (P.x - plan.c0.x) * plan.z0 + view.Wd / 2,
+      tx: -P.x * zL + (P.x - plan.c0.x) * plan.z0 + view.Wd / 2,
       ty: -P.y * zL + (P.y - plan.c0.y) * plan.z0 + view.Hd / 2,
     };
+  }
+
+  /**
+   * Snapshot zoom: the largest divisor of z (integer) whose w x h world rect stays within maxPx pixels and
+   * maxSide per side, so a move's end pose is an integer magnification of the snapshot. At least 1.
+   */
+  function snapZoom(z, w, h, maxPx, maxSide) {
+    z = Math.max(1, Math.round(z));
+    maxPx = maxPx || 6e6;
+    maxSide = maxSide || 8192;
+    for (var d = z; d >= 1; d--) {
+      if (z % d) continue;
+      if (w * d * h * d <= maxPx && w * d <= maxSide && h * d <= maxSide) return d;
+    }
+    return 1;
   }
 
   /**
@@ -307,16 +313,6 @@
     if (k === 1) return tr;
     var cx = view.Wd / 2, cy = view.Hd / 2;
     return { z: tr.z * k, tx: (tr.tx - cx) * k + cx, ty: (tr.ty - cy) * k + cy };
-  }
-
-  /**
-   * L6 frame crops do not scale during a dolly; they slide off the nearest screen edge.
-   * Returns the outward slide in world px: side * (w + 8) * min(1, u/0.6)^2 (side -1 left, +1 right).
-   * `leaving` true when stepping into a zone; false when coming back to the room (slides in).
-   */
-  function frameSlide(u, side, w, leaving) {
-    var k = Math.min(1, clamp(leaving ? u : 1 - u, 0, 1) / 0.6);
-    return side * (w + 8) * k * k;
   }
 
   /* ------------------------------------------------------------------ phone pan */
@@ -363,13 +359,54 @@
 
   /* ------------------------------------------------------------------ zones */
 
-  /** The zone whose territory contains world x (zones from zones.json). */
+  /** The zone whose territory contains world x, else the one with the nearest territory edge (gaps between
+   *  territories go to the nearer neighbour, not the last zone). */
   function zoneAtX(x, zones) {
+    var best = null, bd = Infinity;
     for (var i = 0; i < zones.length; i++) {
       var t = zones[i].territory;
       if (x >= t.x0 && x < t.x1) return zones[i];
+      var d = x < t.x0 ? t.x0 - x : x - t.x1 + 1;
+      if (d < bd) {
+        bd = d;
+        best = zones[i];
+      }
     }
-    return x < 0 ? zones[0] : zones[zones.length - 1];
+    return best;
+  }
+  /** The phone pan stops of a list of zones (the zones of one wall). */
+  function zoneStops(zones) {
+    return zones.map(function (z) {
+      return z.stop;
+    });
+  }
+
+  /* ------------------------------------------------------------------ turn (v3.5) */
+  function easeInOut(u) {
+    u = clamp(u, 0, 1);
+    return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+  }
+  /** Geometric zoom between z0 and z1 at eased progress e; dip > 0 pulls out mid-way (zone to zone across walls). */
+  function turnZoom(z0, z1, e, dip) {
+    return z0 * Math.pow(z1 / z0, e) * (1 - (dip || 0) * Math.sin(Math.PI * e));
+  }
+  /**
+   * Cubic Hermite from p0 (velocity v0, per unit s) to p1 (velocity 0) at s in [0, 1]: a retargeted turn keeps
+   * its current angular velocity, so a second press never jerks the pan.
+   */
+  function hermite(p0, v0, p1, s) {
+    s = clamp(s, 0, 1);
+    var s2 = s * s, s3 = s2 * s;
+    return (2 * s3 - 3 * s2 + 1) * p0 + (s3 - 2 * s2 + s) * v0 + (-2 * s3 + 3 * s2) * p1;
+  }
+  function hermiteSlope(p0, v0, p1, s) {
+    s = clamp(s, 0, 1);
+    var s2 = s * s;
+    return (6 * s2 - 6 * s) * p0 + (3 * s2 - 4 * s + 1) * v0 + (-6 * s2 + 6 * s) * p1;
+  }
+  function smoothstep(a, b, x) {
+    var t = clamp((x - a) / (b - a), 0, 1);
+    return t * t * (3 - 2 * t);
   }
 
   var camera = {
@@ -380,7 +417,6 @@
     HORIZON_AT: HORIZON_AT,
     CLOSER: CLOSER,
     ZONE_FRACTION: ZONE_FRACTION,
-    GAMMA: GAMMA,
     PAN_DEPTH: PAN_DEPTH,
     DOLLY_MS: DOLLY_MS,
     ANTICIPATE_MS: ANTICIPATE_MS,
@@ -407,9 +443,8 @@
     scaleAbout: scaleAbout,
     easeOut: easeOut,
     dollyPlan: dollyPlan,
-    layerProgress: layerProgress,
-    dollyLayer: dollyLayer,
-    frameSlide: frameSlide,
+    dollyAt: dollyAt,
+    snapZoom: snapZoom,
     rubberBand: rubberBand,
     momentumTarget: momentumTarget,
     nearestStop: nearestStop,
@@ -417,6 +452,12 @@
     springStep: springStep,
     springSettled: springSettled,
     zoneAtX: zoneAtX,
+    zoneStops: zoneStops,
+    easeInOut: easeInOut,
+    turnZoom: turnZoom,
+    hermite: hermite,
+    hermiteSlope: hermiteSlope,
+    smoothstep: smoothstep,
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = camera;
