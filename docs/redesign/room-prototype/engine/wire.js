@@ -406,15 +406,18 @@
     var list = ROOM.render.drawables;
     var inZone = !!ROOM.state.zone;
     passTop = ROOM.fx ? ROOM.fx.topSkill() : null;
-    for (var i = 0; i < list.length; i++) {
-      var d = list[i];
-      if (!d.hotspot || (inZone && d.layer === 6)) continue;
-      var s = styleOfD(d, ls);
-      if (!s) continue;
-      if (ls.snap) s.static = true;
-      draw(f, d, s);
+    try {
+      for (var i = 0; i < list.length; i++) {
+        var d = list[i];
+        if (!d.hotspot || (inZone && d.layer === 6)) continue;
+        var s = styleOfD(d, ls);
+        if (!s) continue;
+        if (ls.snap) s.static = true;
+        draw(f, d, s);
+      }
+    } finally {
+      passTop = undefined;
     }
-    passTop = undefined;
     if (t0) lastPassMs = performance.now() - t0;
   }
 
