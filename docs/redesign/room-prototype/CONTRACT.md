@@ -212,3 +212,27 @@ Overview items: rest/hot only.
 - Build hook (W0): `export_live()` calls `overview.export(B, manifest, zones)` when `A/overview.py` exists
   (`B` = the build module, `sys.modules[__name__]`). merge.py runs every `A/*_check.py` with a `run(items, zones) -> errs` (P6-M1), so
   P4's `A/overview_check.py` needs no merge.py edit.
+
+### v3.5 navigation as built (P1)
+- `engine/nav.js` is the only mover. `ROOM.nav = {place, target, scenePlace, busy, leg, ls(), request(place, opts),
+  up(), down(), back(), heading() /* no-op, A1 */, whenIdle(), go/turn/turnTo (wrappers), tick(now) /* render.js */,
+  snapMove(), setBoardDim(on), skillPlaceOf(id, from), placeFromUrl(src), urlOf(place), boot(src), route(src),
+  overviewOn(), planFor, policy, routeOf, parseRoute, debug()}`. Pure `planFor/policy/routeOf/parseRoute` are in
+  `module.exports` (tests/unit/room-nav.test.ts).
+- Skill places carry `base: 'wall'|'zone'` and `baseZone` (the backdrop camera); `zone` is the item's own zone
+  (route `/room/<zone>/<item suffix>`). `ROOM.zoneOf(item)` (core.js) gives that zone.
+- `nav.scenePlace` is the place the rest frame draws (a live leg's target inside a move); `ROOM.sceneKey()` reads it,
+  and `ROOM.render.sceneOverride` while a snapshot of another scene is drawn.
+- Legs: camera legs `turn | dolly | rise | descend` are drawn by `ROOM.render.beginLeg/drawLeg` from shots (exact
+  rest frames, screen size) and snapshots (`ROOM.render.snap`, <= 6 MP, zoom dividing the end zoom); live legs
+  `lift | drop | swap` call `ROOM.skill.lift(id, {fromRectDev, instant, source}) / drop({instant}) / swap(id)`
+  (their return value in ms sets the leg length; the light tween is 240 ms) and render live rest frames.
+- The board: skill.js opens it during LIFT; nav opens it at landing when it is not open yet (`ROOM.ui.open(id,
+  {opener, side: 'right', hero: true})`) and closes it at the start of any move leaving the skill place. A board
+  closed by itself (Esc, Close, scrim: the `state` event with `ROOM.state.panel` null) makes nav step back.
+  `ROOM.setDim(on)` is a board dim without a move (not navigation): `ls.dimK` tweens, ignored in a skill place.
+- Events: `nav {phase: start|land|cancel, from, to, kind}`, `overview {on, ret}`, legacy `zone`/`view` at landing
+  (push false: nav owns history). `ROOM.state.zone` (and `statueLight`) are mirrors written at landing.
+- `ROOM.overview.camera()` may return `{z, ox, oy}`; render.js converts it to a centre camera with the same integer
+  origin. Overview availability: `zones.views.top` exists and `ROOM.overview.camera` is a function.
+- `glow.post(f, ls, gpu)` and `overlay.drawMarks(f, ls)` take the frame's light state.

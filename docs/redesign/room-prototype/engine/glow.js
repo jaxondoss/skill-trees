@@ -11,9 +11,10 @@
  * - Relic slots (left mount, window niche, right bracket): an empty slot shows a subtle pixel plus; an
  *   active relic shows on its mount (iron, hot or gold by progress) with an ember glow (orange to deep
  *   red, uneven flicker, rising ember pixels, brighter at night).
- * - Zone arrival: the rest of the room dims in DIM LUT steps (Bayer dissolve, soft 6 px edge); the
- *   clicked object gets a spotlight pulse; the zone's "it's on" lamp pool brightens (radius <= 24 px
- *   around zone.light, else a point in the focus box).
+ * - Zone light (v3.5: driven by the navigator's light state ls, no clocks here): on the Canvas2D path the rest
+ *   of the room dims through the DIM LUT in 16 Bayer steps of ls.focusK (soft 6 px edge; the GPU path has its
+ *   own focus ellipse); the zone's "it's on" lamp pool shows at ls.poolK (radius <= 24 px around zone.light,
+ *   else a point in the focus box). The arrival spotlight pulse is gone (D4 2.3): the skill view lights the item.
  * - Statue: a ceiling downlight cone with dust motes (or the art's "downlight" overlay when present).
  */
 (function () {
@@ -330,44 +331,9 @@
     }
   }
 
-  /* ------------------------------------------------------------------ arrival: spotlight, zone dim, lamps */
-  var spot = null; // {id, t0}
-  var zoneDim = { zone: null, t0: 0 };
-  var lamp = { zone: null, t0: 0 };
-  var SPOT_MS = 650;
-  var DIM_MS = 300;
-
-  function spotlight(id) {
-    spot = id ? { id: id, t0: ROOM.now() } : null;
-    ROOM.invalidate();
-  }
-  /** Colour table override for the spotlit drawable (brighter while the pulse is up), or null. */
-  function spotTable(d, lut, now) {
-    if (!spot || spot.id !== d.id) return null;
-    var t = now - spot.t0;
-    if (t < 0 || t >= SPOT_MS) return null;
-    var out = new Uint8Array(256);
-    var twice = t < SPOT_MS * 0.45;
-    for (var i = 0; i < 256; i++) out[i] = twice ? BRIGHTER[BRIGHTER[lut[i]]] : BRIGHTER[lut[i]];
-    return out;
-  }
-  function drawSpotRing(f, d, img, dx, dy) {
-    if (!spot || spot.id !== d.id) return;
-    var t = f.now - spot.t0;
-    if (t < 0 || t >= SPOT_MS * 0.6) return;
-    var ring = D.ring(img);
-    for (var k = 0; k < ring.length; k += 2) plot(f, dx + ring[k], dy + ring[k + 1], t < SPOT_MS * 0.3 ? C.CREAM : C.SUN);
-  }
-
+  /* ------------------------------------------------------------------ zone light: dim and lamps */
   function zoneOf(id) {
     return id ? ROOM.zoneById(id) : null;
-  }
-  /** The zone whose "it's on" light is on: the zone in view, or the zone of the open panel's item. */
-  function litZone() {
-    if (ROOM.state.zone) return ROOM.state.zone;
-    var p = ROOM.state.panel;
-    var it = p && ROOM.itemById(p);
-    return it && it.zone ? it.zone : null;
   }
   function lightPoint(z) {
     if (z.light) return { x: z.light[0], y: z.light[1], r: Math.min(24, z.light[2] || 22) };
@@ -375,33 +341,15 @@
     return { x: f[0] + f[2] / 2, y: f[1] + f[3] * 0.38, r: 22 };
   }
 
-  // Art pass 5: lamp pools are smooth light, drawn by the renderer's light overlay (no dithered rings).
+  // Lamp pools are smooth light, drawn by the renderer's light overlay (Canvas2D) or the GPU pool lights.
   var smoothPools = [];
-  function pool(f, p, strength) {
-    if (ROOM.hasViews && ROOM.hasViews()) {
-      smoothPools.push({ x: p.x, y: p.y, r: p.r * 1.7, a: 0.34 * Math.max(0, Math.min(1, strength)) });
-      return;
-    }
-    var r = p.r;
-    for (var y = Math.floor(p.y - r); y <= p.y + r; y++) {
-      var by = y - f.y0;
-      if (by < 0 || by >= f.h) continue;
-      for (var x = Math.floor(p.x - r); x <= p.x + r; x++) {
-        var bx = x - f.x0;
-        if (bx < 0 || bx >= f.w) continue;
-        var dx = x - p.x, dy = y - p.y, d = Math.sqrt(dx * dx + dy * dy);
-        if (d > r) continue;
-        if (BAYER[(y & 3) * 4 + (x & 3)] < 16 * strength * (1 - d / r) * 1.25) {
-          var i = by * f.w + bx;
-          f.buf[i] = BRIGHTER[f.buf[i]];
-        }
-      }
-    }
+  function pool(p, strength) {
+    smoothPools.push({ x: p.x, y: p.y, r: p.r * 1.7, a: 0.34 * Math.max(0, Math.min(1, strength)) });
   }
 
   /** Statue downlight: a pixel cone from the ceiling with dust motes (skipped if the art has one). */
-  function statueCone(f) {
-    if (!ROOM.state.statueLight) return;
+  function statueCone(f, ls) {
+    if (!ls.statueLight || ls.scene === 'top') return;
     var R = ROOM.render, st = null, art = false;
     R.drawables.forEach(function (d) {
       if (d.statue && !st) st = d;
@@ -445,54 +393,50 @@
     }
   }
 
-  /** Post-passes on the rest frame, before the marks: lamp pools, zone dim, statue cone. */
-  function post(f, dimOn) {
-    var now = f.now;
+  /**
+   * Post-passes on a frame, before the marks: lamp pools, zone dim (Canvas2D path only, PLAN R10), statue cone.
+   * ls: the navigation light state of the frame (snapshots pass their own); gpu: the GPU lights this frame.
+   */
+  function post(f, ls, gpu) {
+    ls = ls || {};
     smoothPools = [];
-    // Lamp pools: the lit zone at full strength; at night, completion sets how many lamps are on.
-    var lz = litZone();
-    if (lz && ROOM.viewOf && ROOM.viewOf(zoneOf(lz)) !== ROOM.normView(ROOM.state.view)) lz = null; // lamp in another view
-    if (lz !== lamp.zone) lamp = { zone: lz, t0: now };
-    var zones = ROOM.zonesInView ? ROOM.zonesInView() : ROOM.zones;
+    if (ls.scene === 'top') return; // the overview has its own lights (zones.views.top)
+    var view = ROOM.normView(ls.scene || ROOM.state.view);
+    var zones = ROOM.zonesInView ? ROOM.zonesInView(view) : ROOM.zones;
+    var lz = ls.zone && ls.poolK > 0 ? zoneOf(ls.zone) : null;
+    if (lz && ROOM.viewOf(lz) !== view) lz = null;
+    // at night, completion sets how many lamps are on
     if (ROOM.state.night) {
       var on = Math.round(((ROOM.data.todayP || 0) / 100) * zones.length);
-      for (var i = 0; i < on; i++) if (zones[i].id !== lz) pool(f, Object.assign(lightPoint(zones[i]), { r: 16 }), 0.6);
+      for (var i = 0; i < on; i++) if (!lz || zones[i].id !== lz.id) pool(Object.assign(lightPoint(zones[i]), { r: 16 }), 0.6);
     }
-    if (lz) {
-      var z = zoneOf(lz);
-      var ramp = reduced() ? 1 : Math.min(1, (now - lamp.t0) / 250);
-      if (z) pool(f, lightPoint(z), Math.max(0.2, ramp));
-    }
-    // Zone dim: the rest of the room steps down through the DIM LUT once the camera lands.
-    var zid = ROOM.state.zone;
-    if (zid !== zoneDim.zone) zoneDim = { zone: zid, t0: now };
-    if (zid && !dimOn && !ROOM.render.dolly) {
-      var zz = zoneOf(zid);
-      var step = reduced() ? 16 : Math.min(16, Math.floor((16 * (now - zoneDim.t0)) / DIM_MS));
-      if (zz && step > 0) {
-        var fr = zz.focus, EDGE = 6;
-        var fx0 = fr[0], fy0 = fr[1], fx1 = fr[0] + fr[2], fy1 = fr[1] + fr[3];
-        for (var by = 0; by < f.h; by++) {
-          var wy = by + f.y0;
-          var oy = wy < fy0 ? fy0 - wy : wy >= fy1 ? wy - fy1 + 1 : 0;
-          for (var bx = 0; bx < f.w; bx++) {
-            var wx = bx + f.x0;
-            var ox = wx < fx0 ? fx0 - wx : wx >= fx1 ? wx - fx1 + 1 : 0;
-            var out = Math.max(ox, oy);
-            if (!out) {
-              bx = Math.max(bx, fx1 - f.x0 - 1); // skip the inside of the focus box
-              continue;
-            }
-            var lim = out >= EDGE ? step : Math.floor((step * out) / EDGE);
-            if (BAYER[(wy & 3) * 4 + (wx & 3)] < lim) {
-              var p = by * f.w + bx;
-              f.buf[p] = DIM[f.buf[p]];
-            }
+    if (lz) pool(lightPoint(lz), Math.max(0.2, ls.poolK));
+    // zone dim through the DIM LUT, 16 Bayer steps of focusK, soft 6 px edge (the GPU path has its focus ellipse)
+    var zz = !gpu && ls.zone && ls.focusK > 0 ? zoneOf(ls.zone) : null;
+    var step = zz ? Math.round(16 * Math.min(1, ls.focusK)) : 0;
+    if (zz && step > 0) {
+      var fr = zz.focus, EDGE = 6;
+      var fx0 = fr[0], fy0 = fr[1], fx1 = fr[0] + fr[2], fy1 = fr[1] + fr[3];
+      for (var by = 0; by < f.h; by++) {
+        var wy = by + f.y0;
+        var oy = wy < fy0 ? fy0 - wy : wy >= fy1 ? wy - fy1 + 1 : 0;
+        for (var bx = 0; bx < f.w; bx++) {
+          var wx = bx + f.x0;
+          var ox = wx < fx0 ? fx0 - wx : wx >= fx1 ? wx - fx1 + 1 : 0;
+          var out = Math.max(ox, oy);
+          if (!out) {
+            bx = Math.max(bx, fx1 - f.x0 - 1); // skip the inside of the focus box
+            continue;
+          }
+          var lim = out >= EDGE ? step : Math.floor((step * out) / EDGE);
+          if (BAYER[(wy & 3) * 4 + (wx & 3)] < lim) {
+            var p = by * f.w + bx;
+            if (!f.mark || !f.mark[p]) f.buf[p] = DIM[f.buf[p]];
           }
         }
       }
     }
-    statueCone(f);
+    statueCone(f, ls);
   }
 
   /* ------------------------------------------------------------------ scheduler hooks */
@@ -502,7 +446,7 @@
       var d = list[i];
       if ((d.skill && d.hotspot) || relicSlotOf(d)) return true;
     }
-    return !!ROOM.state.statueLight;
+    return !!ROOM.state.statueLight; // the statue cone's motes drift
   }
   function hasAmbient() {
     return !reduced() && anyGlow();
@@ -512,9 +456,6 @@
   }
   function busy(now) {
     clearHover();
-    if (spot && now - spot.t0 < SPOT_MS + 50) return true;
-    if (ROOM.state.zone && now - zoneDim.t0 < DIM_MS + 50) return true;
-    if (litZone() && now - lamp.t0 < 300) return true;
     return false;
   }
 
@@ -525,9 +466,6 @@
     BRIGHTER: BRIGHTER,
     drawSkillGlow: drawSkillGlow,
     drawEmbers: drawEmbers,
-    drawSpotRing: drawSpotRing,
-    spotTable: spotTable,
-    spotlight: spotlight,
     relicDrawables: relicDrawables,
     relicSlotOf: relicSlotOf,
     relicIn: relicIn,

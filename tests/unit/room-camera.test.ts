@@ -168,11 +168,11 @@ describe("zone zoom", () => {
   });
 });
 
-describe("dolly", () => {
+describe("dolly (v3.5: one lit plane)", () => {
   const devices = [view(1440, 702, 2), view(1920, 950, 1), view(390, 844, 3)];
   const point = (t: { z: number; tx: number; ty: number }, x: number, y: number) => [x * t.z + t.tx, y * t.z + t.ty];
 
-  it("lands exactly on the rest frames for every layer, both directions", () => {
+  it("lands exactly on the rest frames, both directions", () => {
     for (const v of devices) {
       const room = C.roomCamera(v, 320);
       for (const z of zones) {
@@ -182,80 +182,51 @@ describe("dolly", () => {
           [zone, room],
         ]) {
           const plan = C.dollyPlan(a, b, v);
-          for (let L = 0; L <= 5; L++) {
-            expect(C.dollyLayer(plan, L, 0)).toEqual(C.restTransform(a, v, 0));
-            expect(C.dollyLayer(plan, L, 1)).toEqual(C.restTransform(b, v, 0));
-            // The formula itself converges on the same frames (not only the u <= 0 / u >= 1 shortcut).
-            const near0 = C.dollyLayer(plan, L, 1e-12);
-            const near1 = C.dollyLayer(plan, L, 1 - 1e-6);
-            const r0 = C.restTransform(a, v, 0);
-            const r1 = C.restTransform(b, v, 0);
-            expect(near0.z).toBeCloseTo(r0.z, 6);
-            expect(near0.tx).toBeCloseTo(r0.tx, 4);
-            expect(near0.ty).toBeCloseTo(r0.ty, 4);
-            expect(near1.z).toBeCloseTo(r1.z, 6);
-            expect(near1.tx).toBeCloseTo(r1.tx, 3);
-            expect(near1.ty).toBeCloseTo(r1.ty, 3);
-          }
+          expect(C.dollyAt(plan, 0)).toEqual(C.restTransform(a, v, 0));
+          expect(C.dollyAt(plan, 1)).toEqual(C.restTransform(b, v, 0));
+          // The formula itself converges on the same frames (not only the u <= 0 / u >= 1 shortcut).
+          const near0 = C.dollyAt(plan, 1e-12);
+          const near1 = C.dollyAt(plan, 1 - 1e-6);
+          const r0 = C.restTransform(a, v, 0);
+          const r1 = C.restTransform(b, v, 0);
+          expect(near0.z).toBeCloseTo(r0.z, 6);
+          expect(near0.tx).toBeCloseTo(r0.tx, 4);
+          expect(near0.ty).toBeCloseTo(r0.ty, 4);
+          expect(near1.z).toBeCloseTo(r1.z, 6);
+          expect(near1.tx).toBeCloseTo(r1.tx, 3);
+          expect(near1.ty).toBeCloseTo(r1.ty, 3);
         }
       }
     }
   });
 
-  it("keeps the pivot's screen point fixed for every layer and every u", () => {
+  it("keeps the pivot's screen point fixed for every u", () => {
     for (const v of devices) {
       const room = C.roomCamera(v, 320);
       for (const z of zones) {
         const plan = C.dollyPlan(room, C.zoneCamera(v, z.focus), v);
         const P = plan.P;
-        const fixed = point(C.dollyLayer(plan, 0, 0), P.x, P.y);
-        for (let L = 0; L <= 5; L++) {
-          for (let i = 0; i <= 20; i++) {
-            const [X, Y] = point(C.dollyLayer(plan, L, i / 20), P.x, P.y);
-            expect(X).toBeCloseTo(fixed[0]!, 6);
-            expect(Y).toBeCloseTo(fixed[1]!, 6);
-          }
+        const fixed = point(C.dollyAt(plan, 0), P.x, P.y);
+        for (let i = 0; i <= 20; i++) {
+          const [X, Y] = point(C.dollyAt(plan, i / 20), P.x, P.y);
+          expect(X).toBeCloseTo(fixed[0]!, 6);
+          expect(Y).toBeCloseTo(fixed[1]!, 6);
         }
       }
     }
   });
 
-  it("zooms monotonically, near layers ahead of far layers", () => {
+  it("zooms monotonically", () => {
     const v = devices[0];
     const plan = C.dollyPlan(C.roomCamera(v), C.zoneCamera(v, zones[2]!.focus), v);
-    for (let L = 0; L <= 5; L++) {
-      let prev = 0;
-      for (let i = 0; i <= 30; i++) {
-        const zL = C.dollyLayer(plan, L, i / 30).z;
-        expect(zL).toBeGreaterThanOrEqual(prev);
-        prev = zL;
-      }
+    let prev = 0;
+    for (let i = 0; i <= 30; i++) {
+      const z = C.dollyAt(plan, i / 30).z;
+      expect(z).toBeGreaterThanOrEqual(prev);
+      prev = z;
     }
-    const mid = (L: number) => C.dollyLayer(plan, L, 0.3).z;
-    expect(mid(5)).toBeGreaterThan(mid(2));
-    expect(mid(2)).toBeGreaterThan(mid(0));
-  });
-
-  it("bounds the tear between adjacent floor bands (on-screen points)", () => {
-    // The review estimated about 5 px near the pivot; with the kitchen and gym pivots far off-screen the
-    // worst on-screen case is about 13 world px (whole-number default zoom). Shell bands overlap 1.6 ft,
-    // at least 15 px along the side walls at the band edges.
-    const v = devices[0];
-    const room = C.roomCamera(v);
-    for (const z of zones) {
-      const plan = C.dollyPlan(room, C.zoneCamera(v, z.focus), v);
-      for (let L = 2; L < 5; L++) {
-        for (let i = 1; i < 30; i++) {
-          const a = C.dollyLayer(plan, L, i / 30);
-          const b = C.dollyLayer(plan, L + 1, i / 30);
-          for (let x = -40; x <= 680; x += 8) {
-            const X = x * a.z + a.tx;
-            if (X < 0 || X > v.Wd) continue;
-            expect(Math.abs(X - (x * b.z + b.tx)) / a.z).toBeLessThanOrEqual(13.5);
-          }
-        }
-      }
-    }
+    expect(C.GAMMA).toBeUndefined();
+    expect(C.dollyLayer).toBeUndefined();
   });
 
   it("moves laterally between zones at the same zoom", () => {
@@ -268,17 +239,33 @@ describe("dolly", () => {
     const [a, b] = [cams[pair![0]], cams[pair![1]]];
     const plan = C.dollyPlan(a, b, v);
     expect(plan.lateral).toBe(true);
-    for (let L = 0; L <= 5; L++) {
-      expect(C.dollyLayer(plan, L, 0.5).z).toBe(a.z);
-      expect(C.dollyLayer(plan, L, 1)).toEqual(C.restTransform(b, v, 0));
+    expect(C.dollyAt(plan, 0.5).z).toBe(a.z);
+    expect(C.dollyAt(plan, 1)).toEqual(C.restTransform(b, v, 0));
+  });
+});
+
+describe("snapshot zoom and turn helpers (v3.5)", () => {
+  it("picks the largest divisor of z within 6 MP and the texture limit", () => {
+    expect(C.snapZoom(2, 800, 560)).toBe(2); // 1.8 MP
+    expect(C.snapZoom(5, 800, 560)).toBe(1); // 11 MP at 5: 5 has no divisor between
+    expect(C.snapZoom(6, 800, 560)).toBe(3); // 4 MP
+    expect(C.snapZoom(4, 800, 560, 6e6, 2048)).toBe(2);
+    for (const z of [1, 2, 3, 4, 5, 6, 8, 9, 12, 13]) {
+      const d = C.snapZoom(z, 800, 560);
+      expect(z % d).toBe(0);
+      expect(800 * d * 560 * d).toBeLessThanOrEqual(6e6);
     }
   });
-
-  it("slides frame crops fully out by u = 0.6 and back in", () => {
-    expect(C.frameSlide(0, -1, 40, true)).toBeCloseTo(0);
-    expect(C.frameSlide(0.6, -1, 40, true)).toBe(-48);
-    expect(C.frameSlide(1, 1, 40, false)).toBeCloseTo(0);
-    expect(C.frameSlide(0, 1, 40, false)).toBe(48);
+  it("turn zoom is geometric and the cross-wall dip returns to the end zoom", () => {
+    expect(C.turnZoom(2, 5, 0, 0.25)).toBeCloseTo(2);
+    expect(C.turnZoom(2, 5, 1, 0.25)).toBeCloseTo(5);
+    expect(C.turnZoom(4, 4, 0.5, 0.25)).toBeCloseTo(3);
+  });
+  it("hermite retarget keeps the start velocity and lands with none", () => {
+    expect(C.hermite(0, 2, 1, 0)).toBe(0);
+    expect(C.hermite(0, 2, 1, 1)).toBe(1);
+    expect(C.hermiteSlope(0, 2, 1, 0)).toBeCloseTo(2);
+    expect(C.hermiteSlope(0, 2, 1, 1)).toBeCloseTo(0);
   });
 });
 
@@ -346,5 +333,17 @@ describe("phone pan", () => {
     expect(C.zoneAtX(54, zones).id).toBe("kitchen");
     expect(C.zoneAtX(320, zones).id).toBe("window");
     expect(C.zoneAtX(700, zones).id).toBe("gym");
+  });
+  it("sends a gap between territories to the nearer zone (live v3.4 bundle, right wall)", () => {
+    const right = [
+      { id: "study", territory: { x0: -122, x1: 128 } },
+      { id: "computer", territory: { x0: 132, x1: 241 } },
+      { id: "gym", territory: { x0: 258, x1: 678 } },
+    ];
+    expect(C.zoneAtX(129, right).id).toBe("study");
+    expect(C.zoneAtX(131, right).id).toBe("computer");
+    expect(C.zoneAtX(245, right).id).toBe("computer");
+    expect(C.zoneAtX(255, right).id).toBe("gym");
+    expect(C.zoneStops([{ stop: 3 }, { stop: 9 }])).toEqual([3, 9]);
   });
 });
