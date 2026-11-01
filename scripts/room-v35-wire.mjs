@@ -247,7 +247,7 @@ if (mode === 'ac') {
     ok('AC3-shift', sh.attn === sh.skills, { wall: wn, ...sh });
     await inspect(page, false);
     // AC2 / A7 at three light states
-    for (const [sn, q] of [['el4', 'el=4'], ['night', 'el=-25&night=1'], ['rain', 'el=40&weather=rain&precip=60']]) {
+    for (const [sn, q] of [['el4', 'el=4'], ['night', 'el=-25&night=1'], ['rain', 'el=40&weather=rain&precip=60'], ['gloff-night', 'el=-25&night=1&gl=off']]) {
       await open(page, q, hash);
       const it = await page.evaluate(`(${SAMPLE})()`);
       let n = 0, bad = 0, worst = 1;
