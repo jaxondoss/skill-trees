@@ -78,7 +78,9 @@ async function newPage(vw, vh, dpr = 1, mobile = false) {
         get: () => art,
         set: (v) => {
           const L = v && v.zones && v.zones.views && v.zones.views.top && v.zones.views.top.lighting;
-          if (L) for (const k of Object.keys(patch)) L[k] = patch[k] && typeof patch[k] === 'object' && !Array.isArray(patch[k]) ? Object.assign({}, L[k], patch[k]) : patch[k];
+          const sc = patch._scale;
+          if (L && sc) for (const arr of [L.lights, L.lightsNight]) for (const l of arr || []) { l.intensity *= sc.i; l.radius *= sc.r; }
+          if (L) for (const k of Object.keys(patch).filter((k) => k !== '_scale')) L[k] = patch[k] && typeof patch[k] === 'object' && !Array.isArray(patch[k]) ? Object.assign({}, L[k], patch[k]) : patch[k];
           art = v;
         },
       });
@@ -182,9 +184,10 @@ if (mode === 'stills') {
     const ROOM = window.ROOM, R = ROOM.render, cam = R.restCamera(), org = ROOM.camera.origin(cam, R.view), f = ROOM.debug.readFrame(), z = cam.z;
     const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
     const Lstar = (r, g, b) => { const y = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b); return y > 0.008856 ? 116 * Math.cbrt(y) - 16 : 903.3 * y; };
-    const out = {}; let tot = 0, tn = 0;
+    const out = {}; let tot = 0, tn = 0, fr = 0, fg = 0, fb = 0;
     // mean luma of the lit picture (pixels above the void's level: the overview's empty margins do not count)
-    for (let i = 0; i < f.data.length; i += 16) { const l = 0.299 * f.data[i] + 0.587 * f.data[i + 1] + 0.114 * f.data[i + 2]; if (l > 12) { tot += l; tn++; } }
+    for (let i = 0; i < f.data.length; i += 16) { const l = 0.299 * f.data[i] + 0.587 * f.data[i + 1] + 0.114 * f.data[i + 2]; if (l > 12) { tot += l; tn++; fr += f.data[i]; fg += f.data[i + 1]; fb += f.data[i + 2]; } }
+    out._rgb = [fr / tn, fg / tn, fb / tn];
     out._luma = tot / tn;
     R.drawables.forEach((d) => {
       const id = d.item.of || d.id;
@@ -216,20 +219,28 @@ if (mode === 'stills') {
     for (const [w, hash] of Object.entries({ front: '#/room', right: '#/room/right', back: '#/room/back', left: '#/room/left' })) {
       await open(page, q, hash);
       const m = await page.evaluate(`(${MEAN})(${JSON.stringify(ids)})`);
-      if (w === 'front') room._luma = m._luma;
-      for (const k of Object.keys(m)) if (k !== '_luma') room[k] = m[k];
+      if (w === 'front') { room._luma = m._luma; room._rgb = m._rgb; }
+      for (const k of Object.keys(m)) if (k[0] !== '_') room[k] = m[k];
     }
-    const ratios = [], hues = [];
+    const ratios = [], hues = [], signed = [], ovRgb = [], roomRgb = [];
     for (const id of ids) {
       if (!ov[id] || !room[id]) continue;
       ratios.push(ov[id].L / Math.max(1, room[id].L));
       let dh = Math.abs(hue(ov[id].rgb) - hue(room[id].rgb));
       hues.push(Math.min(dh, 360 - dh));
+      if (process.env.OV_DEBUG) console.log(id, Math.round(Math.min(dh, 360 - dh)), ov[id].rgb.map(Math.round).join(','), room[id].rgb.map(Math.round).join(','));
+      signed.push(((hue(ov[id].rgb) - hue(room[id].rgb) + 540) % 360) - 180);
+      ovRgb.push(ov[id].rgb);
+      roomRgb.push(room[id].rgb);
     }
     ratios.sort((a, b) => a - b);
     hues.sort((a, b) => a - b);
     report.light[sk] = {
       n: ratios.length, medianRatio: +ratios[ratios.length >> 1].toFixed(3), medianHue: +hues[hues.length >> 1].toFixed(1),
+      frameHueShift: +(() => { const d = Math.abs(hue(ov._rgb) - hue(room._rgb)); return Math.min(d, 360 - d); })().toFixed(1),
+      medianSigned: +[...signed].sort((a, b) => a - b)[signed.length >> 1].toFixed(1),
+      meanRgbOverview: [0, 1, 2].map((k) => +(ovRgb.reduce((a, c) => a + c[k], 0) / ovRgb.length).toFixed(1)),
+      meanRgbRoom: [0, 1, 2].map((k) => +(roomRgb.reduce((a, c) => a + c[k], 0) / roomRgb.length).toFixed(1)),
       lumaOverview: +ov._luma.toFixed(1), lumaFront: +room._luma.toFixed(1), lumaRel: +(ov._luma / room._luma - 1).toFixed(3),
     };
   }

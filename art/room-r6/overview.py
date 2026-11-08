@@ -1149,7 +1149,7 @@ def lighting_top(B, r_day, r_night):
                 "pink": (255, 112, 168), "ember": (255, 118, 44), "potion": (226, 112, 214), "lamp": (255, 186, 104),
                 "warm": (255, 176, 96), "sun": (255, 150, 64)}
 
-    def lights(glows, tag):
+    def lights(glows, tag, gain=1.0):
         out, seen = [], set()
         for i, g in enumerate(glows):
             c = g["c"]
@@ -1162,7 +1162,7 @@ def lighting_top(B, r_day, r_night):
                 continue
             seen.add(key)
             lt = {"id": f"top-{tag}{i}", "type": "point", "pos": [round(x, 1), round(y, 1)], "rgb": list(rgb),
-                  "intensity": round(min(2.0, g["a"] * 4.5), 3),
+                  "intensity": round(min(2.0, g["a"] * 4.5) * gain, 3),
                   "radius": round(max(8.0, max(g["rx"], g["ry"]) * 1.1 * GLOW_K), 1), "when": "always"}
             if g.get("ch"):
                 lt["channel"] = g["ch"]
@@ -1179,7 +1179,9 @@ def lighting_top(B, r_day, r_night):
             # diorama sits in the same light as the walls (AC7 band measured by scripts/room-v35-overview.mjs light)
             "key": {"center": [kx - 17, ky + 25], "radius": [230, 170], "offscreen": None, "wall": 0.6, "bounce": 0.5,
                     "mullions": mull},
-            "lights": lights(r_day["glows"], ""), "lightsNight": lights(r_night["glows"], "n"),
+            # night practicals at 0.6: the diorama's floor gathers every lamp at once, so full strength reads hotter
+            # than any wall (integration measure: median hue 24 -> 15 deg, frame hue shift 7.6 -> 1.3 deg at el -25)
+            "lights": lights(r_day["glows"], ""), "lightsNight": lights(r_night["glows"], "n", 0.6),
             "materials": {"LEAF_1": {"translucency": 0.5}}, "noRim": ["top.*"]}
 
 
