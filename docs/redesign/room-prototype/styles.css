@@ -114,6 +114,9 @@ body {
   gap: 4px;
   z-index: 20;
 }
+#zone-dots[hidden] {
+  display: none;
+}
 #zone-dots .zone-dot {
   width: 24px;
   height: 24px;

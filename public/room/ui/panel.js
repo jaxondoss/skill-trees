@@ -81,12 +81,15 @@
   var scrim, win, titleEl, bClose, body;
   var cur = null; // resolved target
   var opener = null;
+  var hero = false; // opened as the board of a skill view (ROOM.skill)
   var tabOf = {}; // remembered tab per skill
   var skillOf = {}; // remembered skill tab per object
 
   function build() {
     scrim = h('div', { class: 'ui-scrim', hidden: true, 'aria-hidden': 'true', on: { pointerdown: function (e) {
       e.preventDefault();
+      // v3.5 skill view: a press on the floating hero does nothing (no accidental close)
+      if (ROOM.skill && ROOM.skill.hitHero && ROOM.skill.hitHero(e.clientX, e.clientY)) return;
       close();
     } } });
     titleEl = h('h2', { class: 'pxw-title', id: 'panel-title' });
@@ -94,8 +97,9 @@
       close();
     } } }, K.icon('close'));
     body = h('div', { class: 'pxw-body' });
-    win = h('section', { class: 'pxw ui-panel', role: 'dialog', 'aria-modal': 'true', hidden: true },
-      h('div', { class: 'pxw-bar' }, titleEl, bClose), body);
+    var bar = h('div', { class: 'pxw-bar' }, titleEl, bClose);
+    win = h('section', { class: 'pxw ui-panel', role: 'dialog', 'aria-modal': 'true', hidden: true }, bar, body);
+    sheetDrag(bar);
     K.root().appendChild(scrim);
     K.root().appendChild(win);
     window.addEventListener('keydown', onKey, true);
@@ -146,9 +150,15 @@
     if (ROOM.uiToday && ROOM.uiToday.open && !ROOM.uiToday.pinned && typeof ROOM.ui.toggleToday === 'function') ROOM.ui.toggleToday(false, { restore: false });
     ROOM.state.panel = id;
     var phone = K.isPhone();
+    // v3.5 skill view: the board is always on the right (laptop) and the sheet leaves a band for the hero (phone)
+    hero = !!opts.hero || (wasOpen && hero && opts.hero !== false);
+    var left = !phone && !hero && opts.side !== 'right' && sideFor(id) === 'left';
     win.classList.toggle('is-sheet', phone);
-    win.classList.toggle('side-left', !phone && sideFor(id) === 'left');
-    win.classList.toggle('side-right', phone || sideFor(id) !== 'left');
+    win.classList.toggle('side-left', left);
+    win.classList.toggle('side-right', !left);
+    win.classList.toggle('has-hero', hero);
+    if (!wasOpen) setTall(false);
+    K.root().classList.toggle('skill-open', hero);
     render();
     scrim.hidden = false;
     win.hidden = false;
@@ -167,8 +177,12 @@
     opts = opts || {};
     if (!cur) return;
     cur = null;
+    hero = false;
     win.hidden = true;
     scrim.hidden = true;
+    win.classList.remove('has-hero');
+    setTall(false);
+    K.root().classList.remove('skill-open');
     body.textContent = '';
     ROOM.state.panel = null;
     if (typeof ROOM.setDim === 'function') ROOM.setDim(false);
@@ -630,10 +644,10 @@
     el.appendChild(h('p', { class: 'p-text', text: keptCount(d) + ' kept days (85% or more). A kept day adds to the streak; a day under 85% resets it.' }));
     el.appendChild(h('div', { class: 'p-actions' },
       h('button', { type: 'button', class: 'px-btn', 'data-k': 'to-cal', text: 'Open calendar', on: { click: function () {
-        openFeature('calendar');
+        goFeature('calendar');
       } } }),
       h('button', { type: 'button', class: 'px-btn', 'data-k': 'to-statue', text: 'Open statue', on: { click: function () {
-        openFeature('statue');
+        goFeature('statue');
       } } })));
   }
 
@@ -654,7 +668,7 @@
         type: 'button', class: (dormant ? 'is-dormant ' : '') + (archived ? 'is-archived ' : '') + (s.neglected ? 'is-dusty' : ''),
         'aria-label': s.name + ', ' + s.display + ', ' + stateTxt.toLowerCase(), 'data-k': 'shelf-' + s.slug,
         on: { click: function () {
-          open(K.itemForSkill(s.slug) || 'ui:skill:' + s.slug, { skill: s.slug, focus: true });
+          goTo(K.itemForSkill(s.slug) || 'ui:skill:' + s.slug, { skill: s.slug, focus: true });
         } },
       }, K.bottle(s.display, s.category, { dust: s.neglected, empty: dormant || archived }),
         h('span', { class: 'nm', text: s.name }), h('span', { class: 'sc', text: String(s.display) }), h('span', { class: 'st', text: stateTxt }));
@@ -890,6 +904,63 @@
     el.appendChild(h('div', { class: 'lcd-row' }, input, h('button', { type: 'button', class: 'px-btn is-primary', 'data-k': 'focus-save', text: 'Save', on: { click: save } })));
   }
 
+  /* ------------------------------------------------------------------ board links (v3.5) */
+  /**
+   * A link inside a board to another object: through the skill view when the id names a room item (the hero
+   * lifts, or swaps on the same wall), else the board alone (virtual ids, no art).
+   */
+  function goTo(id, opts) {
+    opts = opts || {};
+    var it = ROOM.itemById ? ROOM.itemById(id) : null;
+    if (it && ROOM.skill && typeof ROOM.skill.open === 'function') {
+      return ROOM.skill.open(id, { source: 'board', skill: opts.skill, opener: opener });
+    }
+    return open(id, opts);
+  }
+  function goFeature(name) {
+    var f = FEATURES[name] ? name : featureFromName(name);
+    if (!f) return false;
+    return goTo(K.itemForFeature(FEATURES[f].aliases) || 'ui:' + f, { focus: true });
+  }
+
+  /* ------------------------------------------------------------------ phone sheet (skill view) */
+  // The sheet sits at 58svh under the floating hero; dragging its bar up takes it to 84svh and the hero steps out
+  // (ROOM.skill.sheetTall), dragging down brings it back. A tap on the bar toggles.
+  var tallOn = false;
+  function setTall(on) {
+    tallOn = !!on;
+    if (win) win.classList.toggle('is-tall', tallOn);
+    if (ROOM.skill && typeof ROOM.skill.sheetTall === 'function') ROOM.skill.sheetTall(tallOn && hero);
+  }
+  function sheetDrag(bar) {
+    var y0 = null, moved = false;
+    bar.addEventListener('pointerdown', function (e) {
+      if (!hero || !win.classList.contains('is-sheet') || e.target.closest('button')) return;
+      y0 = e.clientY;
+      moved = false;
+      try {
+        bar.setPointerCapture(e.pointerId);
+      } catch (err) {
+        /* synthetic pointers */
+      }
+    });
+    bar.addEventListener('pointermove', function (e) {
+      if (y0 == null) return;
+      var dy = e.clientY - y0;
+      if (Math.abs(dy) < 24) return;
+      moved = true;
+      setTall(dy < 0);
+      y0 = e.clientY;
+    });
+    bar.addEventListener('pointerup', function () {
+      if (y0 != null && !moved) setTall(!tallOn);
+      y0 = null;
+    });
+    bar.addEventListener('pointercancel', function () {
+      y0 = null;
+    });
+  }
+
   /* ------------------------------------------------------------------ public */
   function openFeature(name, opts) {
     var f = FEATURES[name] ? name : featureFromName(name);
@@ -906,10 +977,11 @@
     if (!cur) return;
     var phone = K.isPhone();
     win.classList.toggle('is-sheet', phone);
-    if (phone) {
+    if (phone || hero) {
       win.classList.remove('side-left');
       win.classList.add('side-right');
     }
+    if (!phone && tallOn) setTall(false);
   });
 
   ROOM.ui.open = function (itemId, opts) {

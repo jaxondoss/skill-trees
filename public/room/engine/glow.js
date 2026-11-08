@@ -71,84 +71,7 @@
     return !!ROOM.state.reducedMotion;
   }
 
-  /* ------------------------------------------------------------------ skill glow and shimmer */
-  var SHIMMER_FRAME_MS = 111; // 9 fps
-  var hoverSpark = { id: null, t0: 0 };
 
-  function breath(now) {
-    if (reduced()) return 0.5;
-    var b = 0.5 + 0.2 * Math.sin((2 * Math.PI * now) / 2500);
-    return Math.round(b * 20) / 20; // 0.05 steps, so the ambient key changes at most ~10x/s
-  }
-
-  function completed(d) {
-    return ROOM.fx && ROOM.fx.ledStateOf(d) === 'full';
-  }
-
-  /** Shimmer frame (0, 1, 2) for a drawable now, or -1; plus the ring index it sits on. */
-  function shimmerOf(d, ringN, now) {
-    if (reduced() || !ringN) return null;
-    var seed = hashStr(d.id);
-    var period = 4000 + (seed % 3000);
-    var off = hash(seed) % period;
-    var cycle = Math.floor((now + off) / period);
-    var t = (now + off) % period;
-    if (t >= 3 * SHIMMER_FRAME_MS) return null;
-    return { frame: Math.floor(t / SHIMMER_FRAME_MS), k: hash(seed + cycle * 7919) % ringN };
-  }
-
-  function drawSpark(f, x, y, frame) {
-    if (frame === 0) plot(f, x, y, C.SUN);
-    else if (frame === 1) {
-      plot(f, x, y, C.CREAM);
-      plot(f, x - 1, y, C.PLUM_3);
-      plot(f, x + 1, y, C.PLUM_3);
-      plot(f, x, y - 1, C.SLATE_2);
-      plot(f, x, y + 1, C.SLATE_2);
-    } else if (frame === 2) {
-      plot(f, x - 2, y, C.GOLD_DK);
-      plot(f, x + 2, y, C.GOLD_DK);
-      plot(f, x, y - 2, C.GOLD_DK);
-      plot(f, x, y + 2, C.GOLD_DK);
-    }
-  }
-
-  /** Outline + shimmer for a skill hotspot (img drawn at buffer (dx, dy)). */
-  function drawSkillGlow(f, d, img, dx, dy) {
-    if (!d.skill || !d.hotspot || completed(d)) return;
-    var R = ROOM.render;
-    var ring = D.ring(img);
-    var n = ring.length / 2;
-    if (!n) return;
-    var hot = d.id === R.hoverId || d.id === R.focusId || ROOM.state.inspect;
-    if (hot) {
-      for (var k = 0; k < ring.length; k += 2) plot(f, dx + ring[k], dy + ring[k + 1], C.SUN);
-      // One sparkle when hover or focus begins, on the top-right of the silhouette.
-      if (hoverSpark.id !== d.id) hoverSpark = { id: d.id, t0: f.now };
-      var ht = f.now - hoverSpark.t0;
-      if (!reduced() && ht < 3 * SHIMMER_FRAME_MS) {
-        var best = 0;
-        for (var j = 2; j < ring.length; j += 2) if (ring[j] - ring[j + 1] > ring[best] - ring[best + 1]) best = j;
-        drawSpark(f, dx + ring[best], dy + ring[best + 1], Math.floor(ht / SHIMMER_FRAME_MS));
-      }
-      return;
-    }
-    // At rest only today's top-priority object breathes (the art carries every object's resting outline).
-    if (!ROOM.fx || !ROOM.fx.topSkill || ROOM.fx.topSkill() !== d.skill.slug) return;
-    var level = (breath(f.now) - 0.3) / 0.4; // 0..1 between 30% and 70%
-    var cut = Math.round(level * 16);
-    for (var q = 0; q < ring.length; q += 2) {
-      var x = ring[q], y = ring[q + 1];
-      plot(f, dx + x, dy + y, BAYER[((y + dy + f.y0) & 3) * 4 + ((x + dx + f.x0) & 3)] < cut ? C.GOLD : C.GOLD_DK);
-    }
-    var sh = shimmerOf(d, n, f.now);
-    if (sh) drawSpark(f, dx + ring[sh.k * 2], dy + ring[sh.k * 2 + 1], sh.frame);
-  }
-
-  function clearHover() {
-    var R = ROOM.render;
-    if (hoverSpark.id && hoverSpark.id !== R.hoverId && hoverSpark.id !== R.focusId) hoverSpark.id = null;
-  }
 
   /* ------------------------------------------------------------------ relics */
   var SLOTS = ['left', 'window', 'right'];
@@ -454,8 +377,7 @@
   function ambientKey(now) {
     return hasAmbient() ? String(Math.floor(now / 100)) : '';
   }
-  function busy(now) {
-    clearHover();
+  function busy() {
     return false;
   }
 
@@ -464,7 +386,6 @@
       return smoothPools;
     },
     BRIGHTER: BRIGHTER,
-    drawSkillGlow: drawSkillGlow,
     drawEmbers: drawEmbers,
     relicDrawables: relicDrawables,
     relicSlotOf: relicSlotOf,

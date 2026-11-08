@@ -69,6 +69,21 @@ const errors = [];
 async function newPage(vw, vh, dpr = 1, mobile = false) {
   const ctx = await browser.newContext({ viewport: { width: vw, height: vh }, deviceScaleFactor: dpr, isMobile: mobile, hasTouch: mobile });
   const page = await ctx.newPage();
+  // tuning aid: TOP_LIGHT='{"key":{...}}' shallow-merges into zones.views.top.lighting before boot
+  if (process.env.TOP_LIGHT) {
+    await page.addInitScript((patch) => {
+      let art;
+      Object.defineProperty(window, 'ROOM_ART', {
+        configurable: true,
+        get: () => art,
+        set: (v) => {
+          const L = v && v.zones && v.zones.views && v.zones.views.top && v.zones.views.top.lighting;
+          if (L) for (const k of Object.keys(patch)) L[k] = patch[k] && typeof patch[k] === 'object' && !Array.isArray(patch[k]) ? Object.assign({}, L[k], patch[k]) : patch[k];
+          art = v;
+        },
+      });
+    }, JSON.parse(process.env.TOP_LIGHT));
+  }
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
   });
@@ -191,7 +206,9 @@ if (mode === 'stills') {
     const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
     return (h * 60 + 360) % 360;
   };
+  const SK = opt('states', '');
   for (const [sk, q] of Object.entries({ el4: 'el=4', 'el-25': 'el=-25', 'el4-gloff': 'el=4&gl=off', 'el-25-gloff': 'el=-25&gl=off' })) {
+    if (SK && !SK.split(',').includes(sk)) continue;
     await open(page, q, '#/room/overview');
     const ids = await page.evaluate(() => window.ROOM.art.items.filter((i) => i.view === 'top' && i.kind === 'hotspot').map((i) => i.of));
     const ov = await page.evaluate(`(${MEAN})(${JSON.stringify(ids)})`);

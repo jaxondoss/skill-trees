@@ -483,12 +483,13 @@
     '      if (rs < 1.0 && (rs < 0.75 || b > 0.5)) g = mix(g, uInk, 0.75 * uHalo.w);',
     '    }',
     '  }',
-    '  if (mark) g = max(g, palc * 0.7);',
     '  if (uRetro == 1) {',
     '    vec3 gd = g + (b - 0.5) * 0.1; float best = 1e9; vec3 bc = g;',
     '    for (int i = 0; i < 64; i++) { if (i >= uRetroN) break; vec3 d = gd - uRetroPal[i]; float e2 = dot(d * vec3(0.30, 0.59, 0.11), d); if (e2 < best) { best = e2; bc = uRetroPal[i]; } }',
     '    g = mark ? palc : bc;',
     '  } else g = floor(g * 63.0 + b) / 63.0;',
+    // A7: the 70 % mark floor goes last, after grade, vignette, halo and quantisation (FS_OUT skips grain on marks)
+    '  if (mark) g = max(g, ceil(palc * 0.7 * 63.0) / 63.0);',
     '  o = vec4(g, 1.0);',
     '}',
   ].join('\n');
@@ -509,7 +510,7 @@
     '  if ((f & 16) != 0) bl = min(bl, vec3(0.3));',
     '  vec3 outc = l2s(s2l(c) + bl);',
     '  float n = hash12(floor(uOrigin) + vec2(wp) + vec2(uSeed * 7.13, uSeed * 3.71)) - 0.5;',
-    '  outc += n * 2.0 * uGrain * (0.35 + 0.65 * lum(outc));',
+    '  if ((f & 16) == 0) outc += n * 2.0 * uGrain * (0.35 + 0.65 * lum(outc));',
     '  o = vec4(outc, 1.0);',
     '}',
   ].join('\n');

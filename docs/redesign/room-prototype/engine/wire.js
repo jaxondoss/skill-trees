@@ -152,6 +152,37 @@
   }
 
   /**
+   * Outer INK keyline of a rest wire: the 4-neighbours of hull pixels that are not hull and lie outside the hull's
+   * row span or column span (the hull is orthogonally convex), so the keyline never sits between wire and object.
+   */
+  function outerKey(hull) {
+    var on = Object.create(null), rmin = {}, rmax = {}, cmin = {}, cmax = {}, i, x, y;
+    for (i = 0; i < hull.length; i += 2) {
+      x = hull[i];
+      y = hull[i + 1];
+      on[x + ',' + y] = 1;
+      if (!(y in rmin) || x < rmin[y]) rmin[y] = x;
+      if (!(y in rmax) || x > rmax[y]) rmax[y] = x;
+      if (!(x in cmin) || y < cmin[x]) cmin[x] = y;
+      if (!(x in cmax) || y > cmax[x]) cmax[x] = y;
+    }
+    var out = [], seen = Object.create(null);
+    for (i = 0; i < hull.length; i += 2) {
+      for (var n = 0; n < 8; n += 2) {
+        x = hull[i] + N4[n];
+        y = hull[i + 1] + N4[n + 1];
+        var k = x + ',' + y;
+        if (on[k] || seen[k]) continue;
+        var outside = !(y in rmin) || x < rmin[y] || x > rmax[y] || !(x in cmin) || y < cmin[x] || y > cmax[x];
+        if (!outside) continue;
+        seen[k] = 1;
+        out.push(x, y);
+      }
+    }
+    return out;
+  }
+
+  /**
    * Wire data of an item for a variant key: {hull, nodes, cage|null, cageNodes|null, gate, cageOK, built} in art px
    * relative to the item's x, y. Bundle field first (key, else base), else the runtime fallback (no cage).
    */
@@ -177,6 +208,7 @@
       if (r) out = { hull: r.hull, nodes: r.nodes, cage: null, cageNodes: null, gate: null, built: false };
     }
     if (out) {
+      out.key = outerKey(out.hull);
       out.cageOK = !!(out.cage && out.cage.length && gatePass(out.gate));
       if (out.cageOK) out.cd = cageDist(out.cage, out.cageNodes && out.cageNodes.length ? out.cageNodes : out.cage.slice(0, 2));
     }
@@ -355,7 +387,15 @@
       for (i = 0; i < hull.length; i += 2) if ((((hull[i] + hull[i + 1]) >> 1) & 1) === 0) px(f, bx + hull[i], by + hull[i + 1], line, dep, fl, true);
       return;
     }
-    // rest wire
+    // rest wire: 1 px INK outer keyline first (AC1: >= 3:1 on dark plaster), then the line and nodes over it
+    var key = wd.key || [];
+    for (i = 0; i < key.length; i += 2) {
+      x = bx + key[i];
+      y = by + key[i + 1];
+      if (x < 0 || y < 0 || x >= f.w || y >= f.h || f.mark[y * f.w + x]) continue;
+      ink(f, x, y, C.INK, dep, fl);
+      if (!own) f.mark[y * f.w + x] = 0;
+    }
     if (s.breathe) {
       var cut = Math.round(((breath(now) - 0.3) / 0.4) * 16);
       for (i = 0; i < hull.length; i += 2) {

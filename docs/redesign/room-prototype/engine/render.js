@@ -402,11 +402,6 @@
     }
     markPasses.push({ name: name, fn: fn });
   }
-  /** v3.5 wire.js replaces the skill glow and the feature ring once it is active (PLAN R16). */
-  function wireOn() {
-    return !!(ROOM.wire && ROOM.wire.active);
-  }
-
   /** Write one palette index at buffer coordinates (bounds-checked). Used by the engine marks. */
   function plot(f, x, y, c) {
     x = Math.round(x);
@@ -469,15 +464,9 @@
         if (ROOM.fx.drawScreen && d.item.screen) ROOM.fx.drawScreen(f, d, dx, dy);
         if (ROOM.glow && (!f.ls || f.ls.scene !== 'top')) {
           // A5: embers and glows assume a wall view; the overview has its own light
-          if (opts.outline && !wireOn()) ROOM.glow.drawSkillGlow(f, d, img, dx, dy);
           ROOM.glow.drawEmbers(f, d, img, dx, dy);
         }
         if (d.led && d.hotspot) ROOM.fx.drawLed(f, d, d.led[0] + f.offs[d.layer] - f.x0, d.led[1] - f.y0);
-      }
-      var ls = f.ls || NO_LS;
-      if (opts.outline && !wireOn() && d.hotspot && !(d.skill && ROOM.glow) && (d.id === ls.hover || d.id === ls.focus || ls.inspect)) {
-        var ring = D.ring(img), col = lightCatColor(d.cat);
-        for (var k = 0; k < ring.length; k += 2) plotMark(f, dx + ring[k], dy + ring[k + 1], col, markDepth(d));
       }
     }
   }

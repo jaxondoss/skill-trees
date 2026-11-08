@@ -717,9 +717,9 @@
      * colour is white mixed toward the key colour by tint; lift = art px toward the camera; rimGain on bit6 texels.
      * heroI measured by P2 (scripts/room-v35-light.mjs hero, isolate fallback sprites, dim 1): hero mean L* minus
      * albedo L* in -4.9..+6.3 at el 4/40/-25, night and rain for relic, chess and running; kitchen.gut reaches +11.5
-     * by day (its own key light). Re-check with the P6 hero art at integration (A6 band: -6..+8).
+     * by day (its own key light). heroGain scales heroI per room item id to keep it in the A6 band (-6..+8).
      */
-    SELECT: { I: 0.35, heroI: 0.9, tint: 0.5, lift: 24, radiusK: 0.9, radiusPad: 6, rimGain: 2 },
+    SELECT: { I: 0.35, heroI: 0.9, tint: 0.5, lift: 24, radiusK: 0.9, radiusPad: 6, rimGain: 2, heroGain: { 'kitchen.gut': 0.5 } },
   };
 
   if (typeof window !== 'undefined') {

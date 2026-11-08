@@ -718,7 +718,9 @@
       }
       f.atlas = { y: ay, w: h.aw, h: h.ah, off: [h.off[0], h.off[1]] };
     }
-    var hero = fits ? { x: s.x, y: s.y, k: s.k, K: s.heroK, selK: s.selK } : null;
+    var SEL = (ROOM.light && ROOM.light.SELECT) || {};
+    var gain = SEL.heroGain && SEL.heroGain[h.id] != null ? SEL.heroGain[h.id] : 1;
+    var hero = fits ? { x: s.x, y: s.y, k: s.k, K: s.heroK, selK: s.selK * gain } : null;
     return { hero: hero, halo: haloOf(s, h, z, org) };
   }
 
