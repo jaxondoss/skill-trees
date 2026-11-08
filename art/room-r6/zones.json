@@ -8197,7 +8197,7 @@
        176,
        96
       ],
-      "intensity": 0.27,
+      "intensity": 0.162,
       "radius": 12.7,
       "when": "always"
      },
@@ -8213,7 +8213,7 @@
        176,
        96
       ],
-      "intensity": 0.45,
+      "intensity": 0.27,
       "radius": 11.6,
       "when": "always"
      },
@@ -8229,7 +8229,7 @@
        112,
        214
       ],
-      "intensity": 0.72,
+      "intensity": 0.432,
       "radius": 15.5,
       "when": "always"
      },
@@ -8245,7 +8245,7 @@
        176,
        96
       ],
-      "intensity": 0.225,
+      "intensity": 0.135,
       "radius": 11.6,
       "when": "always"
      },
@@ -8261,7 +8261,7 @@
        176,
        96
       ],
-      "intensity": 0.9,
+      "intensity": 0.54,
       "radius": 42.2,
       "when": "always"
      },
@@ -8277,7 +8277,7 @@
        176,
        96
       ],
-      "intensity": 0.72,
+      "intensity": 0.432,
       "radius": 24.3,
       "when": "always"
      },
@@ -8293,7 +8293,7 @@
        226,
        246
       ],
-      "intensity": 0.9,
+      "intensity": 0.54,
       "radius": 23.9,
       "when": "always"
      },
@@ -8309,7 +8309,7 @@
        226,
        246
       ],
-      "intensity": 0.774,
+      "intensity": 0.464,
       "radius": 43.6,
       "when": "always"
      },
@@ -8325,7 +8325,7 @@
        176,
        96
       ],
-      "intensity": 0.72,
+      "intensity": 0.432,
       "radius": 15.8,
       "when": "always"
      },
@@ -8341,7 +8341,7 @@
        64,
        40
       ],
-      "intensity": 0.81,
+      "intensity": 0.486,
       "radius": 21.1,
       "when": "always",
       "channel": "crt"
@@ -8358,7 +8358,7 @@
        176,
        96
       ],
-      "intensity": 0.36,
+      "intensity": 0.216,
       "radius": 9.5,
       "when": "always"
      },
@@ -8374,7 +8374,7 @@
        64,
        40
       ],
-      "intensity": 0.63,
+      "intensity": 0.378,
       "radius": 12.7,
       "when": "always",
       "channel": "crt"
@@ -8391,7 +8391,7 @@
        176,
        96
       ],
-      "intensity": 0.495,
+      "intensity": 0.297,
       "radius": 9.5,
       "when": "always",
       "channel": "candle"
@@ -8408,7 +8408,7 @@
        176,
        96
       ],
-      "intensity": 0.54,
+      "intensity": 0.324,
       "radius": 15.8,
       "when": "always"
      },
@@ -8424,7 +8424,7 @@
        112,
        168
       ],
-      "intensity": 0.9,
+      "intensity": 0.54,
       "radius": 25.3,
       "when": "always"
      },
@@ -8440,7 +8440,7 @@
        176,
        96
       ],
-      "intensity": 0.54,
+      "intensity": 0.324,
       "radius": 27.5,
       "when": "always"
      },
@@ -8456,7 +8456,7 @@
        176,
        96
       ],
-      "intensity": 0.54,
+      "intensity": 0.324,
       "radius": 27.5,
       "when": "always"
      },
@@ -8472,7 +8472,7 @@
        176,
        96
       ],
-      "intensity": 0.9,
+      "intensity": 0.54,
       "radius": 23.2,
       "when": "always"
      },
@@ -8488,7 +8488,7 @@
        176,
        96
       ],
-      "intensity": 0.675,
+      "intensity": 0.405,
       "radius": 23.2,
       "when": "always",
       "channel": "terminal"
@@ -8505,7 +8505,7 @@
        255,
        130
       ],
-      "intensity": 0.9,
+      "intensity": 0.54,
       "radius": 28.2,
       "when": "always",
       "channel": "terminal"
@@ -8522,7 +8522,7 @@
        176,
        96
       ],
-      "intensity": 0.315,
+      "intensity": 0.189,
       "radius": 11.6,
       "when": "always",
       "channel": "timer"
@@ -8539,7 +8539,7 @@
        64,
        40
       ],
-      "intensity": 0.54,
+      "intensity": 0.324,
       "radius": 16.9,
       "when": "always",
       "channel": "timer"
@@ -8556,7 +8556,7 @@
        176,
        96
       ],
-      "intensity": 0.81,
+      "intensity": 0.486,
       "radius": 58.1,
       "when": "always"
      },
@@ -8572,7 +8572,7 @@
        176,
        96
       ],
-      "intensity": 0.81,
+      "intensity": 0.486,
       "radius": 58.1,
       "when": "always"
      },
@@ -8588,7 +8588,7 @@
        176,
        96
       ],
-      "intensity": 0.81,
+      "intensity": 0.486,
       "radius": 58.1,
       "when": "always"
      },
@@ -8604,7 +8604,7 @@
        176,
        96
       ],
-      "intensity": 0.81,
+      "intensity": 0.486,
       "radius": 58.1,
       "when": "always"
      },
@@ -8620,7 +8620,7 @@
        176,
        96
       ],
-      "intensity": 0.54,
+      "intensity": 0.324,
       "radius": 15.8,
       "when": "always",
       "channel": "globe"
@@ -8637,7 +8637,7 @@
        104,
        255
       ],
-      "intensity": 0.9,
+      "intensity": 0.54,
       "radius": 22.5,
       "when": "always",
       "channel": "globe"
@@ -8654,7 +8654,7 @@
        176,
        96
       ],
-      "intensity": 0.225,
+      "intensity": 0.135,
       "radius": 8.0,
       "when": "always"
      },
@@ -8670,7 +8670,7 @@
        176,
        96
       ],
-      "intensity": 0.81,
+      "intensity": 0.486,
       "radius": 37.0,
       "when": "always"
      },
@@ -8686,7 +8686,7 @@
        176,
        96
       ],
-      "intensity": 0.225,
+      "intensity": 0.135,
       "radius": 8.0,
       "when": "always",
       "channel": "kettle"
@@ -8703,7 +8703,7 @@
        176,
        96
       ],
-      "intensity": 0.72,
+      "intensity": 0.432,
       "radius": 26.4,
       "when": "always"
      }
