@@ -79,6 +79,7 @@
 
   /* ------------------------------------------------------------------ window */
   var scrim, win, titleEl, bClose, body;
+  var openedAt = 0;
   var cur = null; // resolved target
   var opener = null;
   var hero = false; // opened as the board of a skill view (ROOM.skill)
@@ -93,7 +94,10 @@
       close();
     } } });
     titleEl = h('h2', { class: 'pxw-title', id: 'panel-title' });
-    bClose = h('button', { type: 'button', class: 'px-tool', 'aria-label': 'Close', 'data-k': 'close', on: { click: function () {
+    bClose = h('button', { type: 'button', class: 'px-tool', 'aria-label': 'Close', 'data-k': 'close', on: { click: function (e) {
+      // a touch tap that opened the board (overview, phone sheet) fires its compatibility click where the sheet's
+      // Close button now is: ignore pointer clicks in the first 400 ms after opening (keyboard clicks have detail 0)
+      if (e && e.detail > 0 && Date.now() - openedAt < 400) return;
       close();
     } } }, K.icon('close'));
     body = h('div', { class: 'pxw-body' });
@@ -160,6 +164,7 @@
     if (!wasOpen) setTall(false);
     K.root().classList.toggle('skill-open', hero);
     render();
+    if (!wasOpen) openedAt = Date.now();
     scrim.hidden = false;
     win.hidden = false;
     if (typeof ROOM.setDim === 'function') ROOM.setDim(true);
