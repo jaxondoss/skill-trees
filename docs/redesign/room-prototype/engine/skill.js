@@ -127,6 +127,28 @@
   var rowsMax = 0; // atlas rows, grow-only (D1 2.1.1)
   var last = null; // last computed state (heroState) for drawCanvas2D and rectCss
   var bobTimer = 0;
+  var deferred = false; // LIFT asked for before the renderer had a view (boot): place the hero on the first frame
+  var focusBack = null; // the control that opened the skill view (focus returns there once the hero has landed)
+
+  /**
+   * Focus back to the opener after DROP: the hotspot buttons are hidden while the hero flies, so try for up to
+   * about a second until it is visible again (else the item's hotspot button, matched by data-id).
+   */
+  function refocus(id) {
+    var el = focusBack;
+    focusBack = null;
+    var n = 0;
+    (function again() {
+      var a = document.activeElement;
+      if (a && a !== document.body && !(a.closest && a.closest('.hs'))) return; // the user moved on
+      var t = el && el.isConnected ? el : document.querySelector('.hs[data-id="' + id + '"]');
+      if (t && !t.hidden && t.offsetParent !== null) {
+        t.focus({ preventScroll: true });
+        if (document.activeElement === t) return;
+      }
+      if (++n < 60) requestAnimationFrame(again);
+    })();
+  }
 
   /* ------------------------------------------------------------------ hero resolve */
   function resolve(id) {
@@ -233,6 +255,13 @@
   /* ------------------------------------------------------------------ timeline */
   function stateAt(now) {
     if (!cur) return null;
+    if (deferred && !anim && !shown) {
+      var dt = targetOf(cur);
+      if (dt) {
+        shown = { x: dt.x, y: dt.y, k: dt.k };
+        deferred = false;
+      }
+    }
     var s;
     if (anim) {
       var t = Math.max(0, now - anim.t0);
@@ -317,6 +346,7 @@
         phase = 'closed';
         last = null;
         ROOM.emit('skill', { id: id, phase: 'closed' });
+        refocus(id);
       }
     }
     if (ROOM.invalidate) ROOM.invalidate();
@@ -342,6 +372,7 @@
     var o = { side: 'right', hero: true };
     if (boardOpts && boardOpts.skill) o.skill = boardOpts.skill;
     if (boardOpts && boardOpts.opener) o.opener = boardOpts.opener;
+    else if (focusBack) o.opener = focusBack;
     boardOpts = null;
     ROOM.ui.open(cur.id, o);
   }
@@ -353,6 +384,10 @@
     var h = resolve(id);
     if (!h) return 0;
     if (bobTimer) clearTimeout(bobTimer);
+    if (!cur || phase === 'closed') {
+      var ae = document.activeElement;
+      focusBack = (boardOpts && boardOpts.opener) || (ae && ae !== document.body ? ae : null);
+    }
     cur = h;
     rowsMax = Math.max(rowsMax, h.ah + 8);
     shown = null;
@@ -362,7 +397,16 @@
     phase = 'lift';
     ROOM.emit('skill', { id: id, phase: 'lift' });
     var to = targetOf(h);
-    if (!to) return 0;
+    if (!to) {
+      // boot (deep link) before the renderer has a view: the hero is placed at its rest spot on the first frame
+      deferred = true;
+      phase = 'shown';
+      shownAt = ROOM.now();
+      openBoard();
+      ROOM.emit('skill', { id: id, phase: 'shown' });
+      return 0;
+    }
+    deferred = false;
     to.selK = 1;
     to.heroK = 1;
     to.haloK = 1;
@@ -439,6 +483,7 @@
       phase = 'closed';
       last = null;
       ROOM.emit('skill', { id: id, phase: 'closed' });
+      refocus(id);
       if (ROOM.invalidate) ROOM.invalidate();
       return 0;
     }
