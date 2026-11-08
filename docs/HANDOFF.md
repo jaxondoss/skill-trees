@@ -147,6 +147,37 @@ efficient (Haiku/Gemini for grunt work, Claude for thinking).
   - Time Blocking is retired: migration 0013 archives it (final score from its last snapshot, history kept) and
     unpins it; the study desk's wall calendar is decor that leads to the calendar wall.
 
+## Room v3.5 (2026-11-08, branch v35/int)
+What changed (one navigator, skill view, overview, wire marks):
+- Motion: every camera change goes through `ROOM.nav` (engine/nav.js): places wall / zone / overview / skill, moves made
+  of legs (TURN, DOLLY, RISE, DESCEND camera legs drawn from pre-lit shots; LIFT, DROP, SWAP live legs). Pixel stipple
+  (Bayer) dissolves, integer zoom at rest, interruptions reverse in place. Audit: docs/redesign/room-r6/MOTION_AUDIT.md.
+- Skill view (engine/skill.js): clicking an item never moves the camera; the item lifts out in whole-pixel zoom steps and
+  floats lit to the left of the board (board always right on laptops, 58 % bottom sheet on phones). Reading is an
+  authored floating book stack (3/5/7 books by stage); other items use isolate re-exports. One SELECT light tinted
+  toward the key colour, the room dims to ~40 %, a dithered darkening (x0.3 at the centre) and pool sit behind the hero,
+  bloom drops to x0.25 while it is out. The room item keeps a dashed gold socket. kitchen.gut hero runs at heroGain 0.5.
+- Overview (engine/overview.js, art/room-r6/overview.py): Up from a wall or zone (or from the skill view) rises to a
+  lid-off diorama; click / tap (nearest centre) / list row opens that item's skill view on its wall; Down or Esc returns.
+  Practicals x0.6 at night there (lighting.nightGain). Zone dots hidden in the overview.
+- Wire marks (engine/wire.js): every active skill carries a 1 px gold wire one pixel outside its hull with 4 corner
+  nodes, coloured by state (GOLD_MID idle, GOLD open goal, GOLD_HI logged, breathing for the top priority, slate when
+  neglected), with a 1 px INK outer keyline (>= 3:1 on every wall). Hover / focus / Shift shows the 3D cage (or the hot
+  wire for chess, cushion, gut, bookshelf). Marks never drop below 70 % of their palette colour at night (both paths) and
+  take almost no bloom.
+- Removed: the old skill glow/shimmer (glow.drawSkillGlow) and the feature hover ring (wire.js replaces both).
+Defaults: world-res bloom ON (`ROOM.gl.gains.worldBloom = 1`; 0 restores the old bloom; stills differ ~2/255 and only
+world bloom passes the zone/wall framing check). Reduced motion: every move instant, marks static.
+How to test: `node scripts/room-sync.mjs`, then npx eslint, npm run typecheck, npx vitest run, npm run test:db, the e2e
+specs tests/e2e/room.spec.ts, room-skill.spec.ts, room-overview.spec.ts, room-wire.spec.ts (phone viewport). Visual and
+numeric harnesses (headless Chromium, SwiftShader): scripts/room-motion-audit.mjs, scripts/room-v35-light.mjs
+(stills | framing | crisp | hero), room-v35-skill.mjs (stills | lift | ac), room-v35-wire.mjs ac, room-v35-overview.mjs
+(stills | crisp | light | rise; TOP_LIGHT='{...}' overrides the overview lighting for tuning). Art: `python3
+art/room-r6/build.py` then `python3 art/room-v3/merge.py --src room-r6` (gates incl. overview_check) then room-sync.
+Known: overview item-wise hue gap vs walls stays ~24 deg by day (the frame hue shift is 2.5 deg; per-item hit rects mix
+in floor), night overview frame luma +18 % vs the front wall; RISE contact sheets from readFrame can show stale frames
+(live screenshots are smooth).
+
 ## skill-pack
 Added (skills in `.claude/skills/`, sources in `vendor/`): superpowers (minus using-superpowers and its
 hook), karpathy-guidelines, 9 Trail of Bits security skills, pixel-art-studio (scripts at
