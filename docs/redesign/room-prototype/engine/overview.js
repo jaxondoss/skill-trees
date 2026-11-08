@@ -227,6 +227,11 @@
   function activate(id) {
     var it = ROOM.itemById ? ROOM.itemById(id) : null;
     if (!it || !ROOM.nav) return;
+    // the Today feature opens its HUD without a move (as overlay.js does for every hotspot)
+    if (it.target && it.target.feature === 'today') {
+      if (ROOM.ui && ROOM.ui.open) ROOM.ui.open(id, { opener: document.activeElement });
+      return;
+    }
     if (it.target && it.target.feature === 'calendar') ROOM.nav.request({ mode: 'zone', zone: 'calendar', view: 'back' }, { source: 'overview' });
     else ROOM.nav.request({ mode: 'skill', item: id }, { source: 'overview', opener: document.activeElement });
   }

@@ -54,15 +54,21 @@ async function expectSkill(page: Page, id: string) {
     return { view: it.view, zone: R.zoneOf(it)!.id, feature: it.target?.feature ?? null };
   }, id);
   const p = await place(page);
+  if (want.feature === "today") {
+    // the Today feature opens its HUD where you are (no move, D4 rule 5.8)
+    expect(p.mode).not.toBe("skill");
+    await page.keyboard.press("Escape");
+    return;
+  }
   if (want.feature === "calendar") {
     // R23: the study wall calendar leads to the calendar wall, no panel
     expect(p).toMatchObject({ mode: "zone", zone: "calendar" });
-    await expect(page).toHaveURL(/\/room\/calendar$/);
+    await expect(page).toHaveURL(/\/room\/calendar(\?.*)?$/);
     expect(await page.evaluate(() => (window as unknown as RoomW).ROOM.state.panel ?? null)).toBeNull();
     return;
   }
   expect(p, id).toMatchObject({ mode: "skill", item: id, view: want.view });
-  await expect(page).toHaveURL(new RegExp(`/room/${want.zone}/${id.split(".").slice(1).join(".")}$`));
+  await expect(page).toHaveURL(new RegExp(`/room/${want.zone}/${id.split(".").slice(1).join(".")}(\\?.*)?$`));
 }
 
 test.beforeEach(async () => {
