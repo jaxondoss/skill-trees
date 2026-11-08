@@ -235,6 +235,7 @@
 
   /** Called by the renderer right after the statue's sprite is drawn. */
   function draw(f, d, img, dx, dy) {
+    if (f.ls && f.ls.scene === 'top') return; // v3.5 (R19): no plaque or surge on the overview's miniature
     var t = f.now != null ? f.now : now();
     var u = phase(t);
     if (u >= 0 && !reduced()) drawSurge(f, img, dx, dy, u);
@@ -291,7 +292,8 @@
     var d = null;
     var list = R.drawables || [];
     for (var k = 0; k < list.length; k++) if (list[k].statue && list[k].item.plaque) d = list[k];
-    if (!d || !i.ready || surge || R.turning || R.dolly) {
+    var top = ROOM.sceneKey && ROOM.sceneKey() === 'top';
+    if (!d || top || !i.ready || surge || R.turning || R.dolly) {
       b.hidden = true;
       return;
     }
