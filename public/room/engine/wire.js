@@ -271,9 +271,18 @@
 
   /* ---------------------------------------------------------------- drawing */
   var plotMark = ROOM.render.plotMark;
+  // Pixels written by the wire pass in the current frame (keylines yield only to other wires, not to LEDs/screens).
+  var wm = null;
+  function wmOf(f) {
+    var n = f.w * f.h;
+    if (!wm || wm.length < n) wm = new Uint8Array(n);
+    else wm.fill(0, 0, n);
+    return wm;
+  }
   function px(f, x, y, c, dep, fl, own) {
     if (x < 0 || y < 0 || x >= f.w || y >= f.h) return;
     plotMark(f, x, y, c, dep, fl);
+    if (f.wm) f.wm[y * f.w + x] = 1;
     if (!own) f.mark[y * f.w + x] = 0;
   }
   // An INK keyline pixel: never over another mark nor over an object nearer than the owner (its depth > dep + 6).
@@ -286,6 +295,7 @@
       if (a > dep + 6 && !(f.aux[i * 3 + 1] & 2)) return;
     }
     plotMark(f, x, y, c, dep, fl);
+    if (f.wm) f.wm[i] = 1;
   }
   var N4 = [1, 0, -1, 0, 0, 1, 0, -1];
   var N8 = [1, 0, -1, 0, 0, 1, 0, -1, 1, 1, 1, -1, -1, 1, -1, -1];
@@ -392,8 +402,10 @@
     for (i = 0; i < key.length; i += 2) {
       x = bx + key[i];
       y = by + key[i + 1];
-      if (x < 0 || y < 0 || x >= f.w || y >= f.h || f.mark[y * f.w + x]) continue;
-      ink(f, x, y, C.INK, dep, fl);
+      if (x < 0 || y < 0 || x >= f.w || y >= f.h || (f.wm ? f.wm : f.mark)[y * f.w + x]) continue;
+      // no depth test: the hull is already occlusion-cut at build time, so the keyline borders a visible wire pixel
+      plotMark(f, x, y, C.INK, dep, fl);
+      if (f.wm) f.wm[y * f.w + x] = 1;
       if (!own) f.mark[y * f.w + x] = 0;
     }
     if (s.breathe) {
@@ -446,6 +458,7 @@
     var list = ROOM.render.drawables;
     var inZone = !!ROOM.state.zone;
     passTop = ROOM.fx ? ROOM.fx.topSkill() : null;
+    f.wm = wmOf(f);
     try {
       for (var i = 0; i < list.length; i++) {
         var d = list[i];
@@ -457,6 +470,7 @@
       }
     } finally {
       passTop = undefined;
+      f.wm = null;
     }
     if (t0) lastPassMs = performance.now() - t0;
   }

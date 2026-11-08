@@ -507,7 +507,7 @@
     '  if (uDebug == 7) { o = vec4(l2s(bl * 2.0), 1.0); return; }',
     '  if (uDebug != 0) { o = vec4(c, 1.0); return; }',
     '  int f = int(floor(texelFetch(uAux, wp, 0).g * 255.0 + 0.5));',
-    '  if ((f & 16) != 0) bl = min(bl, vec3(0.3));',
+    '  if ((f & 16) != 0) bl = min(bl, vec3(0.004));', // marks keep their contrast next to bright screens (linear)
     '  vec3 outc = l2s(s2l(c) + bl);',
     '  float n = hash12(floor(uOrigin) + vec2(wp) + vec2(uSeed * 7.13, uSeed * 3.71)) - 0.5;',
     '  if ((f & 16) == 0) outc += n * 2.0 * uGrain * (0.35 + 0.65 * lum(outc));',
