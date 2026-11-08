@@ -43,6 +43,11 @@
     RGBA[i] = ((255 << 24) | (b << 16) | (g << 8) | r) >>> 0;
   });
   RGBA[T] = 0;
+  // A7: the Canvas2D floor of engine marks, 0.7 x palette (lightened over the lit frame).
+  var MARK_FLOOR = new Uint32Array(256);
+  RGB.forEach(function (c, i) {
+    MARK_FLOOR[i] = ((255 << 24) | (Math.round(c[2] * 0.7) << 16) | (Math.round(c[1] * 0.7) << 8) | Math.round(c[0] * 0.7)) >>> 0;
+  });
   // Material table (art/room-r6/materials.json in the bundle): name -> id, and the flags the aux buffer needs.
   var MATS = (ROOM.art.materials && ROOM.art.materials.materials) || [];
   var MAT_ID = {};
@@ -804,12 +809,24 @@
     } else {
       // Expand indices to RGBA and draw once at z, then the Canvas2D light (the v3.3 path).
       // Marked pixels (f.mark) always take the raw palette colour; EXPAND is the hook for a room-wide remap.
-      var n = fbW * fbH, ex = EXPAND;
-      for (var i = 0; i < n; i++) fbU32[i] = fbMark[i] ? RGBA[fb[i]] : ex[fb[i]];
+      var n = fbW * fbH, ex = EXPAND, anyMark = false;
+      for (var i = 0; i < n; i++) {
+        if (fbMark[i]) anyMark = true;
+        fbU32[i] = fbMark[i] ? RGBA[fb[i]] : ex[fb[i]];
+      }
       fbCtx.putImageData(fbImage, 0, 0);
       tc.drawImage(fbCanvas, x0 * z - org.ox, y0 * z - org.oy, fbW * z, fbH * z);
       var tr = { z: z, tx: -org.ox, ty: -org.oy };
       drawLight(tr, now, ls.dimK || 0, target);
+      // A7: marks are lit like the art (drawLight above) but never below 70 % of their palette colour: lighten
+      // (per-channel max) with a layer that holds only the marked pixels at 0.7 x palette.
+      if (anyMark) {
+        for (var j = 0; j < n; j++) fbU32[j] = fbMark[j] ? MARK_FLOOR[fb[j]] : 0;
+        fbCtx.putImageData(fbImage, 0, 0);
+        tc.globalCompositeOperation = 'lighten';
+        tc.drawImage(fbCanvas, x0 * z - org.ox, y0 * z - org.oy, fbW * z, fbH * z);
+        tc.globalCompositeOperation = 'source-over';
+      }
       if (ROOM.skill && ROOM.skill.drawCanvas2D) ROOM.skill.drawCanvas2D(tc, f, tr, now, ls);
     }
     return { offs: offs, x0: x0, y0: y0, gpu: !!lit };
