@@ -141,16 +141,21 @@
     var m = MASKS[state] || MASKS.off;
     var rp = ramp(d.cat);
     var col = [0, rp[0], rp[1], rp[2], C.VOID, C.INK, C.SUN, C.CREAM];
+    // v3.5: LEDs are engine marks (plotMark: bit4 + no rim, owner depth); lit pixels also glow (bit0 emissive).
+    var R = ROOM.render, dep = R.markDepth(d);
     if (state === 'full' || state === 'flash') {
       // 1 px dark keyline around a done LED
       for (var k2 = -1; k2 <= 3; k2++) {
-        ROOM.render.plot(f, x + k2, y - 1, C.VOID);
-        ROOM.render.plot(f, x + k2, y + 3, C.VOID);
-        ROOM.render.plot(f, x - 1, y + k2, C.VOID);
-        ROOM.render.plot(f, x + 3, y + k2, C.VOID);
+        R.plotMark(f, x + k2, y - 1, C.VOID, dep);
+        R.plotMark(f, x + k2, y + 3, C.VOID, dep);
+        R.plotMark(f, x - 1, y + k2, C.VOID, dep);
+        R.plotMark(f, x + 3, y + k2, C.VOID, dep);
       }
     }
-    for (var k = 0; k < 9; k++) if (m[k]) ROOM.render.plot(f, x + (k % 3), y + ((k / 3) | 0), col[m[k]]);
+    for (var k = 0; k < 9; k++) {
+      var c = col[m[k]];
+      if (m[k]) R.plotMark(f, x + (k % 3), y + ((k / 3) | 0), c, dep, c === C.VOID || c === C.INK ? 16 | 128 : 1 | 16 | 128);
+    }
   }
 
   /* ------------------------------------------------------------------ screens and the plaque */
@@ -231,6 +236,7 @@
   /* ------------------------------------------------------------------ dust */
   /** Speckles on the top edge of a neglected object (lit by the current LUT, like the art). */
   function drawDust(f, img, dx, dy) {
+    if (ROOM.sceneKey && ROOM.sceneKey() === 'top') return; // A5: no top-edge dust on the overview miniatures
     var top = ROOM.decode.top(img);
     var a = f.lutA[C.BROWN_2], b = f.lutA[C.ROSE_0];
     for (var k = 0; k < top.length; k += 2) {
@@ -261,6 +267,7 @@
   /** Move the dog drawable (d.x, d.y) before the scene is sorted. */
   function placeDog(d) {
     var img = d.img;
+    if (ROOM.sceneKey && ROOM.sceneKey() === 'top') return; // R19/A5: the overview dog stays where the art put it
     if (ROOM.state.dog === 'neglect') {
       var it = mostNeglectedItem();
       var key = it && ROOM.variantOf(it);
@@ -389,20 +396,22 @@
   }
 
   function drawMotes(f) {
-    if (!active) return;
+    if (!active || (ROOM.sceneKey && ROOM.sceneKey() === 'top')) return;
     var leg = active.legs[active.i];
     var t = Math.max(0, Math.min(1, (f.now - active.t0) / leg.dur));
     var trail = [C.GLOW, C.ORANGE, C.RIM];
+    // v3.5: the mote is an engine mark in front of everything (depth 254), glowing (bit0).
+    var R = ROOM.render, fl = 1 | 16 | 128;
     for (var k = 3; k >= 1; k--) {
       var pt = legPoint(leg, ease(Math.max(0, t - k * 0.05)));
-      ROOM.render.plot(f, pt.x - f.x0, pt.y - f.y0, trail[k - 1]);
+      R.plotMark(f, pt.x - f.x0, pt.y - f.y0, trail[k - 1], 254, fl);
     }
     var p = legPoint(leg, ease(t));
     var x = Math.round(p.x - f.x0), y = Math.round(p.y - f.y0);
-    ROOM.render.plot(f, x, y, C.SUN);
-    ROOM.render.plot(f, x + 1, y, C.SUN);
-    ROOM.render.plot(f, x, y + 1, C.SUN);
-    ROOM.render.plot(f, x + 1, y + 1, C.CREAM);
+    R.plotMark(f, x, y, C.SUN, 254, fl);
+    R.plotMark(f, x + 1, y, C.SUN, 254, fl);
+    R.plotMark(f, x, y + 1, C.SUN, 254, fl);
+    R.plotMark(f, x + 1, y + 1, C.CREAM, 254, fl);
   }
 
   /* ------------------------------------------------------------------ scheduler hooks */
@@ -410,6 +419,7 @@
   function busy(now) {
     stepMotes(now);
     if (active) return true;
+    if (ROOM.wire && ROOM.wire.busy && ROOM.wire.busy(now)) return true; // wire draw-on, sparkle, log flash
     if (pulse && now - pulse.t0 < pulse.dur + 100) return true;
     if (flash && now < flash.until + 50) return true;
     return false;
