@@ -271,7 +271,7 @@ if (mode === 'hero') {
       const wx = (hx + img.w * k / 2 + f.org.ox) / z, wy = (hy + img.h * k / 2 + f.org.oy) / z;
       const r = 0.62 * Math.max(img.w, img.h) * k / z;
       window.__hero.rect = { x: hx, y: hy, w: img.w * k, h: img.h * k, k };
-      return g(f, Object.assign(o, { dim: cfg.dim, atlas: at, hero: { x: hx, y: hy, k, K: 1, selK: cfg.selK }, halo: cfg.halo ? { cx: wx, cy: wy, r, k: 1,
+      return g(f, Object.assign(o, { dim: cfg.dim, atlas: at, hero: { x: hx, y: hy, k, K: 1, selK: cfg.selK * ((ROOM.light.SELECT.heroGain || {})[d.id] ?? 1) }, halo: cfg.halo ? { cx: wx, cy: wy, r, k: 1,
         pool: { cx: wx, cy: wy + (img.h * k / 2 + 7 * k) / z, rx: 0.42 * img.w * k / z, ry: 3 * k / z }, shadow: { cx: wx, cy: wy + (img.h * k / 2 + 7 * k) / z, rx: 0.3 * img.w * k / z, ry: 1.5 * k / z } } : null }));
     };
     ROOM.render.layout && ROOM.render.layout();
