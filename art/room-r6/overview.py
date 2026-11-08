@@ -1179,9 +1179,9 @@ def lighting_top(B, r_day, r_night):
             # diorama sits in the same light as the walls (AC7 band measured by scripts/room-v35-overview.mjs light)
             "key": {"center": [kx - 17, ky + 25], "radius": [230, 170], "offscreen": None, "wall": 0.6, "bounce": 0.5,
                     "mullions": mull},
-            # night practicals at 0.6: the diorama's floor gathers every lamp at once, so full strength reads hotter
-            # than any wall (integration measure: median hue 24 -> 15 deg, frame hue shift 7.6 -> 1.3 deg at el -25)
-            "lights": lights(r_day["glows"], ""), "lightsNight": lights(r_night["glows"], "n", 0.6),
+            # nightGain: practicals x 0.6 at night (gl.js whenLevel): the diorama's floor gathers every lamp at once,
+            # so full strength reads hotter than any wall (lightsNight is reference data; the engine does not read it)
+            "lights": lights(r_day["glows"], ""), "lightsNight": lights(r_night["glows"], "n", 0.6), "nightGain": 0.6,
             "materials": {"LEAF_1": {"translucency": 0.5}}, "noRim": ["top.*"]}
 
 

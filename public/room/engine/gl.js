@@ -953,7 +953,10 @@
     else if (w === 'desk' || w === 'dawn') lv = st.practicals.desk;
     else if (w === 'night') lv = st.nightness;
     else if (w === 'day') lv = 1 - st.practicals.lamps;
-    return Math.max(lv, l.dayLevel || 0);
+    lv = Math.max(lv, l.dayLevel || 0);
+    // lighting.nightGain (the overview: its floor gathers every lamp at once) scales practicals by nightness
+    var L = cur.lighting, ng = L && L.nightGain != null ? L.nightGain : cur.view === 'top' ? 0.6 : 1;
+    return ng === 1 ? lv : lv * (1 + (ng - 1) * (st.nightness || 0));
   }
   function channelLevel(l, now) {
     if (!l.channel || reduced()) return 1;
