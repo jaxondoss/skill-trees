@@ -52,9 +52,11 @@
   var gains = {
     exposure: 1, ambient: 1, key: 1, practical: 1, emissive: 1, rim: 1, shadow: 1, patch: 1, refl: 1, seam: 1,
     shafts: 1, dust: 1, bloom: 1, grain: 1, vignette: 1, glint: 1, transmission: 1, saturation: 1,
-    // v3.5 flags (0 off): worldBloom = bloom at world res with a world-px radius (D4 3.3; PLAN A1: off by default),
-    // heroCache = the low-tier hero policy (atlas shaded on light-key change only) at any tier
-    worldBloom: 0, heroCache: 0,
+    // v3.5 flags (0 off): worldBloom = bloom at world res with a world-px radius (D4 3.3). ON since integration: stills
+    // on/off differ by ~2/255 mean (grain level, same mean luma) and only world bloom passes the zone/wall framing check
+    // (front el4 3.43 -> 2.52, back el4 3.31 -> 2.78 vs noise + 1 = 3.19 / 3.13). heroCache = the low-tier hero policy
+    // (atlas shaded on light-key change only) at any tier
+    worldBloom: 1, heroCache: 0,
   };
 
   /* ------------------------------------------------------------------ material tables */
