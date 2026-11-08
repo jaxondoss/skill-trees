@@ -739,7 +739,7 @@
     var sx = Math.max(1, w(0.42 * hw)), sy = Math.max(1, w(3 * k));
     var shx = Math.max(1, w(0.3 * hw - (s.up ? k : 0))), shy = Math.max(1, w(1.5 * k));
     return {
-      cx: cx, cy: cy, r: Math.max(4, w(0.62 * Math.max(hw, hh))), k: s.haloK,
+      cx: cx, cy: cy, r: Math.max(4, w(0.8 * Math.max(hw, hh))), k: s.haloK, // integration: 0.62 -> 0.8, darkening x0.3 (read weak)
       pool: { cx: cx, cy: bottom, rx: sx, ry: sy },
       shadow: { cx: cx, cy: bottom - w(k), rx: shx, ry: shy },
     };
@@ -800,7 +800,7 @@
                 for (var q = 0; q < 3; q++) add[q] = add[q] * (1 - wgt) + col[q] * wgt;
               };
               var rh = ring(Math.hypot(px0 - ha.cx, py0 - ha.cy) / Math.max(ha.r, 1), b);
-              var m = 1 - (0.5 * rh) / 3 * ha.k;
+              var m = 1 - (0.7 * rh) / 3 * ha.k;
               mul *= m;
               for (var q0 = 0; q0 < 3; q0++) add[q0] *= m;
               mix(kr, (rh > 2.5 ? 0.1 : rh > 1.5 ? 0.06 : rh > 0.5 ? 0.03 : 0) * ha.k);

@@ -473,9 +473,9 @@
     '    float vr = length((p - uVig.xy) / uVig.zw); float vt = clamp((vr - uVig2.x) / (1.0 - uVig2.x), 0.0, 1.0); float ve = vt * vt * (3.0 - 2.0 * vt);',
     '    g *= mix(vec3(1.0), uVig2.yzw, ve * uVigK);',
     '    if (uHalo.w > 0.0 && !mark) {',
-    // display darkening behind the hero (x0.5 at the centre), then the key halo 10/6/3 %: 3 dithered rings
+    // display darkening behind the hero (x0.3 at the centre), then the key halo 10/6/3 %: 3 dithered rings
     '      float rh = ringOf(length(p - uHalo.xy) / max(uHalo.z, 1.0), b);',
-    '      g *= mix(1.0, 0.5, rh / 3.0 * uHalo.w);',
+    '      g *= mix(1.0, 0.3, rh / 3.0 * uHalo.w);',
     '      g = mix(g, uKeyS, (rh > 2.5 ? 0.10 : rh > 1.5 ? 0.06 : rh > 0.5 ? 0.03 : 0.0) * uHalo.w);',
     '      float rp = ringOf(length((p - uPool.xy) / max(uPool.zw, vec2(1.0))), b);',
     '      g = mix(g, uKeyS, (rp > 2.5 ? 0.26 : rp > 1.5 ? 0.16 : rp > 0.5 ? 0.08 : 0.0) * uHalo.w);',
@@ -1728,12 +1728,12 @@
       heroCache.key = hKey;
     }
 
-    // ---- P6 output
+    // ---- P6 output (skill view: bloom x0.25 so bright room objects do not glow through the darkening behind the hero)
     var grainOn = tier.grain && G.grain > 0;
     var seed = reduced() ? 1 : Math.floor(now / (1000 / 12)) % 997;
     pass(P.out, null, cw, ch, { uLdr: RT.ldr.tex, uBloom: bloomTex, uAux: T.aux }, {
       uCanvas: [cw, ch], uZ: [cw / f.w, ch / f.h], uOrigin: origin, uSize: size, uDebug: I(dbg),
-      uBloomK: bloomK / Math.max(1, lv * 0.6), uGrain: grainOn ? st.grain * G.grain : 0, uSeed: seed, uEnc: enc,
+      uBloomK: (bloomK / Math.max(1, lv * 0.6)) * (ha ? 1 - 0.75 * clamp01(ha.k) : 1), uGrain: grainOn ? st.grain * G.grain : 0, uSeed: seed, uEnc: enc,
     });
 
     // ---- P7 hero: integer k, integer device origin, Bayer dissolve heroK (D1 2.1.4)
