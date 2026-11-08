@@ -106,8 +106,8 @@ describe("the exported overview (art/room-r6 manifest + zones, when built)", () 
     for (const r of room) {
       const t = twins.filter((x) => x.of === r.id);
       expect(t.length, String(r.id)).toBe(1);
-      expect(Object.keys(t[0].variants as object)).toEqual(expect.arrayContaining(Object.keys(r.variants as object)));
-      expect(t[0].target).toBeUndefined();
+      expect(Object.keys(t[0]!.variants as object)).toEqual(expect.arrayContaining(Object.keys(r.variants as object)));
+      expect(t[0]!.target).toBeUndefined();
     }
   });
   run("placeAt on every zone anchor centre lands in that zone or on one of its items", () => {
@@ -115,8 +115,8 @@ describe("the exported overview (art/room-r6 manifest + zones, when built)", () 
     const tw = items.filter((i) => i.view === "top" && i.kind === "hotspot");
     const zoneOfId = Object.fromEntries(items.filter((i) => i.view !== "top").map((i) => [i.id, i.zone]));
     for (const z of (zones.zones as Array<{ id: string }>).map((x) => x.id)) {
-      const a = an[z];
-      const p = O.placeFor(top, tw, a[0] + a[2] / 2, a[1] + a[3] / 2, 0);
+      const a = an[z]!;
+      const p = O.placeFor(top, tw, a[0]! + a[2]! / 2, a[1]! + a[3]! / 2, 0);
       expect(p, z).not.toBeNull();
       expect(p.zone ?? zoneOfId[p.item], z).toBe(z);
     }
