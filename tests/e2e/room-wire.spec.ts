@@ -18,7 +18,7 @@ type WireRoom = {
   state: Record<string, unknown>;
   invalidate(): void;
 };
-const R = "(window as unknown as { ROOM: WireRoom }).ROOM";
+const R = "window.ROOM";
 
 /** id -> style kind (null = no mark) for every hotspot drawn on the current wall. */
 async function kinds(page: Page) {
