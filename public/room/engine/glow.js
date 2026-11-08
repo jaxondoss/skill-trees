@@ -1,13 +1,7 @@
 /* FORGE room prototype: light the engine adds on top of the art (after the lighting LUT).
  *
- * Light order, brightest first: statue gold > relic embers > skill outlines > decor.
- * - Skill item glow (R3: only today's top-priority object at rest; the art has a resting outline on every
- *   skill object): a 1 px warm-gold outline on the outer silhouette, breathing
- *   30%..70% over 2.5 s (GOLD_DK..GOLD mixed through a fixed per-pixel threshold, so every frame stays in
- *   the palette); a 3-frame shimmer (one bright pixel; a plus with a CREAM centre and pastel arms; four
- *   dim tips) at 9 fps, once every 4-7 s per item with its own offset. Hover or focus: outline at 100%
- *   (SUN) plus one sparkle. Completed today: outline and sparkles off (the LED still shows done).
- *   Reduced motion: a static outline. Pure white exists only in the DOM ui, never on the canvas.
+ * Light order, brightest first: statue gold > relic embers > decor. Skill marks (outline, shimmer, hover) are
+ *   engine/wire.js since v3.5.
  * - Relic slots (left mount, window niche, right bracket): an empty slot shows a subtle pixel plus; an
  *   active relic shows on its mount (iron, hot or gold by progress) with an ember glow (orange to deep
  *   red, uneven flicker, rising ember pixels, brighter at night).

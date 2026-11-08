@@ -226,7 +226,7 @@
     }
     return boardDim.from + (boardDim.to - boardDim.from) * smooth(u);
   }
-  /** The navigation LightState now (PLAN 2.4). Never calls ROOM.render.ls (W0 gotcha). */
+  /** The navigation LightState now (PLAN 2.4). Never calls ROOM.render.ls (mutual recursion). */
   function ls() {
     var now = ROOM.now();
     var p = scene || cur || placeFromState();
@@ -577,7 +577,7 @@
   function openBoard(p, opts) {
     if (!ROOM.ui || typeof ROOM.ui.open !== 'function') return;
     if (ROOM.state.panel === p.item) return;
-    // skill.js opens the board itself during LIFT (P3); this is the landing fallback (and the W0 stub path)
+    // skill.js opens the board itself during LIFT (P3); this is the landing fallback
     ROOM.ui.open(p.item, { opener: (opts && opts.opener) || null, side: 'right', hero: true });
   }
   function closeBoard() {

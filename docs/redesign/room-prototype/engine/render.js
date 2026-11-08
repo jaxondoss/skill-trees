@@ -590,7 +590,7 @@
   var lastZone = null;
   var NO_LS = { scene: 'front', zone: null, focusK: 0, dimK: 0, poolK: 0, hover: null, focus: null, inspect: false, skill: null, statueLight: false, snap: false };
 
-  /** LightState from the globals (boot, and the W0 contract); nav.js supplies the real one. */
+  /** LightState from the globals (boot, before nav.js is ready); nav.js supplies the real one. */
   function legacyLs() {
     var zone = ROOM.state.zone || null;
     return {
@@ -607,7 +607,7 @@
       snap: false,
     };
   }
-  // nav.ls() must not call back into ROOM.render.ls() (W0 gotcha): it builds its own state.
+  // nav.ls() must not call back into ROOM.render.ls() (mutual recursion): it builds its own state.
   function currentLs() {
     return ROOM.nav && typeof ROOM.nav.ls === 'function' ? ROOM.nav.ls() || legacyLs() : legacyLs();
   }
