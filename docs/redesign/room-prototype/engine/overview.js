@@ -280,7 +280,7 @@
     if (!list) return;
     var R = ROOM.render;
     list.classList.toggle('is-phone', isPhone());
-    if (isPhone() && R && R.view) {
+    if (isPhone() && R && R.view && topConf()) {
       var c = camera(R.view.Wd, R.view.Hd, R.view.dpr, 1);
       var t = topConf(), core = coreOf(t);
       var bottom = (core[3] * c.z - c.oy) / (R.view.dpr || 1);
@@ -345,6 +345,12 @@
   }
   // state changes (a log, a stage) refresh the rows' state words while the overview is up
   if (ROOM.on) {
+    ROOM.on('nav', function (e) {
+      if (e && e.phase === 'land' && retView()) {
+        plates();
+        placeList();
+      }
+    });
     ROOM.on('state', function () {
       if (retView() && list && !list.hidden) buildList();
     });

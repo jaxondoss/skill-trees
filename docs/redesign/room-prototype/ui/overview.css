@@ -6,7 +6,7 @@
   position: fixed;
   z-index: 26;
   left: 12px;
-  bottom: 52px;
+  bottom: 96px;
   top: auto;
   width: min(300px, calc(100vw - 24px));
   max-height: calc(100vh - 170px);
@@ -23,6 +23,7 @@
 }
 /* phone: always visible under the diorama, scrolls by itself (the page never scrolls sideways) */
 #overview-list.is-phone {
+  top: 452px; /* under the diorama (140 + 300 CSS px); overview.js refines it from the camera */
   left: 8px;
   right: 8px;
   width: auto;
@@ -84,7 +85,7 @@
 .ov-plate {
   position: fixed;
   z-index: 26;
-  bottom: 12px;
+  bottom: 44px; /* above the prototype's corner badges */
   padding: 4px 6px;
   background: #141517;
   border: 1px solid #50302e;

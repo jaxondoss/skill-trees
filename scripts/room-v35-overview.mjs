@@ -135,10 +135,11 @@ if (mode === 'stills') {
       const x0 = Math.round(L.diorama.x * dpr), y0 = Math.round(L.diorama.y * dpr);
       const x1 = x0 + Math.round(L.diorama.w * dpr), y1 = y0 + Math.round(L.diorama.h * dpr);
       let off = 0, blocks = 0, bad = 0, n = 0;
+      const offs = {};
       for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
         const i = (y * f.width + x) * 4;
         n++;
-        if (!pal.has(hex(i))) off++;
+        if (!pal.has(hex(i))) { off++; offs[hex(i) + '@' + Math.round((x - x0) / z / dpr * dpr) + ',' + Math.round((y - y0) / z)] = 1; }
       }
       for (let by = y0; by + z <= y1; by += z) for (let bx = x0; bx + z <= x1; bx += z) {
         blocks++;
@@ -150,7 +151,7 @@ if (mode === 'stills') {
         }
         if (!ok) bad++;
       }
-      return { pixels: n, offPalette: off, blocks, nonUniform: bad };
+      return { pixels: n, offPalette: off, blocks, nonUniform: bad, offSample: Object.keys(offs).slice(0, 12) };
     }, r);
     res.overlaps = r.chrome.filter((c) => overlap(c, r.diorama)).map((c) => c.s);
     res.z = r.z;
@@ -167,7 +168,8 @@ if (mode === 'stills') {
     const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
     const Lstar = (r, g, b) => { const y = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b); return y > 0.008856 ? 116 * Math.cbrt(y) - 16 : 903.3 * y; };
     const out = {}; let tot = 0, tn = 0;
-    for (let i = 0; i < f.data.length; i += 16) { tot += 0.299 * f.data[i] + 0.587 * f.data[i + 1] + 0.114 * f.data[i + 2]; tn++; }
+    // mean luma of the lit picture (pixels above the void's level: the overview's empty margins do not count)
+    for (let i = 0; i < f.data.length; i += 16) { const l = 0.299 * f.data[i] + 0.587 * f.data[i + 1] + 0.114 * f.data[i + 2]; if (l > 12) { tot += l; tn++; } }
     out._luma = tot / tn;
     R.drawables.forEach((d) => {
       const id = d.item.of || d.id;

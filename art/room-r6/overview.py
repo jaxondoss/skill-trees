@@ -1175,7 +1175,10 @@ def lighting_top(B, r_day, r_night):
             "ambient": {"day": "#2A3550", "golden": "#2A2E45", "night": "#1A2040"},
             "facing": None, "yaw": None,
             "window": {"rect": None},
-            "key": {"center": [kx, ky], "radius": [96, 44], "offscreen": None, "mullions": mull},
+            # one broad key over the whole floor (the sun through the window plus its bounce), walls at 0.6: the
+            # diorama sits in the same light as the walls (AC7 band measured by scripts/room-v35-overview.mjs light)
+            "key": {"center": [kx - 17, ky + 25], "radius": [230, 170], "offscreen": None, "wall": 0.6, "bounce": 0.5,
+                    "mullions": mull},
             "lights": lights(r_day["glows"], ""), "lightsNight": lights(r_night["glows"], "n"),
             "materials": {"LEAF_1": {"translucency": 0.5}}, "noRim": ["top.*"]}
 
