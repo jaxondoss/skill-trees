@@ -101,6 +101,11 @@ function courses(ctx: UserContext) {
 }
 
 export async function loadRoomData() {
+  return (await loadRoomDataWithContext()).room;
+}
+
+/** The room data plus the user context it was built from (the admin view reuses both in one load). */
+export async function loadRoomDataWithContext() {
   const { data, ctx } = await loadDashboardContext();
   const supabase = await createClient();
   const relicRes = await supabase
@@ -120,6 +125,19 @@ export async function loadRoomData() {
   for (const h of ctx.history) if (h.result && (lastDone.get(h.skillId) ?? "") < h.day) lastDone.set(h.skillId, h.day);
   const daysAgo = (day: string | undefined) =>
     day === undefined ? null : Math.round((Date.parse(`${ctx.today}T00:00:00Z`) - Date.parse(`${day}T00:00:00Z`)) / 86_400_000);
+  // Per-skill run: consecutive planned days logged, back from yesterday (today counts once logged).
+  const streakOf = (skillId: string) => {
+    const byDay = new Map<string, boolean>();
+    for (const h of ctx.history) if (h.skillId === skillId) byDay.set(h.day, (byDay.get(h.day) ?? false) || h.result !== null);
+    let n = 0;
+    for (const day of [...byDay.keys()].sort().reverse()) {
+      const done = byDay.get(day)!;
+      if (day === ctx.today && !done) continue;
+      if (!done) break;
+      n++;
+    }
+    return n;
+  };
   const { data: claims } = await supabase.auth.getClaims();
   const admin = isAdmin({ email: typeof claims?.claims?.email === "string" ? claims.claims.email : null });
 
@@ -141,6 +159,7 @@ export async function loadRoomData() {
       neglected: s.neglected,
       pinned: s.pinned,
       lastLoggedDaysAgo: daysAgo(lastDone.get(s.id)),
+      streak: streakOf(s.id),
       logKey: log?.key ?? null,
       logUnit: log?.unit ?? null,
       series: log ? series(log.key) : [],
@@ -198,7 +217,7 @@ export async function loadRoomData() {
   const statue = await loadStatueLevel(supabase, data.overall.score);
   const calendarWall = await loadCalendarWall(supabase, { today: ctx.today, todayP: data.todayP, timeZone: ctx.profile.timezone });
 
-  return {
+  const room = {
     live: true,
     /** Shows the ADMIN toggle in the room's top strip (ADMIN_EMAILS). */
     admin,
@@ -233,6 +252,7 @@ export async function loadRoomData() {
     relics: { slots, trophies },
     soundOn: data.soundOn,
   };
+  return { room, ctx, dashboard: data };
 }
 
 export type RoomData = Awaited<ReturnType<typeof loadRoomData>>;
