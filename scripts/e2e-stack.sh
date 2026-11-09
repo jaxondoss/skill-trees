@@ -60,6 +60,8 @@ export NEXT_PUBLIC_SUPABASE_URL="$(cfg SUPABASE_URL)"
 export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$(cfg ANON_KEY)"
 export FORGE_OWNER_EMAIL="$(cfg USER_EMAIL)"
 export FORGE_OWNER_PASSWORD="$(cfg OWNER_PASSWORD)"
+# The e2e user is the admin (tests/e2e/admin.spec.ts signs a second email in to check the 404).
+export ADMIN_EMAILS="$(cfg USER_EMAIL)"
 cd "$ROOT"
 # The server runs in the background and the shell waits on it, so INT/TERM reach the trap at once.
 if [[ "${E2E_MODE:-dev}" == "start" ]]; then

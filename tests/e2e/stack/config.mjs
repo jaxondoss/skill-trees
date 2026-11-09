@@ -40,20 +40,20 @@ export function verifyJwt(token) {
 export const ANON_KEY = signJwt({ role: "anon", iss: "forge-e2e", exp: 4102444800 });
 
 /** A session for the e2e user, as Supabase Auth returns it. */
-export function session() {
+export function session(email = USER_EMAIL) {
   const exp = Math.floor(Date.now() / 1000) + 3600;
-  const access_token = signJwt({ sub: USER_ID, email: USER_EMAIL, role: "authenticated", aud: "authenticated", exp });
+  const access_token = signJwt({ sub: USER_ID, email, role: "authenticated", aud: "authenticated", exp });
   return {
     access_token,
     token_type: "bearer",
     expires_in: 3600,
     expires_at: exp,
     refresh_token: "e2e-refresh",
-    user: { id: USER_ID, email: USER_EMAIL, aud: "authenticated", role: "authenticated", app_metadata: {}, user_metadata: {} },
+    user: { id: USER_ID, email, aud: "authenticated", role: "authenticated", app_metadata: {}, user_metadata: {} },
   };
 }
 
 /** A signed-in session cookie value in the format @supabase/ssr reads. */
-export function sessionCookieValue() {
-  return `base64-${b64url(session())}`;
+export function sessionCookieValue(email = USER_EMAIL) {
+  return `base64-${b64url(session(email))}`;
 }

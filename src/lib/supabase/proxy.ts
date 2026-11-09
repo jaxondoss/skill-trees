@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+import { isAdmin } from "@/lib/admin";
 import { seedUserFromTemplate } from "@/seed/seedUser";
 import { supabasePublicEnv } from "./env";
 
@@ -67,6 +68,18 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (matches(path, RETIRED_PATHS)) return redirectKeepingCookies(request, response, "/");
+  // The admin view exists only for ADMIN_EMAILS: everyone else gets the app's 404 (with a real 404 status; the
+  // page checks again under its Suspense boundary, where a 404 can no longer change the status).
+  if (matches(path, ["/admin"])) {
+    const email = signedIn ? data?.claims?.email : process.env.FORGE_OWNER_EMAIL;
+    if (!isAdmin({ email: typeof email === "string" ? email : null })) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/_not-found-admin";
+      const res = NextResponse.rewrite(url, { status: 404 });
+      response.cookies.getAll().forEach((c) => res.cookies.set(c));
+      return res;
+    }
+  }
   return response;
 }
 

@@ -1,0 +1,708 @@
+/* Admin view: blueprint. Navy ground, cyan 1 px lines, one monospace face, amber only for warnings. */
+.adm {
+  --adm-bg: #0a1628;
+  --adm-bg-2: #0c1b31;
+  --adm-panel: #0b1930;
+  --adm-line: #7fdcff;
+  --adm-line-mid: #3f7fa3;
+  --adm-line-dim: #183554;
+  --adm-grid: #12294a;
+  --adm-text: #d6f2ff;
+  --adm-muted: #8bb7d0;
+  --adm-amber: #ffb547;
+  --adm-on: #b8f1ff;
+  --adm-gap: 12px;
+  --adm-tile-h: 124px;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background-color: var(--adm-bg);
+  background-image:
+    linear-gradient(var(--adm-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--adm-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+  color: var(--adm-text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
+.adm *:focus-visible {
+  outline: 1px solid var(--adm-line);
+  outline-offset: 2px;
+}
+.adm a {
+  color: inherit;
+}
+
+/* ---------------------------------------------------------------- top bar */
+.adm-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 48px;
+  padding: 0 16px;
+  padding-top: env(safe-area-inset-top);
+  background: var(--adm-bg);
+  border-bottom: 1px solid var(--adm-line-dim);
+}
+.adm-bar h1 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  color: var(--adm-line);
+}
+.adm-bar .adm-meta {
+  color: var(--adm-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.adm-bar .adm-spacer {
+  flex: 1;
+}
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--adm-line-mid);
+  background: transparent;
+  color: var(--adm-line);
+  font: inherit;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  cursor: pointer;
+}
+.adm-btn:hover {
+  border-color: var(--adm-line);
+  background: var(--adm-bg-2);
+}
+.adm-btn[aria-pressed="true"],
+.adm-btn.is-on {
+  background: var(--adm-line);
+  color: var(--adm-bg);
+  border-color: var(--adm-line);
+}
+.adm-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.adm-btn[aria-pressed="true"]:disabled {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------- stage: tiles around the plan */
+.adm-stage {
+  position: relative;
+  display: grid;
+  /* the plan column is as wide as the plan is tall (a square room) */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) min(var(--adm-plan-h, 476px), 46vw) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  gap: var(--adm-gap);
+  padding: 16px;
+}
+.adm-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(var(--adm-row-n, 6), minmax(0, 1fr));
+  gap: var(--adm-gap);
+}
+.adm-row.top {
+  grid-row: 1;
+}
+.adm-row.bottom {
+  grid-row: 3;
+}
+.adm-side {
+  grid-row: 2;
+  display: grid;
+  grid-auto-rows: var(--adm-tile-h);
+  gap: var(--adm-gap);
+  align-content: start;
+}
+.adm-side.left.outer {
+  grid-column: 1;
+}
+.adm-side.left.inner {
+  grid-column: 2;
+}
+.adm-side.right.inner {
+  grid-column: 4;
+}
+.adm-side.right.outer {
+  grid-column: 5;
+}
+.adm-plan {
+  grid-column: 3;
+  grid-row: 2;
+  position: relative;
+  min-height: 0;
+  height: var(--adm-plan-h, 400px);
+}
+.adm-plan svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.adm-leaders {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+/* leader lines stay quiet until their tile or object is hot */
+.adm-leaders line {
+  stroke: var(--adm-line-dim);
+  stroke-width: 1;
+}
+.adm-leaders circle {
+  fill: var(--adm-bg);
+  stroke: var(--adm-line-dim);
+}
+.adm-leaders .is-hot line,
+.adm-leaders .is-hot circle {
+  stroke: var(--adm-line);
+  stroke-dasharray: none;
+}
+.adm-leaders .is-warn line {
+  stroke: #4a3a22;
+}
+.adm-leaders .is-warn.is-hot line {
+  stroke: var(--adm-amber);
+}
+
+/* ---------------------------------------------------------------- floor plan */
+.fp-grid {
+  stroke: var(--adm-grid);
+}
+.fp-grid-major {
+  stroke: var(--adm-line-dim);
+}
+.fp-wall {
+  stroke: var(--adm-line);
+  stroke-width: 1.5;
+  fill: none;
+}
+.fp-thin {
+  stroke: var(--adm-line-mid);
+  fill: none;
+}
+.fp-dash {
+  stroke: var(--adm-line-mid);
+  stroke-dasharray: 3 3;
+  fill: none;
+}
+.fp-text {
+  fill: var(--adm-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62px;
+  letter-spacing: 0.08em;
+}
+.fp-text.big {
+  fill: var(--adm-line);
+  font-size: 0.7px;
+}
+.fp-obj {
+  cursor: pointer;
+}
+.fp-obj .fp-box {
+  fill: rgba(127, 220, 255, 0.06);
+  stroke: var(--adm-line);
+  stroke-width: 1;
+}
+.fp-obj.is-fitted .fp-box {
+  stroke-dasharray: 3 2;
+}
+.fp-obj .fp-bracket {
+  fill: none;
+  stroke: var(--adm-line);
+  stroke-width: 2;
+}
+.fp-obj .fp-tag {
+  fill: var(--adm-bg);
+  stroke: var(--adm-line);
+  stroke-width: 1;
+}
+.fp-obj .fp-num {
+  fill: var(--adm-line);
+  font-family: var(--font-mono);
+  font-size: 0.62px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.fp-obj.is-warn .fp-box,
+.fp-obj.is-warn .fp-bracket,
+.fp-obj.is-warn .fp-tag {
+  stroke: var(--adm-amber);
+}
+.fp-obj.is-warn .fp-num {
+  fill: var(--adm-amber);
+}
+.fp-obj.is-off .fp-box,
+.fp-obj.is-off .fp-bracket,
+.fp-obj.is-off .fp-tag {
+  stroke: var(--adm-line-mid);
+}
+.fp-obj.is-off .fp-num {
+  fill: var(--adm-muted);
+}
+.fp-obj.is-hot .fp-box {
+  fill: rgba(127, 220, 255, 0.22);
+  stroke-width: 2;
+}
+.fp-obj.is-hot .fp-tag {
+  fill: var(--adm-line);
+}
+.fp-obj.is-hot .fp-num {
+  fill: var(--adm-bg);
+}
+.fp-obj:focus-visible {
+  outline: none;
+}
+.fp-obj:focus-visible .fp-tag {
+  stroke-width: 3;
+}
+.fp-hit {
+  fill: transparent;
+  stroke: none;
+}
+
+/* ---------------------------------------------------------------- tiles */
+.adm-tile {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  row-gap: 2px;
+  min-width: 0;
+  height: var(--adm-tile-h);
+  padding: 7px 0 0 10px;
+  background: var(--adm-bg);
+  border: 1px solid var(--adm-line-dim);
+}
+.adm-tile.is-hot {
+  border-color: var(--adm-line);
+}
+.adm-tile.is-warn {
+  border-color: #6e5530;
+}
+.adm-tile.is-warn.is-hot {
+  border-color: var(--adm-amber);
+}
+.adm-tile.is-off {
+  opacity: 0.72;
+}
+.adm-tile .t-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  padding-right: 10px;
+}
+.adm-tile .t-num {
+  flex: none;
+  color: var(--adm-line);
+  font-weight: 600;
+}
+.adm-tile .t-link {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--adm-text);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* the whole tile is the expand target; the log buttons sit above this layer */
+.adm-tile .t-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.adm-tile .t-link:focus-visible {
+  outline: none;
+}
+.adm-tile:has(.t-link:focus-visible) {
+  outline: 1px solid var(--adm-line);
+  outline-offset: 2px;
+}
+.adm-tile .t-mid {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-right: 10px;
+  min-width: 0;
+}
+.adm-tile .t-score {
+  flex: none;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--adm-line);
+}
+.adm-tile .t-score small {
+  font-size: 10px;
+  color: var(--adm-muted);
+  font-weight: 500;
+}
+.adm-tile .t-stage {
+  display: grid;
+  min-width: 0;
+  text-align: right;
+  font-size: 10px;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--adm-muted);
+}
+.adm-tile .t-stage > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.adm-tile .t-spark {
+  flex: 1;
+  min-width: 24px;
+  height: 20px;
+  margin-right: 10px;
+}
+.adm-tile .t-nohist {
+  display: flex;
+  align-items: center;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--adm-line-mid);
+}
+.adm-tile .t-spark path {
+  fill: none;
+  stroke: var(--adm-line);
+  stroke-width: 1;
+}
+.adm-tile .t-spark .base {
+  stroke: var(--adm-line-dim);
+}
+.adm-tile .t-foot {
+  grid-column: 1 / -1;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-left: -10px;
+  padding-left: 10px;
+  border-top: 1px solid var(--adm-line-dim);
+  color: var(--adm-muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.adm-tile .t-foot > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.adm-tile .t-warn {
+  color: var(--adm-amber);
+}
+.adm-tile .t-log {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+.adm-tile .t-log button {
+  min-width: 36px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--adm-line-dim);
+  background: transparent;
+  color: var(--adm-line);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.adm-tile .t-log button:hover {
+  background: var(--adm-bg-2);
+}
+.adm-tile .t-log button[aria-pressed="true"] {
+  background: var(--adm-line);
+  color: var(--adm-bg);
+}
+.adm-tile .t-log button:disabled {
+  color: var(--adm-line-mid);
+  cursor: default;
+}
+
+/* ---------------------------------------------------------------- expanded panel */
+.adm-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(5, 12, 24, 0.72);
+}
+.adm-panel {
+  position: fixed;
+  z-index: 51;
+  inset: 56px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  background: var(--adm-panel);
+  border: 1px solid var(--adm-line);
+  transform-origin: 0 0;
+}
+.adm-panel.is-animating {
+  transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.adm-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 4px 0 16px;
+  border-bottom: 1px solid var(--adm-line-dim);
+}
+.adm-panel-head h2 {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--adm-line);
+}
+.adm-panel-head h2:focus {
+  outline: none;
+}
+.adm-panel-head .t-num {
+  color: var(--adm-muted);
+  margin-right: 8px;
+}
+.adm-panel-body {
+  flex: 1;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 16px;
+}
+/* skill panels: the dashboard is the main column, the ADMIN controls a narrow column beside it */
+.adm-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+.adm-split > .adm-aside {
+  position: sticky;
+  top: 0;
+}
+@media (max-width: 1099px) {
+  .adm-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .adm-split > .adm-aside {
+    position: static;
+    order: 2;
+  }
+}
+/* the shared dashboards keep the app's own styles inside the panel */
+.adm-panel-body .adm-dash {
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  font-size: 14px;
+  letter-spacing: normal;
+  color: var(--text, #e8e6e3);
+}
+.adm-loading {
+  color: var(--adm-muted);
+  padding: 24px 0;
+}
+
+/* ---------------------------------------------------------------- admin sections inside the panel */
+.adm-sec {
+  margin-bottom: 16px;
+  border: 1px solid var(--adm-line-dim);
+  background: var(--adm-bg);
+}
+.adm-sec > h3 {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--adm-line);
+  border-bottom: 1px solid var(--adm-line-dim);
+}
+.adm-sec-body {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+.adm-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.adm-fields > span.lbl-a,
+.adm-fields > label > span.lbl-a {
+  color: var(--adm-muted);
+  min-width: 80px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+}
+.adm-input,
+.adm select,
+.adm textarea {
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--adm-line-mid);
+  background: var(--adm-bg-2);
+  color: var(--adm-text);
+  font: inherit;
+}
+.adm-input[type="number"] {
+  width: 84px;
+}
+.adm-input.wide {
+  flex: 1;
+  min-width: 180px;
+}
+.adm-input[type="range"] {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  accent-color: var(--adm-line);
+  width: 200px;
+}
+.adm-goal {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px dashed var(--adm-line-dim);
+}
+.adm-goal-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  gap: 4px 8px;
+  align-items: center;
+}
+.adm-goal-row > span:first-child {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+}
+.adm-goal-row .adm-input[type="number"] {
+  width: 72px;
+}
+.adm-goal-row > span {
+  color: var(--adm-muted);
+}
+.adm-status {
+  min-height: 18px;
+  color: var(--adm-muted);
+}
+.adm-status.err {
+  color: var(--adm-amber);
+}
+.adm-list {
+  display: grid;
+  gap: 4px;
+}
+.adm-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 0 0 12px;
+  border: 1px solid var(--adm-line-dim);
+}
+.adm-list li > span:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.adm-muted {
+  color: var(--adm-muted);
+}
+.adm-frame {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--adm-line-mid);
+  background: #000;
+}
+.adm-url {
+  overflow-wrap: anywhere;
+  color: var(--adm-on);
+}
+.adm-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- phone and narrow: plan above a tile list */
+@media (max-width: 899px) {
+  .adm-stage {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+  }
+  .adm-plan {
+    height: auto;
+    aspect-ratio: 1;
+    width: 100%;
+    max-width: 560px;
+    align-self: center;
+  }
+  .adm-leaders {
+    display: none;
+  }
+  .adm-list-phone {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: 8px;
+  }
+  .adm-panel {
+    inset: 0;
+    border: 0;
+  }
+  .adm-bar .adm-meta {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-panel.is-animating {
+    transition: none;
+  }
+}
+.adm-plan svg line,
+.adm-plan svg rect,
+.adm-plan svg path,
+.adm-plan svg polyline,
+.adm-plan svg circle {
+  vector-effect: non-scaling-stroke;
+}
+
+/* nothing shows until the layout is measured (no jump from the laptop grid to the phone list) */
+.adm:not([data-ready]) .adm-stage {
+  visibility: hidden;
+}

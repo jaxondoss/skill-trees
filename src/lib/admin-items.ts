@@ -34,7 +34,7 @@ export type Plan = {
 export const FEATURE_TILES = [
   { id: "overall", title: "Overall" },
   { id: "categories", title: "Categories" },
-  { id: "board", title: "Board and Today" },
+  { id: "board", title: "Board + Today" },
   { id: "calendar", title: "Calendar" },
   { id: "review", title: "Weekly review" },
   { id: "review/month", title: "Monthly review" },
@@ -136,4 +136,55 @@ export function layoutSides(
   }
   out.bottom.push(...rest);
   return out;
+}
+
+/** Plan callout size (ft) and the minimum centre distance between two callouts. */
+export const TAG = 0.95;
+const TAG_MIN = TAG + 0.2;
+
+/**
+ * Callout positions in plan coordinates (x = X, y = -Z): wall items are pulled 1.25 ft into the room, floor items sit
+ * on their centre; then overlapping callouts are pushed apart (wall callouts slide along their wall). Deterministic.
+ */
+export function placeTags(objects: PlanObject[]): Map<string, { x: number; y: number; ax: number; ay: number }> {
+  const pull = 1.25;
+  const tags = objects.map((o) => {
+    let x = (o.x0 + o.x1) / 2;
+    let z = (o.z0 + o.z1) / 2;
+    if (o.wall === "front") z = o.z1 - pull;
+    if (o.wall === "back") z = o.z0 + pull;
+    if (o.wall === "right") x = o.x1 - pull;
+    if (o.wall === "left") x = o.x0 + pull;
+    // slide axis: along the wall for wall items, free for floor items
+    const along = o.wall === "front" || o.wall === "back" ? "x" : o.wall ? "y" : "xy";
+    return { id: o.id, x, y: -z, ax: (o.x0 + o.x1) / 2, ay: -(o.z0 + o.z1) / 2, along };
+  });
+  for (let it = 0; it < 80; it++) {
+    let moved = false;
+    for (let i = 0; i < tags.length; i++) {
+      for (let j = i + 1; j < tags.length; j++) {
+        const a = tags[i]!;
+        const b = tags[j]!;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        if (Math.abs(dx) >= TAG_MIN || Math.abs(dy) >= TAG_MIN) continue;
+        moved = true;
+        // push along the axis with the smaller overlap that both may use; ties break by id order (stable)
+        const canX = a.along !== "y" || b.along !== "y";
+        const canY = a.along !== "x" || b.along !== "x";
+        const useX = canX && (!canY || TAG_MIN - Math.abs(dx) <= TAG_MIN - Math.abs(dy));
+        const d = useX ? dx : dy;
+        const need = (TAG_MIN - Math.abs(d)) / 2 + 0.01;
+        const sgn = d === 0 ? (a.id < b.id ? 1 : -1) : Math.sign(d);
+        const k = useX ? "x" : "y";
+        const aMay = a.along === "xy" || a.along === k;
+        const bMay = b.along === "xy" || b.along === k;
+        const share = aMay && bMay ? 1 : 2;
+        if (aMay) a[k] -= sgn * need * share;
+        if (bMay) b[k] += sgn * need * share;
+      }
+    }
+    if (!moved) break;
+  }
+  return new Map(tags.map((t) => [t.id, { x: t.x, y: t.y, ax: t.ax, ay: t.ay }]));
 }

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { adminEmails, isAdmin } from "@/lib/admin";
-import { FEATURE_OF, FEATURE_TILES, isTileId, itemFromSegments, layoutSides, perimeterT, sideOfT, tileOfObject, type Plan } from "@/lib/admin-items";
+import { FEATURE_OF, FEATURE_TILES, isTileId, itemFromSegments, layoutSides, perimeterT, placeTags, sideOfT, TAG, tileOfObject, type Plan } from "@/lib/admin-items";
 
 const root = join(__dirname, "..", "..");
 const plan = JSON.parse(readFileSync(join(root, "public/room/plan.json"), "utf8")) as Plan & { missing: string[] };
@@ -40,6 +40,20 @@ describe("plan.json", () => {
       expect(o.x1 - o.x0, o.id).toBeGreaterThan(0);
       expect(o.z1 - o.z0, o.id).toBeGreaterThan(0);
       if (o.wall) expect(["front", "right", "back", "left"]).toContain(o.wall);
+    }
+  });
+  it("places the plan callouts without overlaps, inside the room", () => {
+    const tags = [...placeTags(plan.objects).entries()];
+    expect(tags).toHaveLength(plan.objects.length);
+    for (let i = 0; i < tags.length; i++) {
+      const [ida, a] = tags[i]!;
+      expect(Math.abs(a.x), ida).toBeLessThan(14);
+      expect(Math.abs(a.y), ida).toBeLessThan(14);
+      for (let j = i + 1; j < tags.length; j++) {
+        const [idb, b] = tags[j]!;
+        const apart = Math.abs(a.x - b.x) >= TAG || Math.abs(a.y - b.y) >= TAG;
+        expect(apart, `${ida} / ${idb}`).toBe(true);
+      }
     }
   });
   it("maps every hotspot to a tile", () => {

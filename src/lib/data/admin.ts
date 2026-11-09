@@ -1,4 +1,6 @@
 import "server-only";
+import { connection } from "next/server";
+import { cache } from "react";
 import { addDays } from "@/engine/time";
 import type { Tier } from "@/engine/types";
 import { isAdmin } from "@/lib/admin";
@@ -59,12 +61,14 @@ export type AdminSkill = {
 
 export type AdminData = Awaited<ReturnType<typeof buildAdminData>>;
 
-/** Everything /admin shows. Null for a non-admin (the page 404s). */
-export async function loadAdminData() {
+/** Everything /admin shows. Null for a non-admin (the page 404s). Once per request: the layout and page share it. */
+export const loadAdminData = cache(async () => {
+  // Request-time only: the session and the clock are read below.
+  await connection();
   const supabase = await createClient();
   if (!(await currentUserIsAdmin(supabase))) return null;
   return buildAdminData(supabase);
-}
+});
 
 async function buildAdminData(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { room, ctx, dashboard } = await loadRoomDataWithContext();
@@ -84,9 +88,9 @@ async function buildAdminData(supabase: Awaited<ReturnType<typeof createClient>>
     if (t) objectsOf.set(t, [...(objectsOf.get(t) ?? []), o.id]);
   }
 
-  const todayGoals = ctx.goalRows.filter((g) => g.daily_plans.day === ctx.today);
+  // today's goals as the room has them (ctx.goalRows predates the plan saved on the first open of the day)
   const skillTiles: AdminTile[] = room.skills.map((s) => {
-    const g = todayGoals.find((r) => r.skill_id === s.id);
+    const g = room.goals.find((r) => r.skill === s.slug && r.kind !== "stretch") ?? room.goals.find((r) => r.skill === s.slug);
     const dormant = s.status === "dormant";
     return {
       id: skillTileId(s.slug),
@@ -101,7 +105,7 @@ async function buildAdminData(supabase: Awaited<ReturnType<typeof createClient>>
       status: s.status,
       category: s.category,
       objects: objectsOf.get(skillTileId(s.slug)) ?? [],
-      goal: g ? { id: g.id, tier: g.tier, result: g.result_tier, title: g.title } : null,
+      goal: g ? { id: g.id, tier: g.tier, result: g.result, title: g.title } : null,
       note: s.pinned ? "On the rack" : null,
     };
   });
@@ -169,5 +173,6 @@ async function buildAdminData(supabase: Awaited<ReturnType<typeof createClient>>
     skills,
     categories: ctx.categories.map((c) => ({ id: c.id, slug: c.slug, name: c.name })),
     overall: { display: o.display, numeral: o.numeral, name: o.name, tier: o.tier },
+    relics: room.relics,
   };
 }
