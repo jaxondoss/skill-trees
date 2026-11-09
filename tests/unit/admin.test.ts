@@ -88,3 +88,13 @@ describe("admin items", () => {
     expect(all.sort()).toEqual([...placed.map((p) => p.id), "u1", "u2"].sort());
   });
 });
+
+describe("room debug URL", () => {
+  it("sets only the flags that differ from live", async () => {
+    const { roomUrl, EMPTY_FLAGS } = await import("@/components/admin/RoomDebug");
+    expect(roomUrl(EMPTY_FLAGS)).toBe("/");
+    expect(roomUrl({ ...EMPTY_FLAGS, el: 4.5, weather: "rain", p: 60, tier: 3, night: "1", gl: false, motion: false })).toBe(
+      "/?el=4.5&weather=rain&p=60&tier=3&night=1&gl=off&motion=0",
+    );
+  });
+});

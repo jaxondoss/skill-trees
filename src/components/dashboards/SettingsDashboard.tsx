@@ -62,6 +62,7 @@ const KEYS: { name: string; what: string; optional?: boolean }[] = [
   { name: "GOOGLE_CLIENT_ID", what: "Google Calendar on the calendar wall", optional: true },
   { name: "GOOGLE_CLIENT_SECRET", what: "Google Calendar on the calendar wall", optional: true },
   { name: "ANTHROPIC_API_KEY", what: "Backup AI if Gemini is down", optional: true },
+  { name: "ADMIN_EMAILS", what: "Who can open the admin view", optional: true },
 ];
 
 async function Connections() {
