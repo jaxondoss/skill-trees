@@ -302,8 +302,14 @@
 .adm-tile.is-warn.is-hot {
   border-color: var(--adm-amber);
 }
+/* paused or archived: dimmer lines, text stays readable (no opacity) */
 .adm-tile.is-off {
-  opacity: 0.72;
+  border-style: dashed;
+}
+.adm-tile.is-off .t-score,
+.adm-tile.is-off .t-num,
+.adm-tile.is-off .t-link {
+  color: var(--adm-muted);
 }
 .adm-tile .t-head {
   display: flex;
@@ -389,7 +395,7 @@
   align-items: center;
   font-size: 9px;
   letter-spacing: 0.16em;
-  color: var(--adm-line-mid);
+  color: var(--adm-muted);
 }
 .adm-tile .t-spark path {
   fill: none;
@@ -704,5 +710,9 @@
 
 /* nothing shows until the layout is measured (no jump from the laptop grid to the phone list) */
 .adm:not([data-ready]) .adm-stage {
+  visibility: hidden;
+}
+/* with log buttons there is no room for the "no history" note */
+.adm-tile .t-foot:has(.t-log) .t-nohist {
   visibility: hidden;
 }
