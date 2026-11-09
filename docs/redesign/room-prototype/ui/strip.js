@@ -365,7 +365,7 @@
   };
 
   /* ================================================================== corner strip */
-  var strip, bStats, bToday, bMute, bHelp, bInspect, bMenu;
+  var strip, bStats, bToday, bMute, bHelp, bInspect, bMenu, bAdmin;
   var elTier, elScore, elToday, elMini, elStreak;
 
   function build() {
@@ -410,13 +410,16 @@
     bMenu = K.h('button', { type: 'button', class: 'strip-icon strip-menu', 'aria-label': 'Menu', 'aria-expanded': 'false', on: { click: function () {
       setMenu(!strip.classList.contains('menu-open'));
     } } }, K.bitmap(['#######', '.......', '#######', '.......', '#######'], { '#': 'currentColor' }));
-    [bToday, bMute, bHelp, bInspect].forEach(function (b) {
+    // Admin view toggle (ROOM_DATA.admin, set by the app for ADMIN_EMAILS only). A link: /admin is its own page.
+    bAdmin = K.h('a', { class: 'strip-admin', href: '/admin', text: 'ADMIN', 'aria-label': 'Admin view: floor plan and every dashboard' });
+    bAdmin.hidden = true;
+    [bToday, bMute, bHelp, bInspect, bAdmin].forEach(function (b) {
       b.classList.add('strip-more');
       b.addEventListener('click', function () {
         if (K.isPhone()) setMenu(false);
       });
     });
-    strip = K.h('div', { class: 'ui-strip', role: 'group', 'aria-label': 'Status' }, bStats, bMenu, bToday, bMute, bHelp, bInspect);
+    strip = K.h('div', { class: 'ui-strip', role: 'group', 'aria-label': 'Status' }, bStats, bMenu, bToday, bMute, bHelp, bInspect, bAdmin);
     root.appendChild(strip);
     window.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && strip.classList.contains('menu-open')) {
@@ -459,6 +462,7 @@
     bMute.appendChild(K.icon(muted ? 'muted' : 'speaker'));
     bMute.title = muted ? 'Sound is off' : 'Sound is on';
     bInspect.hidden = !K.isTouch();
+    bAdmin.hidden = d.admin !== true;
     bInspect.setAttribute('aria-pressed', ROOM.state.inspect ? 'true' : 'false');
     K.syncRoot();
   }

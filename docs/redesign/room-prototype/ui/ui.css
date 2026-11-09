@@ -377,6 +377,25 @@
 .ui-strip > .strip-today[aria-expanded='true'] {
   background: var(--terra-1);
 }
+.ui-strip > .strip-admin {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 8px;
+  font-family: var(--f-pixel);
+  font-size: 11px;
+  line-height: 1;
+  color: #7fdcff; /* blueprint cyan: the admin view's own colour */
+  text-decoration: none;
+  box-shadow: inset 0 0 0 1px rgba(127, 220, 255, 0.45);
+}
+.ui-strip > .strip-admin[hidden] {
+  display: none;
+}
+.ui-strip > .strip-admin:hover,
+.ui-strip > .strip-admin:focus-visible {
+  background: rgba(10, 22, 40, 0.9);
+}
 .ui-strip > .strip-icon {
   width: 34px;
   padding: 0;
@@ -1679,6 +1698,9 @@ body.ui-debug-hits #room-hotspots .hs:not([hidden]) {
   }
   .ui-strip > .strip-icon {
     width: 44px;
+  }
+  .ui-strip > .strip-admin {
+    min-height: 44px;
   }
   /* Collapsed strip: score, today %, streak and the menu. The rest opens under it. */
   .ui-strip > .strip-menu {

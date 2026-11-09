@@ -1,8 +1,7 @@
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
-import { WeeklyReview } from "@/components/review/WeeklyReview";
-import { loadWeeklyReview } from "@/lib/data/reviews";
+import { WeeklyReviewDashboard } from "@/components/dashboards/ReviewDashboards";
 
 export default function ReviewPage() {
   return (
@@ -13,12 +12,8 @@ export default function ReviewPage() {
       </Link>
       <h1 className="font-display text-3xl">Weekly review</h1>
       <Suspense fallback={<div className="glass h-60" aria-busy="true" />}>
-        <Loaded />
+        <WeeklyReviewDashboard />
       </Suspense>
     </main>
   );
-}
-
-async function Loaded() {
-  return <WeeklyReview data={await loadWeeklyReview()} />;
 }

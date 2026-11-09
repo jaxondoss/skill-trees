@@ -1,8 +1,7 @@
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
-import { MonthlyReview } from "@/components/review/MonthlyReview";
-import { loadMonthlyReview } from "@/lib/data/reviews";
+import { MonthlyReviewDashboard } from "@/components/dashboards/ReviewDashboards";
 
 export default function MonthlyReviewPage() {
   return (
@@ -13,12 +12,8 @@ export default function MonthlyReviewPage() {
       </Link>
       <h1 className="font-display text-3xl">Monthly review</h1>
       <Suspense fallback={<div className="glass h-60" aria-busy="true" />}>
-        <Loaded />
+        <MonthlyReviewDashboard />
       </Suspense>
     </main>
   );
-}
-
-async function Loaded() {
-  return <MonthlyReview data={await loadMonthlyReview()} />;
 }

@@ -4,6 +4,7 @@ import { tipTier } from "@/engine/scoring";
 import { addDays } from "@/engine/time";
 import { createClient } from "@/lib/supabase/server";
 import type { UserContext } from "./context";
+import { isAdmin } from "@/lib/admin";
 import { loadDashboardContext } from "./dashboard";
 import { loadCalendarWall } from "./calendarWall";
 import { loadStatueLevel } from "./statue";
@@ -114,6 +115,13 @@ export async function loadRoomData() {
   const skillSlug = new Map(ctx.skills.map((s) => [s.id, s.slug]));
   const claimed = new Set(ctx.milestones.filter((m) => m.claimed_at).map((m) => m.id));
   const series = (key: string) => ctx.metrics.filter((m) => m.key === key).slice(-14).map((m) => m.value);
+  // Days since the skill's last logged goal (null: never, within the 28+ day history window).
+  const lastDone = new Map<string, string>();
+  for (const h of ctx.history) if (h.result && (lastDone.get(h.skillId) ?? "") < h.day) lastDone.set(h.skillId, h.day);
+  const daysAgo = (day: string | undefined) =>
+    day === undefined ? null : Math.round((Date.parse(`${ctx.today}T00:00:00Z`) - Date.parse(`${day}T00:00:00Z`)) / 86_400_000);
+  const { data: claims } = await supabase.auth.getClaims();
+  const admin = isAdmin({ email: typeof claims?.claims?.email === "string" ? claims.claims.email : null });
 
   const skills = data.skills.map((s) => {
     const row = ctx.skills.find((r) => r.id === s.id);
@@ -132,6 +140,7 @@ export async function loadRoomData() {
       levelName: tipTier(s.score),
       neglected: s.neglected,
       pinned: s.pinned,
+      lastLoggedDaysAgo: daysAgo(lastDone.get(s.id)),
       logKey: log?.key ?? null,
       logUnit: log?.unit ?? null,
       series: log ? series(log.key) : [],
@@ -191,6 +200,8 @@ export async function loadRoomData() {
 
   return {
     live: true,
+    /** Shows the ADMIN toggle in the room's top strip (ADMIN_EMAILS). */
+    admin,
     label: "",
     today: ctx.today,
     weekdayLabel: `${WD[wd.getUTCDay()]} ${wd.getUTCDate()} ${MON[wd.getUTCMonth()]}`,
