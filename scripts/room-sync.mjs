@@ -1,5 +1,7 @@
 // Copies the room prototype (engine, ui, styles, art bundle) into public/room for the app's /room route.
-// The prototype in docs/redesign/room-prototype stays the source of truth. Run: node scripts/room-sync.mjs
+// The prototype in docs/redesign/room-prototype stays the source of truth. lyfta.js (the owner's workouts) is
+// never copied: the app gets that summary from the server (src/lib/data/room.ts).
+// Run: node scripts/room-sync.mjs
 import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 

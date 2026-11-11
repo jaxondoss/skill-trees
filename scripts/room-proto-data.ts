@@ -90,6 +90,8 @@ for (const c of SEED_TEMPLATE.categories) {
       pinned: RACK.includes(s.slug),
       goals: s.nonNegotiables.map((n) => ({ name: n.name, floor: n.floor, standard: n.standard, stretch: n.stretch, minutes: n.minutes, intention: n.intention })),
       steps,
+      // the hologram's graph and heatmap: tier rank per day (0 none, 1 floor, 2 standard, 3 stretch), 28 days, today last
+      log28: [...history.map((h) => (h.result ? ["floor", "standard", "stretch"].indexOf(h.result) + 1 : 0)), 0],
     });
   }
 }
@@ -199,7 +201,7 @@ const fresh = {
   label: "FRESH ACCOUNT (EMPTY LISTS)",
   overall: { score: 15, display: 15, tier: 1, numeral: "I", name: "Raw", level: 15 },
   categories: categories.map((c) => ({ ...c, score: c.slug === "athletics" ? 15 : 15 })),
-  skills: (skills as { status: string }[]).map((s) => ({ ...s, score: s.status === "active" ? 15 : 0, display: s.status === "active" ? 15 : 0, level: 0, consistency: 50, levelName: "foundation", neglected: false, steps: [], goals: [] })),
+  skills: (skills as { status: string }[]).map((s) => ({ ...s, score: s.status === "active" ? 15 : 0, display: s.status === "active" ? 15 : 0, level: 0, consistency: 50, levelName: "foundation", neglected: false, steps: [], goals: [], log28: undefined })),
   goals: [],
   todayP: 0,
   streak: { current: 0, best: 0 },

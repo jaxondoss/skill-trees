@@ -9,6 +9,7 @@ import { loadDashboardContext } from "./dashboard";
 import { loadCalendarWall } from "./calendarWall";
 import { loadStatueLevel } from "./statue";
 import type { MetricRow } from "./rows";
+import { fetchLyftaWorkouts, localToday, summarizeLyfta, type LyftaSummary } from "./lyftaSummary";
 
 /**
  * window.ROOM_DATA for the v3 room: the same shape as docs/redesign/room-prototype/data.js
@@ -100,6 +101,23 @@ function courses(ctx: UserContext) {
     });
 }
 
+/**
+ * The strength hologram's Lyfta summary when LYFTA_API_KEY is set (same shape as the prototype's lyfta.js);
+ * null otherwise or when Lyfta fails, and the hologram falls back to the room data.
+ */
+async function loadLyfta(): Promise<LyftaSummary | null> {
+  const key = process.env.LYFTA_API_KEY;
+  if (!key) return null;
+  try {
+    return summarizeLyfta(await fetchLyftaWorkouts(key, (url, init) => fetch(url, { ...init, next: { revalidate: 600 } } as RequestInit)), {
+      today: localToday(),
+      fetched: new Date().toISOString(),
+    });
+  } catch {
+    return null;
+  }
+}
+
 export async function loadRoomData() {
   return (await loadRoomDataWithContext()).room;
 }
@@ -138,6 +156,13 @@ export async function loadRoomDataWithContext() {
     }
     return n;
   };
+  // The hologram's graph and heatmap: tier rank per day (0 none, 1 floor, 2 standard, 3 stretch), 28 days, today last.
+  const RANK: Record<string, number> = { floor: 1, standard: 2, stretch: 3 };
+  const log28Of = (skillId: string) => {
+    const best = new Map<string, number>();
+    for (const h of ctx.history) if (h.skillId === skillId && h.result) best.set(h.day, Math.max(best.get(h.day) ?? 0, RANK[h.result] ?? 0));
+    return Array.from({ length: 28 }, (_, i) => best.get(addDays(ctx.today, i - 27)) ?? 0);
+  };
   const { data: claims } = await supabase.auth.getClaims();
   const admin = isAdmin({ email: typeof claims?.claims?.email === "string" ? claims.claims.email : null });
 
@@ -163,6 +188,7 @@ export async function loadRoomDataWithContext() {
       logKey: log?.key ?? null,
       logUnit: log?.unit ?? null,
       series: log ? series(log.key) : [],
+      log28: log28Of(s.id),
       goals: ctx.nonNegotiables
         .filter((n) => n.skill_id === s.id)
         .map((n) => ({
@@ -215,6 +241,7 @@ export async function loadRoomDataWithContext() {
     .filter((a) => a.hours >= 0 && a.hours <= 7 * 24);
   const todayP = data.todayP === null ? 0 : Math.round(data.todayP);
   const statue = await loadStatueLevel(supabase, data.overall.score);
+  const lyfta = await loadLyfta();
   const calendarWall = await loadCalendarWall(supabase, { today: ctx.today, todayP: data.todayP, timeZone: ctx.profile.timezone });
 
   const room = {
@@ -251,6 +278,8 @@ export async function loadRoomDataWithContext() {
       .map((m) => ({ day: short(m.day), lb: m.value })),
     relics: { slots, trophies },
     soundOn: data.soundOn,
+    /** Strength hologram: the owner's Lyfta summary (absent without LYFTA_API_KEY). */
+    ...(lyfta ? { lyfta } : {}),
   };
   return { room, ctx, dashboard: data };
 }
