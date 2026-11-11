@@ -1,443 +1,550 @@
 # Skill tree hologram (room v3.6 spec)
 
-Status: SPEC for Jaxon's approval. No engine or app code changes in this task. Plan:
-`whimsical-popping-blanket` (approved). Mockups: `stills/holo/` (PIL composites over real v3.5 room frames at the
-room's integer zoom; every hologram pixel is a palette colour on the art grid, see 5).
+Status: SPEC, revision 2 (Jaxon's review of revision 1). No engine or app code changes in this task. Plan:
+`whimsical-popping-blanket` (approved), amended by the review: two sizes (small hover peek, large click tree), much
+bigger textured pixel text, holo button plates with a surge, double-click shortcut, the computer's two-way split,
+prominent skills at rest, the tree in the overview, reading in the mental category.
+
+Mockups (`stills/holo/`, PIL composites over real v3.5 room frames at the room's integer zoom; every hologram pixel
+is a palette colour on the art grid, see 5):
 
 | Still | Shows |
 | --- | --- |
-| `stills/holo/gym-peek-sunset.png` | Hover peek on the squat rack (strength, athletics ramp): centre + 4 branches with counts |
-| `stills/holo/gym-lift-expanded-sunset.png` | Pinned, LIFT branch expanded to its leaves (tiers + last 7 strip), OPEN button |
-| `stills/holo/gym-lift-expanded-night.png` | The same at night (marks stay palette-true) |
-| `stills/holo/front-reading-peek-sunset.png` | Front wall, bookshelf (reading, shown with the school ramp), peek |
-| `stills/holo/front-reading-steps-sunset.png` | Pinned, STEPS expanded; leaf labels over the bright window get the contrast plate |
-| `stills/holo/front-reading-steps-night.png` | The same at night (window dark, no plate needed) |
-| `stills/holo/phone-longpress-reading-sunset.png` | Phone 390 x 844: long-press pinned, tree in the band above a short sheet, 44 px leaf rows |
+| `stills/holo/rest-prominent-right-sunset.png` | At rest: every skill on the right wall carries its holo tag, state pip and brighter wire (6) |
+| `stills/holo/gym-peek-sunset.png` | HOVER: the small peek on the squat rack (strength, athletics ramp) |
+| `stills/holo/gym-open-sunset.png` | CLICK: the large tree: centre plate, branch plates with bars and today's tier, LIFT open to its leaf plates |
+| `stills/holo/gym-open-night.png` | The same at night (marks stay palette-true) |
+| `stills/holo/front-reading-open-sunset.png` | Reading, mental (mind ramp, PLUM), STEPS open; plates over the bright window get the denser fill |
+| `stills/holo/computer-split-open-sunset.png` | The computer: one COMPUTER centre splitting left to AI BUILDING and right to DROPSHIPPING, REVENUE open |
+| `stills/holo/phone-open-reading-sunset.png` | Phone 390 x 844: the large tree as a vertical stack with 44 px rows and a bottom action bar |
 
 Frames are 1280 x 800 at zoom 2 (1 art px = 2 x 2 device px, measured: horizontal runs of 2 dominate and start on
-even columns). The phone still is 1170 x 2532 (dpr 3) at 6 device px per art px.
+even columns). The phone still is 1170 x 2532 (dpr 3) at 6 device px per art px. In the right-wall frames the rack
+already shows its hover cage (the source frame was captured hovered). Generator (not committed):
+`scratchpad/holo/mock2.py`.
 
 ---
 
 ## 1 Intent and scope
 
-Jaxon likes the branching node tree in his reference (a glowing centre node that splits into groups, then fans curved
-lines to a column of leaves). The room gets its own version: hover a skill object and a small, crisp hologram tree
-unfolds beside it, accordion style.
+Jaxon likes the branching node tree in his reference (a glowing centre that splits into groups, then fans curved
+lines to a column of leaves). The room gets its own version, in two sizes: hover a skill object and a small crisp
+hologram peeks out beside it; click it and a large hologram skill tree pulls up out of the object, with real button
+plates, big text and the numbers that matter, while the room dims behind it.
 
-Decisions (from the Q&A, binding):
+Decisions (binding):
 - Only the branching tree. The reference's detail panel, chart, AI box and toolbar are out of scope.
-- Room only (walls and zones). Not the admin view; the overview keeps its direct skill view in v1 (10, Q4).
+- Room walls, zones and the overview. Not the admin view.
 - Tree data: centre = the skill; branches = its goals, steps and metric; leaves: goal -> tiers and recent logs,
   steps -> each step, metric -> recent values by day.
-- Look: subtle, matches the room, does not swamp the art, "definitely crispy": pixel-true edges, no blur on lines,
-  in the skill's category colour, translucent (by ordered dither, see 5).
-- Placement: beside the hovered object toward the emptier side, about a third of the screen wide at most; the room
-  dims slightly.
-- Behaviour: hover or focus peeks the compact tree (centre + branch nodes with counts). Clicking a branch expands it in
-  place to its leaves and collapses the others (accordion). Clicking the OBJECT pins the tree and REPLACES today's
-  direct skill view; the skill view opens from the tree (the OPEN button on the centre node, or any leaf, which
-  opens the skill view at that item).
-- Motion: lines grow out in a few stepped frames, a faint scanline and one flicker, nodes pulse once; static under
-  reduced motion.
-- Phone: long-press a skill object shows and pins the tree; a tap on an object follows the same rule (object = tree).
+- Two sizes. HOVER (or keyboard focus) = the small peek: centre node and branch nodes with counts. CLICK = the large
+  tree: plates for the centre, every branch and the open branch's leaves; it may take most of the screen.
+- Behaviour: a single click pins and opens the large tree; a double-click opens the skill view directly. In the
+  large tree, clicking a branch opens it (accordion, one at a time); the skill view opens from OPEN SKILL on the
+  centre plate, or from any leaf (at that item).
+- Text: much bigger than revision 1 (5x7 pixel face at 1x and 2x), pixel-true and textured.
+- Look: holographic, crisp, category colours, translucent by ordered dither, with a subtle stepped surge on plate
+  outlines. Static under reduced motion.
+- The computer (ai-building + dropshipping) is one centre that splits into the two skills in opposite directions.
+- Every skill object is prominent at rest (holo tag, brighter wire, gentle surge), not only on hover.
+- Reading is in the mental category (palette ramp `mind`: PLUM_1 / PLUM_2 / PLUM_3).
+- Phone: long-press or tap pins the large tree (vertical layout); double-tap opens the skill view.
 
 Out of scope (v1): feature hotspots (statue, calendar, Today, relic mounts, settings, review), editing from the tree,
-trees in the overview, sound, any change to art files, the admin view.
+sound, art file changes, the admin view.
 
 ## 2 Interaction model and state machine
 
 ### 2.1 States
 
 ```
-idle --hover 120 ms / focus--> peek --click object / Enter / long-press--> pinned --click branch--> expanded(b)
- ^                               |                                          |   ^                     |
- |<----- leave 200 ms grace -----+                                          |   +--click same branch--+
- |<---------------- Esc / click outside / any nav move ---------------------+---- Esc (expanded -> pinned)
- pinned|expanded --OPEN on centre / Enter on centre--> skill view (nav place 'skill', at: null)
- expanded --click leaf / Enter on leaf--> skill view (at: the leaf's item)
+idle --hover 120 ms / focus--> peek (small)
+peek|idle --click / Enter / long-press / tap in a zone--> open (large, one branch open)
+open --click another branch--> open (that branch; accordion)
+open --OPEN SKILL / Enter on centre / leaf--> skill view (leaf: at that item)
+any --double-click / Shift+Enter / double-tap on the object--> skill view (direct)
+open --Esc--> collapse branch --Esc--> idle ;  open --click outside / any nav move--> idle
+peek --leave object and tree box for 200 ms--> idle
 ```
 
-- `idle`: today's behaviour: rest wires (wire.js), no tree.
-- `peek` (mouse hover after a 120 ms intent delay, or keyboard focus on the object's button, no delay): the compact
-  tree (centre, branch nodes, branch labels with counts). Not interactive with the pointer except that moving into
-  the tree's DOM box keeps it open (so the pointer can travel to a branch). Leaving both the object and the tree box
-  starts a 200 ms grace, then the tree retracts. Hovering another object retargets after its own 120 ms delay.
-  Peek on a fine pointer turns into `pinned` as soon as a branch is clicked.
-- `pinned`: the tree stays without hover and gains the OPEN button under the centre node. Entered by a click on the
-  object, Enter on the focused object button, a click on any branch during peek, or a long-press (phone).
-- `expanded(b)`: one branch open to its leaves; others collapse to node + count (accordion, at most one open).
-  Clicking the open branch again collapses it (back to `pinned`).
+- `idle`: the at-rest treatment (6): holo tag, brighter wire, gentle surge.
+- `peek` (mouse hover after a 120 ms intent delay, or keyboard focus with no delay): the small tree (4.2). Moving
+  the pointer into the peek's box keeps it; leaving both starts a 200 ms grace. A click on a peek branch opens the
+  large tree with that branch open.
+- `open` (large, 4.3): opened by a click on the object, Enter or Space on its focused button, a long-press, or a tap
+  on the object in a zone (phone). The default open branch is today's planned goal (else the first goal, else
+  steps, else metric). Clicking the open branch's plate again collapses it (all plates stay, no leaves).
 - skill view: unchanged v3.5 skill place; the tree retracts as the LIFT leg starts.
 
-State lives in `ROOM.holo` (new engine module, 11) as `{item, phase: 'idle'|'peek'|'pinned'|'expanded', branch,
-t0}`. It is UI state on the current place, mirrored to `ROOM.state.holo` like `ROOM.state.inspect`.
+State lives in `ROOM.holo` (new engine module, 11) as `{item, group, size: 'peek'|'open', branch, t0}`, mirrored to
+`ROOM.state.holo` like `ROOM.state.inspect`.
 
-### 2.2 Composition with ROOM.nav
+### 2.2 Single click and double-click timing
 
-The pinned tree is an overlay on the wall or zone place, NOT a nav place: no history entry, no URL (routes stay
-`/room/<zone>/<item>` for the skill view only, nav.js:112). Reasons: it is transient like inspect, and the skill
-view must stay one Back away from the wall. Rules:
-- Any `nav` event with `phase: 'start'` (TURN, DOLLY, RISE, zone steps) closes the tree instantly, the way wire.js
-  resets its motion (wire.js:497-500).
-- Opening the skill view: `ROOM.nav.request({mode: 'skill', item}, {source: 'holo', opener, at})` (the same call
-  overlay.js makes today, overlay.js:291), with the new optional `at` (2.5). Back from that skill view lands on the
-  wall or zone with the tree CLOSED and focus on the object button (the opener), not re-pinned.
-- Clicking an object while another tree is pinned retargets (pins the new one). Clicking empty room while a tree is
-  pinned closes the tree and does NOT also step into the zone (one action per click); the next click steps in.
-- In a zone on a touch device today's first tap on a wall object steps into the zone (overlay.js:284-289). That stays
-  for a TAP on a wall; a long-press on a wall object steps into the object's zone and pins its tree at landing.
+The single click is never delayed. A click on a skill object opens the large tree at once (its 240 ms grow-in
+starts on that frame). A second click on the same object within the platform double-click window (the browser's
+`dblclick` event; 300 ms in our own touch detector) opens the skill view directly: the tree retracts in 2 x 40 ms
+while the LIFT leg starts, so a double-click costs no extra wait. Because the large tree grows over the object, the
+second click may land on a plate that has just appeared: for 300 ms after the opening click, a click within 6 CSS px
+of the first one counts as the double-click whatever is under it. Keyboard: Shift+Enter on the object button. Touch:
+two taps within 300 ms and 12 px; the hotspot buttons get `touch-action: manipulation` so the browser adds no
+double-tap zoom delay to single taps.
 
-### 2.3 Esc and click-outside order
+### 2.3 Composition with ROOM.nav
 
-Esc today (input.js:153-160): overview -> inspect -> photo -> zone/skill back. New order (holo slots in before back):
+The open tree is an overlay on the wall, zone or overview place, NOT a nav place: no history entry, no URL (routes
+stay `/room/<zone>/<item>` for the skill view only, nav.js:112). Rules:
+- Any `nav` event with `phase: 'start'` (TURN, DOLLY, RISE, DESCEND, zone steps) closes the tree instantly, the way
+  wire.js resets its motion (wire.js:497-500).
+- Opening the skill view: `ROOM.nav.request({mode: 'skill', item}, {source: 'holo', opener, at})`, the same call
+  overlay.js makes today (overlay.js:291), with the new optional `at` (2.6). Back from that skill view lands with the
+  tree closed and focus on the object button (the opener).
+- Clicking another skill object while a tree is open retargets (opens that one). Clicking empty room while a tree is
+  open closes it and does NOT also step into the zone (one action per click).
+- Touch on a wall: today's first tap steps into the zone (overlay.js:284-289); that stays. In a zone a tap opens the
+  tree (object = tree). A long-press on a wall object steps into its zone and opens the tree at landing.
+- Overview: a click on an object opens the large tree over the diorama (no descend). OPEN SKILL or a leaf then runs
+  today's overview path (descend to the item's wall, then the skill view: `overview.placeAt`, overview.js:137, and
+  overlay.js:291 with `source: 'overview'`). Double-click in the overview opens the skill view directly, as a single
+  click does today. Down or Esc closes the tree first, then leaves the overview.
 
-1. overview: down (unchanged)
-2. inspect off
-3. photo off
-4. `expanded` -> `pinned` (collapse the branch, focus moves to that branch node)
-5. `pinned` or `peek` -> `idle` (focus returns to the object button)
+### 2.4 Esc and click-outside order
+
+Esc today (input.js:153-160): overview -> inspect -> photo -> zone/skill back. New order:
+
+1. inspect off
+2. photo off
+3. large tree with a branch open: collapse the branch (focus to its plate)
+4. large tree or peek: close (focus returns to the object button)
+5. overview: down (unchanged, now after the tree)
 6. zone or skill: `nav.back()` (unchanged)
 
-Click outside the tree and the object: closes in one step from `expanded` or `pinned` (no intermediate collapse).
-An open board or sheet still owns the keyboard (input.js:110-117), so the tree never sees keys while a skill view is
-open.
+Click outside the tree and the object closes the tree in one step. An open board or sheet still owns the keyboard
+(input.js:110-117).
 
-### 2.4 The hover cage, nameplate and wires
+### 2.5 The cage, wires, tags and nameplates
 
-- The P5 cage (wire.js:6-9: hover / focus / touch hold) stays exactly as it is: it is the object highlight. The tree
-  is drawn beside it in its own mark pass registered after `wire` (render.js:396-405 keeps registration order), so
-  tree pixels sit on top of cage pixels where they overlap.
-- The nameplate ("STRENGTH 52", overlay.js:166-174) is suppressed for the item whose tree is showing: the centre
-  node carries the name (above) and level or score (inside), so the plate would duplicate it.
-- While pinned, `ls.hover` stays on the item so the cage holds without the pointer.
+- The P5 cage (wire.js:6-9) stays the object highlight on hover and focus. In the large tree the object additionally
+  gets corner brackets in the category light colour and a 1 px tether line to the centre plate, so it stays tied
+  to the tree under the dim.
+- The tree draws in its own mark pass registered after `wire` (render.js:396-405 keeps registration order), so its
+  pixels sit on top of the cage and wires.
+- The at-rest holo tag (6.2) replaces the hover nameplate ("STRENGTH 52", overlay.js:166-174) for skill items.
+  Features keep their nameplates. While a tree shows, its item's tag hides (the centre carries the name).
 
-### 2.5 The skill view entry
+### 2.6 The skill view entry
 
-- Today a click on the object calls `nav.request({mode: 'skill', item})` (overlay.js:274-292). New: `activate(d)` on a
-  skill hotspot pins the tree; features keep their old path (Today panel, calendar). The skill view request moves to
-  the tree: OPEN on the centre (and Enter on the centre item) and every leaf.
-- LIFT: `ROOM.skill.lift(id, opts)` starts the hero from the item's room rect (skill.js:424 `from = roomRect(h)`); that
-  stays (the art must not jump). The tree retracts into its centre node in 2 stepped frames (2 x 40 ms) at the leg's
-  start, and the lift's selection light and halo (selK, haloK, skill.js:411-413) start from the centre node's position
-  via a new `opts.fromHolo = {x, y}` (device px), so the view reads as growing out of the hologram node.
-- `at` (new, optional) reaches the board through `ROOM.ui.open(id, {opener, side, hero, at})` (ui/panel.js:133):
-  `{tab: 'today'|'steps'|'data', key}`: goal and tier leaves -> Today tab with that goal focused; recent log leaf ->
-  Data tab, that day; step leaf -> Steps tab, that step focused; metric leaf -> Data tab, that day; "+N MORE" -> the
-  branch's tab with no key.
+- `activate(d)` on a skill hotspot (overlay.js:274-292) opens the large tree; `dblclick` and Shift+Enter call
+  today's `nav.request` directly. Features keep their old path.
+- LIFT: `ROOM.skill.lift(id, opts)` still starts the hero from the item's room rect (skill.js:424 `from =
+  roomRect(h)`, the art must not jump). The tree retracts into its centre plate in 2 x 40 ms at the leg start, and
+  the lift's selection light and halo (selK, haloK, skill.js:411-413) start from the centre plate's position via a
+  new `opts.fromHolo = {x, y}` (device px).
+- `at` (optional) reaches the board through `ROOM.ui.open(id, {opener, side, hero, at})` (ui/panel.js:133):
+  `{tab: 'today'|'steps'|'data', key}`: tier leaves -> Today, that goal focused; recent log leaves -> Data, that day;
+  step leaves -> Steps, that step; metric leaves -> Data, that day; "+N MORE" -> the branch's tab.
 
-### 2.6 Keyboard
+### 2.7 Keyboard
 
-- Tab reaches object buttons in DOM order (overlay.js:301-333, unchanged); focus on a skill object peeks at once.
-- Enter on the focused object pins and moves focus into the tree (the centre item). Space does the same.
-- Inside the tree (roving tabindex, one tab stop): Up / Down move between siblings (branches, or leaves of the open
-  branch); Right on a branch expands it and moves to its first leaf; Left on a leaf goes to its branch, on a branch
-  collapses it, on the centre does nothing; Home / End first / last sibling; Enter on the centre opens the skill
-  view; Enter on a branch toggles it; Enter on a leaf opens the skill view at that item. Tab leaves the tree to the
-  next object button (the tree closes back to peek on that object).
-- Arrow keys inside the tree are consumed (`preventDefault`), so input.js's wall turn and zone walk (input.js:131-139)
-  do not fire: input.js already returns early on `e.defaultPrevented` (input.js:106).
+- Tab reaches object buttons in DOM order (overlay.js:301-333, unchanged); focus on a skill object peeks.
+- Enter or Space on the object opens the large tree and moves focus to the centre plate; Shift+Enter opens the skill
+  view directly.
+- Inside the tree (roving tabindex, one tab stop): Up / Down between siblings; Right on a branch opens it and moves
+  to its first leaf; Left on a leaf goes to its branch, on a branch collapses it; in the computer split, Left and
+  Right on the centre move to the left or right skill; Home / End; Enter on the centre (or OPEN SKILL) opens the
+  skill view; Enter on a branch toggles it; Enter on a leaf opens the skill view at that item. Tab leaves the tree
+  to the next object button (the tree closes).
+- Arrow keys inside the tree are consumed (`preventDefault`); input.js already returns on `e.defaultPrevented`
+  (input.js:106), so the wall turn and zone walk (input.js:131-139) do not fire.
 
-### 2.7 Screen reader
+### 2.8 Screen reader
 
-The overlay DOM mirrors the tree as an ARIA tree, positioned over the drawn tree so hit testing and focus rings align:
+The overlay DOM mirrors the tree as an ARIA tree positioned over the drawn plates (so hit boxes and focus align):
 
 ```html
 <div class="holo" role="tree" aria-label="Strength skill tree">
-  <div role="treeitem" aria-level="1" aria-expanded="true" tabindex="0">Strength, level 52. Open skill view
+  <div role="treeitem" aria-level="1" aria-expanded="true" tabindex="0">
+    Strength, score 52.4, level 5, Forged, athletics, 12 day streak. Open skill view
     <div role="group">
-      <div role="treeitem" aria-level="2" aria-expanded="true" aria-setsize="4" aria-posinset="1">Lift, 5 of last 7 logged
+      <div role="treeitem" aria-level="2" aria-expanded="true" aria-setsize="4" aria-posinset="1">
+        Lift, 5 of last 7 logged, today standard
         <div role="group">
-          <div role="treeitem" aria-level="3">Floor, 20 minutes, done today</div> ...
-          <div role="treeitem" aria-level="3">Last 7 days: 5 logged, 1 missed, today open</div>
+          <div role="treeitem" aria-level="3">Standard, 45 minutes, done today</div> ...
 ```
 
-- Labels are full words (no abbreviations, no em dashes): the drawn label is short, the accessible name is complete.
-- The polite live region (overlay.js) announces "Strength tree pinned, 4 branches" on pin and "Lift expanded,
-  4 items" on expand. Peek announces nothing (focus already names the object).
-- The DOM nodes are transparent and carry hit boxes only (5.5); text is drawn in the frame.
+- Drawn labels are short; accessible names are full words (no abbreviations, no em dashes).
+- The computer split adds a level: group "Computer, 2 skills" -> skills -> branches -> leaves.
+- The polite live region announces "Strength tree open, Lift expanded, 6 items" on open and on branch change. Peek
+  announces nothing (focus already names the object).
+- The DOM nodes are transparent hit boxes; focus is drawn as a CREAM 1 px bracket pair on the plate (pixel-true).
 
 ## 3 Data contract
 
 ### 3.1 Sources (ROOM_DATA, src/lib/data/room.ts `loadRoomData`)
 
-Per skill (room.ts:143-178): `slug, name, category, score, level, logKey, logUnit, series` (last 14 metric values,
-room.ts:122), `goals[]` (non-negotiables: `name, floor, standard, stretch, minutes, intention`, room.ts:166-175),
-`steps[]` (`title, points, claimed`, room.ts:176). Today's goals: top-level `goals[]` (room.ts:180-190: `skill,
-tier, result, nmt`). Category ramps: `ROOM.art.palette.categories` (fallback ui/strip.js:24-27, `K.cat` at
-ui/strip.js:38-42).
+Per skill (room.ts:143-178): `slug, name, category, score, display, level, levelName, streak, neglected,
+lastLoggedDaysAgo, logKey, logUnit, series` (last 14 metric values, room.ts:122), `goals[]` (`name, floor, standard,
+stretch, minutes, intention`, room.ts:166-175), `steps[]` (`title, points, claimed`, room.ts:176). Category names:
+`categories[]` (`slug, name`). Today's goals: top-level `goals[]` (room.ts:180-190). Ramps:
+`ROOM.art.palette.categories` (`mind: PLUM_1, PLUM_2, PLUM_3`; fallback ui/strip.js:24-27).
 
 ### 3.2 Additions to loadRoomData (small, additive, typed by `RoomData`)
 
-- `skills[].goals[].id` (the non-negotiable id) and `skills[].goals[].recent`: last 7 planned days for that goal,
-  oldest first, `{day: 'YYYY-MM-DD', tier: 'floor'|'standard'|'stretch'|null, planned: tier}` from `ctx.history`
-  filtered by `nonNegotiableId` (`GoalRecord`, src/lib/data/context.ts:32-39). ~7 x goals rows, no new query.
-- `skills[].seriesDays`: the day of each `series` value (same order), so metric leaves can say when. Additive; the
-  sample data in `scripts/room-proto-data.ts` gets the same fields.
+- `skills[].goals[].id` (the non-negotiable id) and `skills[].goals[].recent`: the last 7 planned days for that goal,
+  oldest first, `{day, planned: tier, tier: tier | null}` from `ctx.history` filtered by `nonNegotiableId`
+  (`GoalRecord`, src/lib/data/context.ts:32-39). The last entry is today when today is planned (today's tier).
+- `skills[].seriesDays`: the day of each `series` value (same order), for metric leaves and the 30-day delta.
+- Reading's category in the data is mental: the seed or migration maps `reading` to the mental category (the
+  palette slug `mind`). The tree takes the ramp from `skill.category`, never from a per-skill override.
+- Same fields in the sample data (`scripts/room-proto-data.ts`).
 
 ### 3.3 Node shape and builder
 
 ```ts
 type HoloNode = {
-  id: string;                       // stable: 'strength', 'strength/g/<goalId>', 'strength/g/<goalId>/t/floor', ...
-  kind: 'center' | 'goal' | 'steps' | 'metric' | 'leaf';
-  label: string;                    // drawn text, upper case, <= 14 chars
+  id: string;                       // 'strength', 'strength/g/<goalId>', 'strength/g/<goalId>/t/floor', 'group/computer'
+  kind: 'group' | 'center' | 'goal' | 'steps' | 'metric' | 'leaf';
+  label: string;                    // drawn text, upper case
   name: string;                     // accessible name, full words
-  value: string | null;             // branch count or leaf value ('5/7', '185', '20M')
+  value: string | null;             // count or value ('5/7', '185 LB', '$420')
+  sub: string | null;               // second line: 'TODAY STANDARD', 'NEXT 225 BENCH', '+10 IN 30 DAYS', 'DONE OCT 2'
+  progress: number | null;          // 0..1 for the plate bar
+  segs: number | null;              // bar notches (7 days, step count)
   state: 'done' | 'open' | 'missed' | 'none';
-  strip?: ('done' | 'open' | 'missed' | 'none')[];   // the recent-logs leaf only
+  strip?: ('done' | 'open' | 'missed' | 'none')[];   // the LAST 7 leaf
   at?: { tab: 'today' | 'steps' | 'data'; key?: string };
+  ramp: string;                     // palette category slug
   children: HoloNode[];
 };
 ```
 
-Pure `buildTree(skill, todayGoals, today)` in engine/holo.js, exported through `module.exports` for Vitest like
-nav.js's pure helpers. Branches, in order:
-1. One `goal` branch per goal (today's planned goal first). Value `logged/planned` over `recent`. Leaves: FLOOR,
-   STANDARD, STRETCH with their minutes (state `done` when today's result reached that tier, `open` when it is
-   today's planned tier and unlogged, else `none`), then ONE recent-logs leaf "LAST 7" drawn as a 7-dot strip
-   (`done` logged, `missed` planned and unlogged on a past day, `open` today unlogged, `none` not planned). The
-   strip keeps "tiers and recent logs" inside the 8-leaf cap; the accessible name spells out the counts.
-2. One `steps` branch when `steps.length`: value `claimed/total`; one leaf per step (`done` claimed, else `open`).
-3. One `metric` branch when `logKey`: label from the unit (BENCH, PAGES, RATING), value = latest value; leaves = the
-   last up to 7 values newest first, "NOV 9 185" (state `none`).
+Pure `buildTree(item, data, today)` in engine/holo.js (exported through `module.exports` for Vitest, like nav.js).
 
-Caps: at most 6 branches (goals beyond 4 fold into the last goal slot as "+N GOALS", opening Today); at most 8
-leaves per branch: 7 leaves + a "+N MORE" leaf. Empty skill (no goals, steps or metric): the centre node alone with
-OPEN; the tree still pins.
+- Centre: `label` = skill name; lines: "SCORE <score> LV <level> <LEVELNAME>" and "<CATEGORY> <streak> DAY STREAK";
+  `progress` = score / 100, 10 notches.
+- Goal branches (today's planned goal first): value `logged/planned` over `recent`; sub "TODAY <tier>" (or "TODAY
+  OPEN", "NOT TODAY"); bar = logged / 7 with 7 notches. Leaves: FLOOR, STANDARD, STRETCH with minutes and state
+  (`done` when today's result reached that tier, `open` when it is today's planned tier and unlogged, else `none`),
+  one LAST 7 leaf (7 state pips), then the latest 2 logs as dated leaves ("MON NOV 9 / STANDARD", "SUN NOV 8 /
+  MISSED").
+- Steps branch (when `steps.length`): value `claimed/total`; sub "NEXT <first open step>"; leaves = each step
+  ("DONE OCT 2" or progress text or "OPEN").
+- Metric branch (when `logKey`): label from the unit (BENCH, PAGES, REVENUE), value = latest with unit; sub = the
+  change over 30 days; leaves = last up to 7 values newest first with their days.
+- Caps: 6 branches (extra goals fold into "+N GOALS"), 8 leaves per branch (7 + "+N MORE").
+- Empty skill: the centre plate alone with OPEN SKILL.
+
+### 3.4 Groups (the computer)
+
+A group is two or more skill items that read as one object. v1 data: an optional `group: 'computer'` on the items
+in the manifest (`computer.board` dropshipping and `computer.ai` ai-building, both in zone `computer`); no
+inference. `buildTree` for a grouped item returns a `group` node (label "COMPUTER", sub "2 SKILLS <CATEGORY>")
+whose children are the skills' centre nodes. Hovering or clicking either item opens the group tree with that
+item's skill on its natural side (4.4); the accordion is global (one branch open across both skills).
 
 ## 4 Layout
 
-All geometry is computed in art px of the current wall (buffer coordinates `f.x0/f.y0` like overlay.js:160-170) and
-rounded to whole art px, so it is pixel-true at any integer zoom. Recomputed on pin, expand, resize, zoom change and
-data change; cached in between.
+All geometry is in art px of the current view (buffer coordinates `f.x0/f.y0` like overlay.js:160-170), rounded to
+whole art px, so it is pixel-true at any integer zoom. Recomputed on open, branch change, resize, zoom and data
+change; cached in between.
 
-### 4.1 Anchor and side
+### 4.1 Common
 
-- Anchor: the item's hit box at rest (`cssRectOf`, render.js:1616-1626, art px = hit + layer offset; the same box
-  `ROOM.itemRectCss` returns, render.js:1599-1613).
-- Free space each side: the visible wall rect minus margins: the HUD strip (top, its bottom + 4 art px), the turn
-  chevrons (left and right 20 art px), the zone dots row and the "D CONTROLS" chip (bottom 16 art px).
-- Side = the side with more free width; ties go right. Board side rule: on laptops the skill board is always right
-  (HANDOFF v3.5); the tree is gone before the board opens, so the board never constrains the tree. When neither side
-  fits the full width, the centre node may overlap the object's hull by up to 14 art px (the gym still does this:
-  the centre sits on the rack's upper right corner), then labels are truncated to 10 chars (accessible names stay).
-- Centre node: on the chosen side of the hull, vertically at the hull's top third, clamped into the margins.
+- Anchor: the item's hit box at rest (`cssRectOf`, render.js:1616-1626; the box `ROOM.itemRectCss` returns,
+  render.js:1599-1613).
+- Margins: below the HUD strip + 4 art px; clear of the turn chevrons (20 art px each side), the zone dots and the
+  "D CONTROLS" chip (bottom 16 art px).
+- Text: the 5x7 face (overlay.js F5, extended with digits and `/ . : - + > $ %`), advance 6 art px per glyph at 1x,
+  4 for a space; 2x doubles every glyph pixel.
 
-### 4.2 Fan (as drawn in the stills)
+### 4.2 Small peek (hover)
 
-- Branch nodes on an arc: `y_i = cy + (i - (n - 1) / 2) * GAP`, `x_i = cx + s * sqrt(R^2 - (0.6 * (y_i - cy))^2)`,
-  s = +1 right, -1 left. Trunks are quadratic curves from the centre node's edge (control point at `cx + s * R / 2,
-  y_i`).
-- Branch labels: right of the node (or left when s = -1), 6 art px from its centre.
-- Expanded branch: a straight 1 px run from the end of its label to `ex` = the widest branch label end + 3 (so the
-  leaf curves never cross the other labels), then quadratic curves to a leaf column on a second shallow arc:
-  `x_j = ex + s * LEAD - s * 0.12 * |y_j - y_b|`, leaves spaced `LEAF_GAP`, centred on the branch, clamped to the
-  margins. Leaf dot 3 x 3, label 4 art px after it.
+As revision 1, with bigger text: centre disc r 7 with the level inside; branch nodes r 3 on an arc
+(`y_i = cy + (i - (n - 1) / 2) * 20`, `x_i = cx + s * sqrt(46^2 - (0.6 * (y_i - cy))^2)`); labels "LIFT 5/7" in the
+5x7 face at 1x beside the nodes; title above the centre. Side = the side with more free width; ties go right. Box
+about 150 x 90 art px (at 1280: 300 x 180 CSS, 23 % wide). No plates (it must stay light).
 
-### 4.3 Sizes per breakpoint
+### 4.3 Large tree (click)
 
-Art-px constants; CSS size = art px x (z / dpr). The leaf gap grows so each row is a full target (overlay.js
-rule: >= 24 CSS px on fine pointers, 44 on touch, overlay.js:9-10).
+Left-to-right fan (s = -1 mirrors it when the object sits in the right third and the left has the room):
 
-| Viewport | zoom (device px / art px, check) | R | GAP | LEAF_GAP | LEAD | Max tree width |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1280 x 800 | 2 | 44 | 18 | 12 (24 CSS) | 28 | ~190 art px = 380 CSS (30 %) |
-| 1440 x 900 | 2 | 44 | 18 | 12 (24 CSS) | 28 | ~190 art px = 380 CSS (26 %) |
-| 1920 x 1080 | 3 | 44 | 18 | 12 (36 CSS) | 28 | ~190 art px = 570 CSS (30 %) |
-| phone 390 x 844, dpr 3 | 6 (2 CSS per art px) | 18 | 24 | 22 (44 CSS) | 10 | full band width minus 8 art px |
+| Part | Size (art px) | Text |
+| --- | --- | --- |
+| Centre plate | width = longest line + 12 (min 150), height 74 | name 5x7 at 2x; two 1x lines; score bar; OPEN SKILL button plate (17 high) |
+| Branch plates | 136 x 38, stacked 47 apart, 30 right of the centre | name at 2x (1x when over 9 chars); value at 1x right aligned; sub line 1x; bar |
+| Leaf plates | 200 x 15, stacked 19 apart (22 on touch), 34 right of the branches | state pip 5 x 5; label 1x; value and date or state right aligned |
+| Lines | 1 px | trunk: centre right edge to each branch (quadratic); leaves fan from the open branch's right edge |
 
-`LEAF_GAP = max(12, ceil(minTarget / (z / dpr)))`. Fine pointer: minTarget 24; touch: 44.
+Placement: the box (about 580 x 300 art px with 6 leaves) is placed so the centre plate is as close to the object as
+the margins allow; it may cover the object, which keeps its brackets and tether (2.5). Vertically the leaf column
+centres on the open branch, clamped to the margins; branches centre on the centre plate.
 
-### 4.4 Collisions
+Per breakpoint (zoom = device px per art px, as the room reports it; CSS = art px x z / dpr):
 
-The tree box is clamped inside the margins; the leaf column shifts vertically before anything else moves; then the
-whole tree shifts away from the edge; then labels truncate. The tree never covers the HUD strip or the chevrons. It
-may cover other room objects (it is translucent and their hotspot buttons stay reachable by keyboard; pointer hits
-inside the tree box go to the tree while it is pinned).
+| Viewport | zoom (check) | Art viewport | Large tree | Text cap height 1x / 2x | Leaf row target |
+| --- | --- | --- | --- | --- | --- |
+| 1280 x 800 | 2 | 640 x 400 | ~580 x 300 (90 % x 75 %) | 14 / 28 CSS | 38 CSS |
+| 1440 x 900 | 2 | 720 x 450 | ~580 x 300 (80 % x 67 %) | 14 / 28 CSS | 38 CSS |
+| 1920 x 1080 | 3 | 640 x 360 | ~580 x 300 (90 % x 83 %); 5 leaves max before "+N MORE" | 21 / 42 CSS | 57 CSS |
+| phone 390 x 844, dpr 3 | 6 (2 CSS per art px) | 195 x 422 | vertical stack (7) | 14 / 28 CSS | 44 CSS |
+
+When the box does not fit (short viewports), leaves drop to 5 + "+N MORE", then branch plates drop the sub line
+(height 28), then the whole tree scales nothing: text never shrinks below 1x.
+
+### 4.4 The computer split
+
+Group plate top centre above the object (COMPUTER at 2x, "2 SKILLS BUSINESS"), tethered to the object. Each skill
+gets its own skill plate (2x name, score line, value line, "OPEN >") going in opposite directions: the skill whose
+item sits left (or lower) goes left, the other right; each skill's branch plates stack under its skill plate. The
+open branch fans its leaf plates inward into the column between the two skills (`computer-split-open-sunset.png`),
+so both directions stay readable. Box about 560 x 260 art px.
+
+### 4.5 Collisions
+
+The box stays inside the margins: first the leaf column moves vertically, then the whole tree shifts away from the
+edge, then the reductions of 4.3. The tree never covers the HUD strip or chevrons. Pointer hits inside the tree box
+go to the tree while it is open; the room's other hotspots stay reachable by keyboard.
 
 ## 5 Rendering
 
 ### 5.1 Where it draws
 
-An engine mark pass: `ROOM.render.addMarkPass('holo', pass)` (render.js:396-405), registered after `wire` so it runs
-after the cage; mark passes run after drawItems and before weather (render.js:773-775). Every pixel goes through
+An engine mark pass, `ROOM.render.addMarkPass('holo', pass)` (render.js:396-405), registered after `wire`; mark
+passes run after drawItems and before weather (render.js:773-775). Pixels are written like
 `ROOM.render.plotMark(f, x, y, c, depth, flags)` (render.js:379-392): palette index, aux depth 254 (in front of
-everything, as fx.js:407-414 does for its trail), flags `16 | 128` (engine mark, no rim) for lines and fills and
-`1 | 16 | 128` (also emissive, as the LED pixels at fx.js:157) for the bright cores and the centre ring. So the tree
-is in the frame buffer, pixel-true, lit by the GPU like other marks but never below 70 % of its palette colour
-(wire.js:12-13), and the Canvas2D path shows it palette-true.
+everything, like the fx trail at fx.js:407-414), flags `16 | 128` (engine mark, no rim) and `1 | 16 | 128`
+(emissive, like the LED pixels at fx.js:157) for outlines, corner ticks, surges, bar tops and text top edges. For
+the large tree's volume (8.1) a batch writer `ROOM.render.plotMarks(f, list)` writes a cached typed list with the
+same semantics. The GPU lights marks like the art but never below 70 % of their palette colour (wire.js:12-13); the
+Canvas2D path shows them palette-true. Labels are marks too (pixel-true under the GL upscale and dim); the DOM
+carries only the ARIA tree and hit boxes.
 
-Labels: drawn as marks too, with the room's 3x5 pixel font (overlay.js:22-36, the nameplate font), and an INK 1 px
-keyline. This differs from the plan's preferred "DOM labels in the pixel font": DOM text cannot be guaranteed to
-land on the art grid under the GL upscale and dpr, and it would sit outside the frame's lighting and dim. The DOM
-keeps the accessible tree and the hit boxes (2.7, 5.5). Fallback if Jaxon prefers DOM text: Silkscreen
-(`--f-pixel`) at `8 * z / dpr` CSS px, positioned on whole art px (Q1).
+### 5.2 Holo ramp
 
-### 5.2 Hologram treatment (palette only, no alpha)
+Five steps per category: deep, dark, mid, light, hi = the category ramp `[dark, mid, light]` plus its palette
+neighbours:
 
-The frame buffer is palette indices, so "translucent" means ordered dither: the art shows through the gaps. Ramp
-`[dark, mid, light]` = `ROOM.art.palette.categories[skill.category]` (athletics TERRA_0 / CRT_0 / CRT_1, school
-SLATE_0 / SLATE_1 / SLATE_2, mind PLUM_1 / PLUM_2 / PLUM_3, ...).
+| Category | deep | dark | mid | light | hi |
+| --- | --- | --- | --- | --- | --- |
+| athletics | TERRA_VD | TERRA_0 | CRT_0 | CRT_1 | CREAM |
+| business | OAK_DK | TERRA_1 | AMBER | GLOW | SUN |
+| school | SLATE_D | SLATE_0 | SLATE_1 | SLATE_2 | SLATE_3 |
+| mind (mental) | PLUM_0 | PLUM_1 | PLUM_2 | PLUM_3 | PLUM_4 |
+| nutrition | LEAF_0 | LEAF_1 | LEAF_2 | LEAF_3 | LEAF_4 |
+| gold (fallback) | GOLD_DK | GOLD_MID | GOLD | GOLD_HI | SUN |
 
-| Element | Pixels |
+Plus INK and CREAM. Only palette colours; no alpha anywhere ("translucent" = ordered dither, the art shows through).
+
+### 5.3 Text (big, crisp, textured)
+
+5x7 face at integer scale k (1 or 2; 3 allowed for the phone centre name), every glyph pixel a k x k block of art px:
+- Lighter top edge: a glyph pixel with no glyph pixel above it takes the top colour (CREAM).
+- Scanline: other glyph pixels on odd art rows take the shade colour (one step down), even rows the base colour.
+  At 2x each glyph pixel spans two art rows, so every big stroke has a bright row and a shaded row: never flat.
+- Outline: INK on the 8 neighbours, plus one `deep` row under the outline (a 1 px drop that gives depth).
+- Tones: title = CREAM / CREAM / hi; body = CREAM / hi / light; accent = hi / light / mid; dim (collapsed) =
+  light / mid / mid.
+- Contrast floor: label core vs its surround >= 4.5:1 for 1x text, >= 3:1 for 2x, measured on the lit frame. The
+  plate fill (5.4) carries this; INK outline is the fallback where text sits off a plate.
+
+### 5.4 Holo plates (buttons)
+
+| Part | Pixels |
 | --- | --- |
-| Idle trunk (centre -> collapsed branch) | 1 art px pixel-perfect curve (no L corners), `mid` |
-| Hot line (active trunk, leaf curves) | 1 art px core in `light` + halo: the two perpendicular neighbours in `dark` where Bayer 4x4 < 6/16, even rows only |
-| Centre node | ring r 6 `light` (emissive); fill: Bayer 9/16 `mid` on even rows, 3/16 `dark` on odd rows; halo r 7..11 `dark` at 5/16, even rows; level or score in CREAM 3x5 inside |
-| Branch node | ring r 3 (`light` open or active, `mid` collapsed during expand), same dithered fill |
-| Leaf dot 3 x 3 | done: solid `light`; open: ring `mid`; missed: `dark` with INK centre; none: one `mid` pixel |
-| Labels | 3x5 font; done leaves and the active branch in CREAM, others `light`, collapsed `mid`; INK 1 px keyline |
-| OPEN button | 9 art px plate: `light` border, INK / `dark` dither fill, "OPEN >" in CREAM |
-| Scanline | every odd art row carries no halo and a thinner fill (built into the rows above): the faint scanline |
+| Fill | even rows: INK where Bayer 4x4 < 8, `deep` at 8..10; odd rows: INK < 5, `dark` at 5 (about 69 % / 37 % cover: translucent with a scanline) |
+| Lighter top edge | first inner row: `mid` (active) or `dark` (collapsed) where Bayer < 8 |
+| Outline | 1 px `light` (active) or `mid` (collapsed); bottom edge one step darker |
+| Corner ticks | 3 px L in CREAM on each corner (`light` when collapsed) and one outer tick pixel 2 px off each corner |
+| Bar | 3 rows: top row `hi`, then `light` for the filled part; empty part `dark` checker; INK notch per segment |
+| State pip | 5 x 5 rounded: done = `light` with a `hi` top; open = `light` ring; missed = `dark` ring, INK centre; none = one `mid` px |
+| Contrast floor | over bright art (mean luma of the dimmed frame under the plate > 70 of 255) the fill thresholds scale x1.5 (the window plates in the reading still) |
 
-No smooth blur anywhere. Glow comes only from the existing bloom on emissive mark pixels, which gl.js already caps
-for marks (gl.js:512 `if ((f & 16) != 0) bl = min(bl, vec3(0.004))`); marks also skip grain (gl.js:515). No new
-GPU pass, texture or shader flag.
+Bigger pixels (zoom 3 and up, the phone): the recipe is per art px, so the dither, scanline and edges scale with
+the art and stay as textured as the room itself; no smoothing, no sub-pixel detail.
 
-### 5.3 Room dim
+### 5.5 Lines
 
-The room dims slightly: peek 12 %, pinned 20 % (the skill view dims to ~40 %, HANDOFF v3.5). Marks keep their
-colour because the dim skips bit4 pixels (the same reason wire.js drops bit4 from rest wires to make them recede).
-Implementation: `ROOM.setDim` (render.js:1591-1594) takes a number 0..1 instead of a boolean (true keeps meaning
-the board dim), tweened over 120 ms; reduced motion snaps.
+1 art px pixel-perfect curves (no L corners). Idle trunks `mid`; hot lines (to the open branch, leaf fans, tether)
+a `light` core plus a sparse `dark` halo on the perpendicular neighbours (Bayer < 6, even rows only).
 
-### 5.4 Night, rain, contrast floor
+### 5.6 Dim, night, rain, glow
 
-- Night: no change; marks are palette-true with the 70 % floor (`gym-lift-expanded-night.png`,
-  `front-reading-steps-night.png`).
-- Rain: weather draws after mark passes (render.js:775), so streaks cross the tree like any in-room light. Kept on
-  purpose (it is in the room). Photo mode hides the tree.
-- Contrast floor: every label keeps a 1 px INK keyline. When the mean luma of the art under a label box exceeds 110
-  (of 255, from the lit frame of the last rest render), a 50 % Bayer INK plate goes behind that label (the window
-  leaves in `front-reading-steps-sunset.png`). Target: label core vs its surround >= 3:1 measured like the wire AC
-  (HANDOFF v3.5: >= 3:1 on every wall).
-- Palette rule: only palette colours; category ramp plus CREAM and INK. Unknown category: the gold ramp (strip.js
-  fallback).
+- Dim: peek 12 % (new numeric `ROOM.setDim(0.12)`, render.js:1591-1594 takes a number; `true` keeps meaning the
+  board dim). Large tree: the board dim (`ROOM.setDim(true)`, the skill view's ~40 % level). Marks keep their colour
+  (the dim skips bit4 pixels).
+- Night: no change; palette-true with the 70 % floor (`gym-open-night.png`).
+- Rain draws after mark passes (render.js:775) and crosses the tree like any in-room light. Photo mode hides trees
+  and tags.
+- Glow: only the existing bloom on emissive mark pixels, which gl.js caps for marks (gl.js:512) and keeps grain off
+  (gl.js:515). No new GPU pass, texture or shader flag.
 
-### 5.5 Hit boxes
+## 6 At rest: every skill prominent
 
-DOM `treeitem`s are absolutely positioned boxes over each drawn node row (dot + label, at least 24 x 24 CSS on fine
-pointers, 44 x 44 on touch), transparent, with focus rings drawn as marks (a 1 px CREAM bracket at the row ends) so
-focus stays pixel-true.
+Built on the v3.5 wires (wire.js REST table, wire.js:33-40):
 
-## 6 Motion
+### 6.1 Brighter rest wire
 
-All steps run on `ROOM.now()` (debug freeze and advance work) and redraw only while busy, like wire.js `busy()`
-(wire.js:479-484).
+- One ramp step up for every rest state: off GOLD_MID -> GOLD; pending GOLD -> GOLD_HI (node GOLD_HI -> SUN); top
+  GOLD / SUN unchanged (it breathes); half GOLD_HI; full GOLD_HI / CREAM; neglect SLATE_1 -> SLATE_2.
+- A sparse outer halo: GOLD_DK at Bayer < 4 on even rows, one px outside the INK keyline, on every rest wire (not
+  for neglected skills).
+- Contrast re-measured with the wire AC harness (room-v35-wire.mjs ac): >= 3:1 on every wall, day and night.
+
+### 6.2 Holo tag
+
+A small plate (the 5.4 recipe, 13 art px high) per skill item: state pip (today: done, open, missed, none) and the
+skill name in the 5x7 face at 1x, CREAM title tone, in the skill's ramp; neglected skills use the slate ramp and no
+surge. Placed 5 art px above the item's hit box, centred; below the box when its top edge lies inside another
+skill's box (AI BUILDING under the monitors); de-overlapped greedily upward like the nameplates (overlay.js:175).
+A dotted 1 px `mid` tether (even rows) joins tag and wire. Tags show on walls and zones; hidden in the overview
+(items too small), in photo mode, and for the item whose tree shows. Phone: tags in zone view only; walls show the
+pip alone. Tags are not separate targets: they share the item's hotspot button (the button's box grows to include
+the tag).
+
+### 6.3 Gentle surge at rest
+
+One 6 px bright segment runs once around each tag outline every 6 s, items staggered by 0.75 s; one 4 px GOLD_HI
+segment runs along each rest wire once every 8 s. Stepped (80 ms per step), never on neglected skills, none under
+reduced motion. No bob (moving text by 1 art px reads as jitter).
+
+## 7 Motion
+
+All steps run on `ROOM.now()` and request frames only while busy, like wire.js `busy()` (wire.js:479-484).
 
 | Event | Timeline |
 | --- | --- |
-| Peek in | f0: centre ring; f1..f4 (4 x 40 ms): trunks revealed 25 % of their pixel path per frame; f4: branch nodes appear with one pulse (ring in CREAM for 80 ms, then `light`); labels in 2 Bayer steps (2 x 40 ms). Total ~240 ms |
-| Flicker | once at peek in: the halo pixels drop for frame f2 only (40 ms) |
-| Scanline sweep | once at pin: a 4-row band with no halo moves top to bottom over 320 ms in 40 ms steps; never loops |
-| Expand | leaf curves 4 x 40 ms; leaf dots pop on the last frame (one CREAM pulse 80 ms); the other branches collapse in 2 x 40 ms (labels to counts) |
-| Collapse | reverse of expand, 2 x 40 ms |
-| Retract (leave, Esc, nav start, skill view) | 2 x 40 ms into the centre node, then gone; nav start: instant |
-| Rest | static: no breathing, no idle loop (zero cost when idle) |
+| Peek in | f0 centre disc; f1..f4 (4 x 40 ms) trunks drawn 25 % of their pixel path per frame; f4 branch nodes with one pulse (CREAM ring 80 ms); labels in 2 Bayer steps. ~240 ms |
+| Large open (pull-up) | f0..f1 centre plate grows out of the object's top edge (outline first, then fill in 2 Bayer steps); f2..f5 trunks and branch plates (outline, then fill, then text); f5..f8 leaf fans and leaf plates top to bottom, one per 40 ms. ~360 ms; a single click shows the first frame at once |
+| Flicker | once on open: halo and fill pixels drop for one 40 ms frame |
+| Branch change | old leaves retract 2 x 40 ms, new leaves fan 4 x 40 ms |
+| Plate surge | per plate, a 6 px segment (light, hi, CREAM, CREAM, hi, light) laps the outline clockwise in 20 steps of 80 ms (1.6 s), then rests 3.2 s; plates offset by 0.4 s; the open branch plate and OPEN SKILL surge, collapsed plates do not |
+| Retract (Esc, outside, nav start, skill view) | 2 x 40 ms back into the centre plate; nav start: instant |
+| At rest | 6.3 |
 
-Reduced motion (`prefers-reduced-motion` or `?motion=0`, core.js:193-199): every state change is instant and
-complete, no flicker, no pulse, no sweep; the 120 ms hover intent delay stays (it is not motion).
-
-## 7 Phone
-
-- Long-press 350 ms on a skill object pins its tree (on a wall: step into the object's zone, pin at landing).
-  Cancelled by movement over 8 px (it is a pan) or pointerup before 350 ms (a tap). Haptic-free (no
-  `navigator.vibrate`). The `.hs` buttons get `-webkit-touch-callout: none` and `user-select: none`; `contextmenu`
-  is prevented on them so the OS menu never appears.
-- A tap on a skill object in a zone pins the tree too (object = tree). A tap on a wall object still steps into the
-  zone first (overlay.js:284-289).
-- Layout: the tree takes the band above a short sheet (`phone-longpress-reading-sunset.png`): the sheet shows the
-  skill header (as the v3.5 sheet) plus one 44 px "OPEN SKILL VIEW" button and two hint lines ("TAP A LEAF TO OPEN
-  IT THERE", "TAP THE ROOM OR SWIPE DOWN TO CLOSE"). The sheet is a compact mode of the existing board
-  (`ROOM.ui.open(id, {mode: 'holo'})`), not a new component (Q5).
-- Leaf rows are 22 art px apart (44 CSS at 2 CSS per art px); the tree uses the band width; labels truncate at 10
-  chars.
-- Close: tap empty room, swipe the sheet down, or the sheet's close button. Android Back: the tree has no history
-  entry, so Back today would run nav's popstate move (nav.js:682); the build either pushes a throwaway entry while
-  pinned on the phone or accepts that Back leaves the zone (Q8).
+Reduced motion (`prefers-reduced-motion` or `?motion=0`, core.js:193-199): every change instant and complete, no
+flicker, no pulse, no surge (plates and tags static); the 120 ms hover intent and 300 ms double-click window stay
+(they are input timing, not motion).
 
 ## 8 Performance budget
 
-- Mark pass under 0.3 ms per frame in headless Chromium with SwiftShader at 1280 x 800 (measured like wire.js
-  `lastPassMs`, exposed as `ROOM.holo.lastPassMs`).
-- Pixel lists (lines, discs, labels, plates) are built once per layout and cached; a frame is one loop of
-  `plotMark` over at most ~3,000 pixels (the expanded gym tree in the still is ~2,900 art px including keylines and plates).
-- No extra GPU passes, textures or uniforms; frames are only requested while `ROOM.holo.busy(now)` is true.
-- `buildTree` and layout under 1 ms on pin or expand.
+### 8.1 Budgets
 
-## 9 Acceptance criteria and tests
+- Peek mark pass < 0.3 ms per frame (headless Chromium, SwiftShader, 1280 x 800).
+- Large tree mark pass < 0.5 ms: about 25,000 to 30,000 art px (plate fills at ~50 % cover, text, outlines) written
+  from a cached typed list by `plotMarks` (one tight loop over `Uint32Array` pairs of buffer index and palette
+  index + flags). The surge rewrites at most 6 px per plate on top of the cached list.
+- Tags and brighter wires at rest: < 0.15 ms per frame added to the wire pass.
+- No extra GPU passes, textures or uniforms. `buildTree` + layout < 1 ms on open or branch change.
+- Frames: the room already renders live rest frames (motes, weather, the top-priority breath); surges ride those.
+  When nothing else animates, the surge steps request at most 12.5 frames per second, and stop while the tab is
+  hidden. Measured as `ROOM.holo.lastPassMs`.
 
-### 9.1 Acceptance (measurable)
+## 9 Phone
 
-1. Hover on a skill object for 120 ms shows the peek; under 120 ms shows nothing; focus shows it at once.
-2. Peek in completes in <= 260 ms; reduced motion: complete in the same frame.
-3. Click on the object pins; it no longer opens the skill view. OPEN and every leaf open it (leaf: correct tab and
-   item focused).
-4. At most one branch expanded; at most 6 branches and 8 leaves drawn.
-5. Every tree pixel is a palette colour and lies on the art grid (crisp harness: zero non-palette colours inside the
-   tree box on the Canvas2D path; on GL, every 2 x 2 (z = 2) block inside the tree is uniform).
-6. Tree box <= 34 % of the viewport width at 1280, 1440 and 1920; never overlaps the HUD strip or chevrons.
-7. Label contrast >= 3:1 against the surround on every wall, day and night.
-8. Hit targets: >= 24 CSS px on fine pointers, >= 44 on touch.
-9. Esc order as 2.3; focus returns to the object button on close and to the opener after the skill view closes.
-10. Screen reader: role tree with correct levels, expanded state, set size and position; names in full words.
-11. Mark pass < 0.3 ms (SwiftShader); no new GPU passes.
-12. No art pixel changes outside the tree box: the frame's palette index buffer with the tree pinned equals the
-    buffer without it everywhere outside the tree box (the dim is GPU-side and does not touch indices).
+- Long-press 350 ms on a skill object opens the large tree (on a wall: steps into the zone, opens at landing);
+  movement over 8 px cancels (it is a pan). Haptic-free. `.hs` buttons: `-webkit-touch-callout: none`,
+  `user-select: none`, `touch-action: manipulation`, `contextmenu` prevented.
+- Tap on a skill object in a zone opens the large tree; double-tap opens the skill view directly.
+- Layout (`phone-open-reading-sunset.png`): a vertical stack over the dimmed room: the centre plate across the width
+  (name at 2x, two 1x lines, bar); the branch plates as a row of chips (up to 3 per row, 26 art px high); the open
+  branch's leaves as full-width 22 art px rows (44 CSS), each with label and value on two lines; a bottom action bar
+  (INK, like the sheet chrome) with OPEN SKILL VIEW (44 CSS high) and the hint "DOUBLE TAP OPENS IT DIRECTLY".
+  The object keeps its brackets behind the dim.
+- Close: tap empty room or swipe down on the bar. Android Back: the tree has no history entry, so Back runs nav's
+  popstate move (nav.js:682); the build pushes a throwaway entry while the tree is open on the phone (Q3).
 
-### 9.2 Tests
+## 10 Acceptance criteria and tests
 
-Unit (Vitest, tests/unit/room-holo.test.ts): `buildTree` (branch order, counts, tier and strip states, caps and
-"+N MORE", empty skill, unknown category); layout (side choice, arc and column positions are integers, clamping to
-margins, truncation, leaf gap per pointer and zoom); input state machine (intent delay, grace, Esc order).
+### 10.1 Acceptance (measurable)
 
-Data (tests on room.ts): `goals[].id`, `goals[].recent` (7 max, oldest first, tiers), `seriesDays` length equals
-`series`.
+1. Hover >= 120 ms shows the small peek; < 120 ms shows nothing; focus shows it at once.
+2. A single click shows the first frame of the large tree in the same frame as the click (no delay); open completes
+   in <= 380 ms; reduced motion: complete in the same frame.
+3. A double-click (or Shift+Enter, or double-tap) opens the skill view; the second click of a double-click never
+   lands as a plate click.
+4. OPEN SKILL and every leaf open the skill view at the right tab and item.
+5. At most one branch open; at most 6 branches and 8 leaves (5 at 1920 x 1080).
+6. Every tree, tag and wire pixel is a palette colour on the art grid (crisp harness: zero non-palette colours in
+   the tree box on Canvas2D; on GL every z x z block inside the tree is uniform).
+7. Text: 1x cap height >= 14 CSS px at 1280; 2x titles >= 28 CSS px; 1x contrast >= 4.5:1, 2x >= 3:1.
+8. Large tree inside the margins at 1280, 1440, 1920 and phone; never over the HUD strip or chevrons.
+9. Targets: >= 24 CSS px on fine pointers (leaf rows 38 CSS at 1280), >= 44 on touch.
+10. Esc order as 2.4; focus returns to the object after close and to the opener after the skill view.
+11. Screen reader: role tree, levels, expanded state, set size and position; full-word names; the computer group
+    level present.
+12. Computer: hovering or clicking either item shows one COMPUTER centre with both skills on opposite sides.
+13. At rest: every active skill on the current wall shows its tag and the brighter wire; wire contrast >= 3:1.
+14. Peek < 0.3 ms, large < 0.5 ms, rest additions < 0.15 ms (SwiftShader); no new GPU passes.
+15. No art pixel changes outside the tree box and tag boxes: the palette index buffer with trees and tags on equals
+    the buffer with them off everywhere else (the dim is GPU-side and does not touch indices).
+16. Overview: a click opens the tree over the diorama; OPEN SKILL descends and opens the skill view.
 
-e2e (Playwright, tests/e2e/room-holo.spec.ts, helpers from room-helpers.ts): hover peek; click pin; accordion (expand
-one, the other collapses, click again collapses); Esc order; click outside; leaf opens the skill view at the item
-(tab and focused row); OPEN opens it; Back returns with the tree closed and focus on the object; keyboard path
-(Tab, Enter, arrows, Enter on leaf); long-press on the phone viewport (pin, tap leaf, swipe close; short tap does
-not pin); reduced motion (instant, no busy frames); the pixel check of 9.1.12; nav move closes the tree.
-Updated: tests/e2e/room.spec.ts and room-skill.spec.ts where a click on an object expected the skill view (they
-click OPEN, or use the direct-open shortcut if Q2 adds one).
+### 10.2 Tests
 
-Harness: extend scripts/room-v35-wire.mjs (or a new room-holo.mjs) with `stills | crisp | ac | perf`.
+Unit (Vitest, tests/unit/room-holo.test.ts): `buildTree` (branch order, values, subs, bars, tier and strip states,
+caps, empty skill, groups, mental ramp for reading); layout (peek arc, large placement, mirror rule, margins,
+reductions per breakpoint, split sides, all coordinates integers); text raster (texture rules, widths); plate raster
+(contrast floor switch); click and double-click detector (single click immediate, 300 ms window, 6 px radius).
 
-## 10 Open questions and risks
+Data: `goals[].id`, `goals[].recent` (<= 7, oldest first, today's tier), `seriesDays` length equals `series`,
+reading's category is mental.
 
-- Q1 Labels as engine marks (recommended, 5.1) or DOM text in Silkscreen?
-- Q2 Muscle memory: click on an object stops opening the skill view. Keep a shortcut (double-click the object, or
-  Shift+Enter) that opens the skill view directly? room.spec.ts and room-skill.spec.ts change either way.
-- Q3 Shared objects with two skills (an item with `of`, e.g. a computer that carries two skills): v1 proposal: two
-  centre nodes stacked 24 art px apart, each its own tree; or one centre that first splits into the skills.
-- Q4 Overview: keep direct skill view there (v1), or show the tree after the descend?
-- Q5 Phone sheet: the compact "holo" sheet mode (7) vs no sheet at all (tree only, OPEN on the centre node).
-- Q6 Reading's category: the stills draw reading with the school ramp (slate); the build uses the real category.
-- Q8 Phone Back while pinned: close the tree (needs a throwaway history entry) or leave the zone as today?
-- Q7 Should "LAST 7" be one strip leaf (as drawn) or seven separate leaves (would hit the 8-leaf cap with tiers)?
-- Risk: the tree over bright art (the window at sunset) needs the contrast plate, which is the least "hologram"
-  part; the side rule should prefer darker free space when both sides fit (score free area minus bright area).
-- Risk: hover intent and grace can feel sticky on dense walls (kitchen); tune 120 / 200 ms with Jaxon.
-- Risk: feature hotspots (statue, calendar, Today) are excluded in v1, so a click on them still does the old thing:
-  two behaviours in one room. They get no tree, so the difference is visible (no hologram on hover).
-- Risk: dim as a number changes `ROOM.setDim`'s signature; callers pass booleans today (keep true/false working).
+e2e (Playwright, tests/e2e/room-holo.spec.ts with room-helpers.ts): hover peek; click opens the large tree; accordion;
+double-click opens the skill view; Esc order; click outside; leaf opens the skill view at the item; OPEN SKILL;
+Back returns with the tree closed and focus on the object; keyboard path (Tab, Enter, arrows, Shift+Enter); computer
+split from either item; overview click; at-rest tags present and not overlapping; phone (tap and long-press open,
+double-tap opens the skill view, short tap on a wall steps into the zone, swipe close); reduced motion (instant, no
+busy frames); the pixel check of 10.1.15. Updated: tests/e2e/room.spec.ts, room-skill.spec.ts and
+room-overview.spec.ts where a click on an object expected the skill view (they double-click, or click OPEN SKILL).
 
-## 11 Build plan (later, after approval)
+Harness: a new scripts/room-holo.mjs (`stills | crisp | ac | perf`) next to room-v35-wire.mjs.
+
+## 11 Open questions and risks
+
+- Q1 The large tree may cover the object it came from (the gym still). Keep the brackets and tether as the link, or
+  always keep the object uncovered and accept a smaller tree on crowded walls?
+- Q2 Tags replace the hover nameplates for skills. Do features (statue, calendar, Today) also get tags, or stay as
+  they are in v1?
+- Q3 Phone Back while the tree is open: close the tree (needs a throwaway history entry) or leave the zone as today?
+- Q4 Should the at-rest surge run on every skill, or only on skills with an open goal today (calmer room, clearer
+  signal)?
+- Q5 The computer's group is explicit in the manifest (`group: 'computer'`). Are there other pairs that should share
+  a centre (gym running + triathlon)?
+- Risk: a busy wall at rest (six tags on the right wall) reads as UI rather than room; the still keeps them small
+  (13 art px) and the rest surge rare. Tune with Jaxon on the real build.
+- Risk: double-click relies on the second click not being eaten by the growing tree; the 6 px / 300 ms rule covers
+  it and is unit tested.
+- Risk: the large tree volume (25,000+ px) is the most expensive mark pass so far; the batch writer is required, not
+  optional.
+- Risk: `ROOM.setDim` becomes numeric; boolean callers keep working.
+
+## 12 Build plan (later, after approval)
 
 | File | Change |
 | --- | --- |
-| `engine/holo.js` (new, engine agent) | state machine, `buildTree`, layout, pixel-list cache, mark pass `addMarkPass('holo')`, motion, `busy`, `lastPassMs`; pure parts in `module.exports` |
-| `engine/overlay.js` | `activate(d)` pins for skills; nameplate suppression; `div[role=tree]` mirror and hit boxes; live region text |
-| `engine/input.js` | Esc order step 4-5; long-press 350 ms; click-outside closes; arrows consumed inside the tree |
-| `engine/nav.js` | `at` passed through to `ui.open`; close the tree on `nav` start (or holo.js listens) |
+| `engine/holo.js` (new) | state machine, click and double-click detector, `buildTree`, groups, peek and large layout, text and plate rasters, cached lists, mark pass, motion and surge, `busy`, `lastPassMs`; pure parts in `module.exports` |
+| `engine/wire.js` | brighter REST table, outer halo, rest surge along wires, tags (or tags in holo.js with a shared raster) |
+| `engine/overlay.js` | `activate(d)` opens the tree for skills; `dblclick` shortcut; tag-aware button boxes; nameplates off for skills; ARIA tree mirror; live region text |
+| `engine/input.js` | Esc order; Shift+Enter; long-press and double-tap; click outside; arrows consumed inside the tree |
+| `engine/nav.js` | `at` passed to `ui.open`; tree closes on nav start; overview path from the tree |
+| `engine/overview.js` | click opens the tree instead of descending; OPEN SKILL descends |
 | `engine/skill.js` | `opts.fromHolo` origin for selK / haloK |
-| `engine/render.js` | `setDim(k)` numeric; register order wire -> holo |
-| `ui/panel.js` | `open(id, {at, mode: 'holo'})`: tab and focus on open; phone compact sheet |
-| `src/lib/data/room.ts`, `scripts/room-proto-data.ts` | `goals[].id`, `goals[].recent`, `seriesDays` |
-| tests | unit room-holo, data, e2e room-holo, updates to room.spec / room-skill.spec, harness |
-| `index.html`, `styles.css` | load holo.js; `.holo` styles, touch callout off |
+| `engine/render.js` | `setDim(k)` numeric; `plotMarks` batch writer; pass order wire -> holo |
+| `ui/panel.js` | `open(id, {at})`: tab and focus on open |
+| art manifest | `group: 'computer'` on `computer.board` and `computer.ai` |
+| `src/lib/data/room.ts`, `scripts/room-proto-data.ts`, seed | `goals[].id`, `goals[].recent`, `seriesDays`; reading -> mental |
+| tests | unit room-holo, data, e2e room-holo, updates to room / room-skill / room-overview specs, harness |
+| `index.html`, `styles.css` | load holo.js; `.holo` and `.hs` touch styles |
 
-Effort: about 3 to 4 focused days: holo.js 1.5 d, overlay/input/nav/skill hooks 0.5 d, panel `at` and phone sheet
-0.5 d, data 0.25 d, tests and harness 1 d, tuning with Jaxon 0.25 d.
+Effort: about 5 to 6 focused days: holo.js 2.5 d (rasters, layouts, split), rest treatment 0.5 d, hooks (overlay,
+input, nav, overview, skill) 1 d, panel and data 0.5 d, tests and harness 1 d, tuning with Jaxon 0.5 d.
+
+## Decisions, review round 3 (Jaxon, 2026-11-11; to fold into the sections above)
+1. The main object is never covered. Opening the big tree moves the object to the centre of the tree with visible
+   illumination; the hologram tree gets a subtle energizing effect and is sized and attached to fit each object.
+2. Features also get at-rest tags; the statue's tag reads FORGE.
+3. The at-rest surge runs only on skills with a goal open today.
+4. Paired skills share a centre like the computer (e.g. running and triathlon).
+5. Android Back closes an open tree.
+6. Categories: academics is mind; ai-building and dropshipping are business.
+7. Next step: a general mockup of how the hologram pulls up, from inspiration images Jaxon will upload. No build yet.
