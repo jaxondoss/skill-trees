@@ -20,8 +20,10 @@
   var TIERS = ['floor', 'standard', 'stretch'];
   var TIER_NAME = { floor: 'Floor', standard: 'Standard', stretch: 'Stretch' };
   var DOW = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-  // review round 3, decision 6: academics reads as mind (the data's category is still school)
-  var CAT_OVERRIDE = { academics: 'mind' };
+  // review round 3, decision 6 (and review round 2): academics and reading are mind (mental), ai-building and
+  // dropshipping are business, whatever the data's category says
+  var CAT_OVERRIDE = { academics: 'mind', reading: 'mind', 'ai-building': 'business', dropshipping: 'business' };
+  var CAT_LABEL = { mind: 'Mental' };
   var PLANNED_LIFTS = 4; // assumption: Lyfta has no schedule
   var MUSCLES = ['chest', 'shoulders', 'biceps', 'triceps', 'forearms', 'abs', 'obliques', 'upperBack', 'lowerBack', 'glutes', 'quads', 'hamstrings', 'calves'];
 
@@ -853,7 +855,7 @@
       return c.slug === rp.cat;
     }).map(function (c) {
       return c.name;
-    })[0] || rp.cat)));
+    })[0] || CAT_LABEL[rp.cat] || rp.cat)));
     plate.appendChild(el('h2', 'hl-title' + (skills.length > 1 ? ' two' : ''), skills.map(function (s) {
       return s.name;
     }).join(' + ')));
