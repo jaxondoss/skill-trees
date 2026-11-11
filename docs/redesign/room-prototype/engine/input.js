@@ -373,6 +373,11 @@
     window.addEventListener('pointerup', onPointerUp);
     window.addEventListener('pointercancel', onPointerCancel);
     stage.addEventListener('wheel', onWheel, { passive: false });
+    // the hologram: a double-click on the lifted object opens its skill view in place
+    stage.addEventListener('dblclick', function (e) {
+      var t = tgt();
+      if (t.mode === 'skill' && t.holo && ROOM.skill && ROOM.skill.hitHero(e.clientX, e.clientY)) nav().toBoard();
+    });
   }
 
   ROOM.input = {

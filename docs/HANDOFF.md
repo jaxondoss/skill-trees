@@ -178,6 +178,21 @@ Known: overview item-wise hue gap vs walls stays ~24 deg by day (the frame hue s
 in floor), night overview frame luma +18 % vs the front wall; RISE contact sheets from readFrame can show stale frames
 (live screenshots are smooth).
 
+## Room skill hologram (2026-11-11, from the approved gym mockup)
+- engine/holo.js + ui/holo.css: a single click / Enter on a skill object is a skill place with `holo: true`; skill.js
+  lifts the hero to the centre column (`layout({centre})`, small objects up to 5x room zoom) and calls
+  `ROOM.holo.show` instead of opening the board. Three nodes per skill (graph with DAY/WEEK, a skill visual, Today's
+  tier checks via `ROOM.uiToday.setResult`), tethered; the computer shows ai-building left, dropshipping right.
+  Double-click / Shift+Enter / OPEN SKILL / double-click on the lifted object: `ROOM.nav.toBoard()` (same URL, no
+  new history entry). Esc, a click on the room, Back close. `ROOM.holo.busy()` (pull-up 1.2 s, the 240 ms
+  double-click wait) feeds `ROOM.nav.busy`. Features keep the skill view.
+- Data: `skills[].log28` (tier rank per day, room.ts and room-proto-data.ts); strength uses `window.ROOM_LYFTA` or
+  `ROOM.data.lyfta` (src/lib/data/lyftaSummary.ts; the app fetches it when LYFTA_API_KEY is set). The prototype's
+  docs/redesign/room-prototype/lyfta.js is the owner's real workouts (`NODE_USE_ENV_PROXY=1 node
+  scripts/room-lyfta-snapshot.mjs`): prototype pages and artifacts only, never public/room. Assumed: day boundary
+  America/Los_Angeles, 4 planned lifts a week.
+- Tests: tests/e2e/room-holo.spec.ts, tests/unit/room-holo.test.ts.
+
 ## skill-pack
 Added (skills in `.claude/skills/`, sources in `vendor/`): superpowers (minus using-superpowers and its
 hook), karpathy-guidelines, 9 Trail of Bits security skills, pixel-art-studio (scripts at
