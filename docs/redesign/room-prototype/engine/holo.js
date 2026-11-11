@@ -282,8 +282,9 @@
       var x = Math.round(i * (bw + gap));
       var pv = opts.val(w.prev[i]);
       if (pv > 0) {
+        // last week: a dashed tick at its height
         var ph = Math.max(2, Math.round(((H - 4) * pv) / max / 2) * 2);
-        s.appendChild(sv('rect', { x: x + 1, y: H - ph + 1, width: bw - 2, height: ph - 2, fill: 'none', stroke: 'var(--hl-dim)', 'stroke-width': 2, 'stroke-dasharray': '4 2' }));
+        for (var dx = 0; dx < bw; dx += 6) s.appendChild(sv('rect', { x: x + dx, y: H - ph, width: 4, height: 2, fill: 'var(--hl-dim)' }));
       }
       var v = opts.val(d);
       if (v > 0) {
@@ -458,10 +459,10 @@
   // highlight, x = ink outline, : = separation shadow, n = skin, p = shorts. See SKILL_TREE_HOLO.md (avatar).
   var FIG = {
     front: [
-      '............xxxx', '..........xxnnnn', '..........xnnnnn', '.........xnnnnnn', '.........xnnnnnn',
-      '.........xnnnnnn', '..........xnnnnn', '..........xxnnnn', '...........xnnnn', '..........xxuunn',
+      '............xxxx', '...........xnnnn', '..........xnnnnn', '..........xnnnnn', '..........xnnnnn',
+      '..........xnnnnn', '...........xnnnn', '............xnnn', '............xnnn', '..........xxuunn',
       '.......xxxuuuuun', '.....xxsSSxuuuuu', '....xsSSssxxcccc', '...xsSssssxcCCCc', '...xssssssxcCCCc',
-      '...xsssss:cCCccc', '...xbsss:ccccccc', '...xbBs:xccccc::', '...xbBbx.x::::aa', '...xbBbx.xooxaAa',
+      '...xsssssxcCCccc', '...xbsss:xcccccc', '...xbBbx.xcccc::', '...xbBbx.x::::aa', '...xbBbx.xooxaAa',
       '...xbBbx.xoox:::', '...xbbbx.xooxaAa', '...xbbbx.xooxaaa', '...x:::x.xoox:::', '..xfFffx.xooxaAa',
       '..xfFffx.xooxaaa', '..xfFfx..xoox:::', '..xfffx..xooxaAa', '..xfffx...xoxaaa', '..xfffx...xppppp',
       '..xffx....xppppp', '..xnnx....xqqqqp', '..xnnnx..xqQqqqx', '..xnnnx..xqQqqqx', '...xnx...xqQqqqx',
@@ -471,8 +472,8 @@
       '.........xkknx..', '.........xknnx..', '.........xnnnx..', '........xnnnnx..', '........xxxxxx..',
     ],
     back: [
-      '............xxxx', '..........xxnnnn', '..........xnnnnn', '.........xnnnnnn', '.........xnnnnnn',
-      '.........xnnnnnn', '..........xnnnnn', '..........xxnnnn', '...........xnnnn', '..........xxuuuu',
+      '............xxxx', '...........xnnnn', '..........xnnnnn', '..........xnnnnn', '..........xnnnnn',
+      '..........xnnnnn', '...........xnnnn', '............xnnn', '............xnnn', '..........xxuuuu',
       '.......xxxuuUUuu', '.....xxsSSxuUUuu', '....xsSSssxuuuu:', '...xsSssssxuuuu:', '...xssssssxuuuu:',
       '...xsssss:uuuuu:', '...xtsss:uuUuuu:', '...xtTs:xuuUuu::', '...xtTtx.xuuuu:l', '...xtTtx.xuuu:ll',
       '...xtTtx.xuu:lLl', '...xtttx.xu:llLl', '...xtttx.x:lllLl', '...x:::x.xllllll', '..xfFffx.xllllll',
@@ -549,7 +550,8 @@
     top.appendChild(ringSvg(done / planned, done + '/' + planned, 'LIFTS', planned * 3));
     var cap = el('div', 'hl-cap');
     cap.appendChild(el('b', null, done + ' of ' + planned + ' lifts'));
-    cap.appendChild(el('span', null, 'this week (4 planned, assumed)'));
+    cap.appendChild(el('span', null, 'this week'));
+    cap.appendChild(el('small', null, planned + ' planned (assumed)'));
     top.appendChild(cap);
     body.appendChild(top);
     var m = L && L.muscles7d ? muscleLevels(L.muscles7d.volume) : null;
@@ -580,7 +582,7 @@
       });
       key.appendChild(el('span', null, fmt(m.max) + ' LB'));
       body.appendChild(key);
-      body.appendChild(el('p', 'hl-note', 'Last 7 days, weight x reps' + (L.asOf ? ', Lyfta ' + shortDate(L.asOf) : '')));
+      body.appendChild(el('p', 'hl-note', 'Last 7 days, Lyfta' + (L.asOf ? ' ' + shortDate(L.asOf) : '')));
     } else body.appendChild(empty('No Lyfta data yet.'));
     return node;
   }
@@ -763,6 +765,7 @@
   /* ------------------------------------------------------------------ panels, layout, tethers */
   function panel(skill, kind, title) {
     var p = el('section', 'hl-panel hl-' + kind);
+    if (open && open.slugs.length > 1) p.appendChild(el('p', 'hl-skill', upper(skill.name)));
     p.dataset.skill = skill.slug;
     p.dataset.kind = kind;
     var rp = rampOf(skill);
@@ -907,7 +910,7 @@
     root.style.setProperty('--hy', Math.round((hr.top + hr.bottom) / 2) + 'px');
     root.style.setProperty('--hs', Math.round(Math.max(hr.width, hr.height) * 0.9) + 'px');
     plate.style.left = cx + 'px';
-    plate.style.top = Math.max(8, Math.round(hr.top) - (phone ? 52 : 74)) + 'px';
+    plate.style.top = Math.max(phone ? 60 : 8, Math.round(hr.top) - (phone ? 50 : 74)) + 'px';
     if (phone) {
       // phone: the nodes stack and scroll under the object
       var top = Math.round(hr.bottom + 8);
@@ -927,8 +930,8 @@
     foot.style.left = cx + 'px';
     foot.style.top = Math.round(hr.bottom + 14) + 'px';
     var gap = 40, mT = 56, mB = 44;
-    var lw = Math.min(300, Math.round(hr.left - gap - 16));
-    var rw = Math.min(300, Math.round(vw - 16 - hr.right - gap));
+    var lw = Math.min(268, Math.round(hr.left - gap - 16));
+    var rw = Math.min(268, Math.round(vw - 16 - hr.right - gap));
     cols.L.style.cssText = 'left:' + Math.round(hr.left - gap - lw) + 'px;top:' + mT + 'px;width:' + lw + 'px;height:' + (vh - mT - mB) + 'px;justify-content:' + cols.L.style.justifyContent;
     cols.R.style.cssText = 'left:' + Math.round(hr.right + gap) + 'px;top:' + mT + 'px;width:' + rw + 'px;height:' + (vh - mT - mB) + 'px;justify-content:' + cols.R.style.justifyContent;
     drawTethers(hr);
@@ -956,7 +959,8 @@
       var py = ev(Math.min(Math.max(r.top + 22, hr.top + 12), r.bottom - 12));
       var hx = ev(left ? hr.left - 6 : hr.right + 6);
       var hy = ev(Math.min(Math.max(py, hr.top + 12 + i * 6), hr.bottom - 12));
-      var mx = ev((px + hx) / 2);
+      // the elbow sits by the panel, so the run into the object stays inside its height (clear of the title)
+      var mx = ev(px + (left ? 14 : -14));
       var pts = [px, py, mx, py, mx, hy, hx, hy];
       var d = 'M' + pts[0] + ' ' + pts[1] + ' H' + pts[2] + ' V' + pts[5] + ' H' + pts[6];
       var len = Math.abs(mx - px) + Math.abs(hy - py) + Math.abs(hx - mx);

@@ -35,8 +35,8 @@
       if (phone) {
         bx0 = 0;
         bx1 = o.vw;
-        by0 = 76;
-        by1 = o.vh * 0.44;
+        by0 = 124;
+        by1 = o.vh * 0.42;
       } else {
         var cw = Math.max(240, Math.min(o.vw * 0.34, 460));
         bx0 = (o.vw - cw) / 2;
@@ -68,6 +68,8 @@
     var fit = Math.floor(Math.min((bw * 0.92) / hw, (bh * 0.92) / (hh + 10)));
     var want = Math.max(zZ + 1, Math.ceil(((phone ? 0.55 : 0.4) * bh) / hh));
     var k = Math.max(Math.min(want, fit, 3 * zR, 2 * zZ), Math.min(zR + 1, fit));
+    // the hologram: small objects grow further (up to 5x the room zoom) so they read in the centre
+    if (o.centre) k = Math.max(k, Math.min(want, fit, 5 * zR));
     k = Math.max(1, k | 0);
     var w = hw * k, h = hh * k;
     var cx = bx0 + bw / 2, cy = by0 + (o.centre ? 0.5 : 0.47) * bh;

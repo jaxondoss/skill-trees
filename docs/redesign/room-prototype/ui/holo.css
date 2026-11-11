@@ -381,6 +381,21 @@ body.holo-open #room-hotspots button {
   text-transform: uppercase;
   color: var(--hl-cream);
 }
+.hl-cap small {
+  display: block;
+  font-family: var(--hl-fp);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hl-dim);
+}
+.hl-skill {
+  margin: 0 0 2px;
+  font-family: var(--hl-fp);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  color: var(--hl-light);
+}
 .hl-cap span {
   font-size: 17px;
   line-height: 16px;
@@ -607,6 +622,16 @@ body.holo-open #room-hotspots button {
   animation: none !important;
 }
 
+/* touch: 44 px targets everywhere */
+@media (pointer: coarse) {
+  .hl-open,
+  .hl-close,
+  .hl-act,
+  .hl-seg button {
+    min-height: 44px;
+  }
+}
+
 /* phone: the object up top, the nodes stack and scroll under it; 44 px targets */
 .holo.phone .hl-title {
   font-size: 22px;
@@ -623,7 +648,7 @@ body.holo-open #room-hotspots button {
   bottom: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 4px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  padding: 4px 16px calc(64px + env(safe-area-inset-bottom, 0px));
   gap: 14px;
   pointer-events: auto;
   justify-content: flex-start !important;
