@@ -30,7 +30,21 @@
     var dpr = o.dpr || 1;
     var phone = o.phone != null ? !!o.phone : o.vw <= 640;
     var bx0, bx1, by0, by1;
-    if (phone) {
+    if (o.centre) {
+      // the hologram (engine/holo.js): the hero lifts to the centre column, panels spread around it
+      if (phone) {
+        bx0 = 0;
+        bx1 = o.vw;
+        by0 = 124;
+        by1 = o.vh * 0.42;
+      } else {
+        var cw = Math.max(240, Math.min(o.vw * 0.34, 460));
+        bx0 = (o.vw - cw) / 2;
+        bx1 = bx0 + cw;
+        by0 = 112;
+        by1 = o.vh - 104;
+      }
+    } else if (phone) {
       var st = o.sheetTop != null ? o.sheetTop : o.vh * 0.42;
       bx0 = 0;
       bx1 = o.vw;
@@ -54,9 +68,11 @@
     var fit = Math.floor(Math.min((bw * 0.92) / hw, (bh * 0.92) / (hh + 10)));
     var want = Math.max(zZ + 1, Math.ceil(((phone ? 0.55 : 0.4) * bh) / hh));
     var k = Math.max(Math.min(want, fit, 3 * zR, 2 * zZ), Math.min(zR + 1, fit));
+    // the hologram: small objects grow further (up to 5x the room zoom) so they read in the centre
+    if (o.centre) k = Math.max(k, Math.min(want, fit, 5 * zR));
     k = Math.max(1, k | 0);
     var w = hw * k, h = hh * k;
-    var cx = bx0 + bw / 2, cy = by0 + 0.47 * bh;
+    var cx = bx0 + bw / 2, cy = by0 + (o.centre ? 0.5 : 0.47) * bh;
     var x = Math.round((cx - w / 2) / k) * k, y = Math.round((cy - h / 2) / k) * k;
     // inside the box (multiples of k); a hero larger than the box stays centred on it
     if (w <= bw) {
@@ -122,6 +138,7 @@
   var shownAt = 0;
   var phase = 'closed'; // closed | lift | shown | drop
   var boardOpened = false;
+  var mode = 'board'; // 'board' (the skill view) | 'holo' (the hologram, engine/holo.js): set by nav.js per leg
   var boardOpts = null; // pending board options (skill tab) for the next LIFT
   var tall = { on: false, t0: 0 }; // phone sheet dragged tall: the hero hides in 2 Bayer steps
   var rowsMax = 0; // atlas rows, grow-only (D1 2.1.1)
@@ -246,7 +263,7 @@
     var phone = isPhone();
     var L = layout({
       vw: vp.c.width, vh: vp.c.height, dpr: vp.V.dpr, phone: phone, sheetTop: phone ? vp.c.height * 0.42 : null,
-      heroW: h.img.w, heroH: h.img.h, zRoom: z.zRoom, zZone: z.zZone,
+      heroW: h.img.w, heroH: h.img.h, zRoom: z.zRoom, zZone: z.zZone, centre: mode === 'holo',
     });
     // layout() places the sprite; the atlas starts one texel (the rim margin) up and left
     return { x: L.x - L.k, y: L.y - L.k, k: L.k };
@@ -367,6 +384,10 @@
 
   function openBoard() {
     boardOpened = true;
+    if (mode === 'holo') {
+      if (cur && ROOM.holo) ROOM.holo.show(cur.id);
+      return;
+    }
     if (!cur || !ROOM.ui || typeof ROOM.ui.open !== 'function') return;
     if (ROOM.state.panel === cur.id) return;
     var o = { side: 'right', hero: true };
@@ -460,6 +481,30 @@
       boardAt: phone ? 0 : Math.round(dur * 0.66),
     });
     return dur;
+  }
+
+  /** Hologram -> skill view in place: the hero glides from the centre to its board spot and the board opens. */
+  function toBoard() {
+    if (mode !== 'holo') return 0;
+    mode = 'board';
+    boardOpened = false;
+    if (!cur) return 0;
+    var to = targetOf(cur);
+    if (!to || !shown || anim || reduced()) {
+      if (to) shown = { x: to.x, y: to.y, k: to.k };
+      openBoard();
+      if (ROOM.invalidate) ROOM.invalidate();
+      return 0;
+    }
+    if (bobTimer) clearTimeout(bobTimer);
+    var from = { x: shown.x, y: shown.y, k: shown.k, selK: 1, heroK: 1, haloK: 1 };
+    to.selK = 1;
+    to.heroK = 1;
+    to.haloK = 1;
+    shown = null;
+    phase = 'lift';
+    startAnim('lift', from, to, MS.swapLift + 40, { boardAt: isPhone() ? 0 : 120 });
+    return MS.swapLift + 40;
   }
 
   /** DROP: back onto the room item (pixel-identical landing). Returns ms. */
@@ -962,6 +1007,13 @@
     },
     swap: swap,
     cancel: cancel,
+    toBoard: toBoard,
+    setMode: function (m) {
+      mode = m === 'holo' ? 'holo' : 'board';
+    },
+    get mode() {
+      return mode;
+    },
     busy: busy,
     sheetTall: sheetTall,
     get phase() {

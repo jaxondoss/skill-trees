@@ -233,7 +233,8 @@
       return;
     }
     if (it.target && it.target.feature === 'calendar') ROOM.nav.request({ mode: 'zone', zone: 'calendar', view: 'back' }, { source: 'overview' });
-    else ROOM.nav.request({ mode: 'skill', item: id }, { source: 'overview', opener: document.activeElement });
+    // a skill object opens its hologram (engine/holo.js); features keep their skill view
+    else ROOM.nav.request({ mode: 'skill', item: id, holo: !!(ROOM.holo && ROOM.skillOf(it)) }, { source: 'overview', opener: document.activeElement });
   }
   function buildList() {
     if (!list) {

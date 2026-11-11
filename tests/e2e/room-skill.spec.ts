@@ -41,7 +41,8 @@ test("D1 AC1/AC7/AC8: same-wall open keeps the camera, k steps up in whole devic
   const cam0 = await camera(page);
   // the bookcase on the front wall: one click, no dolly (R1)
   await page.evaluate(() => (window as unknown as RoomW).ROOM.debug.freeze());
-  await page.locator('.hs[data-id="library.bookshelf"]').click({ force: true });
+  // a double-click opens the skill view (a single click opens the hologram, room-holo.spec.ts)
+  await page.locator('.hs[data-id="library.bookshelf"]').dblclick({ force: true });
   await expect(page).toHaveURL(/\/room\/library\/bookshelf(\?|$)/);
   const frames: SkillDbg[] = [];
   for (let t = 0; t < 12; t++) {
@@ -152,12 +153,13 @@ test("D1 AC10: reduced motion: open and close are one frame each", async ({ page
   expect(c.mean).toBeLessThan(0.5);
 });
 
-test("D1 AC11: keyboard: Enter opens, focus in the board, one Esc closes and restores focus; Back does not reopen; deep link", async ({ page }) => {
+test("D1 AC11: keyboard: Shift+Enter opens, focus in the board, one Esc closes and restores focus; Back does not reopen; deep link", async ({ page }) => {
   await openRoom(page, pinGl("/", "low"));
   await settled(page);
   const hs = page.locator('.hs[data-id="library.bookshelf"]');
   await hs.focus();
-  await page.keyboard.press("Enter");
+  // Enter opens the hologram; Shift+Enter the skill view
+  await page.keyboard.press("Shift+Enter");
   const panel = page.locator(".ui-panel");
   await expect(panel).toBeVisible();
   await expect(page).toHaveURL(/\/room\/library\/bookshelf(\?|$)/);

@@ -132,7 +132,8 @@ test("T2: chess, strength, sleep and the wall calendar from the overview, with t
     await page.locator(`.hs[data-id="top.${id}"]`).dispatchEvent("click");
     await expectSkill(page, id);
     if (id !== "study.time") {
-      expect(await page.evaluate(() => Boolean((window as unknown as RoomW).ROOM.state.panel))).toBe(true);
+      // a skill object opens its hologram from the overview too (room-holo.spec.ts)
+      expect(await page.evaluate(() => Boolean((window as unknown as { ROOM: { holo: { isOpen: () => boolean } } }).ROOM.holo.isOpen()))).toBe(true);
       // closing lands on the item's wall (R3); Back from there returns to the overview (R13)
       await page.keyboard.press("Escape");
       await settled(page);

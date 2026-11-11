@@ -799,6 +799,10 @@
   var open = null; // {id, slugs, t0}
   var until = 0, armed = false;
   var MS_PULL = 1200;
+  var lastEnter = -1e9;
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey && e.target && e.target.closest && e.target.closest('.hs, #overview-list')) lastEnter = performance.now();
+  }, true);
 
   function build() {
     root = el('div', 'holo');
@@ -980,7 +984,8 @@
       place();
       return;
     }
-    var keyboard = document.activeElement && document.activeElement.closest && document.activeElement.closest('.hs') && !(ROOM.input && ROOM.input.touch);
+    // opened from the keyboard (Enter on a hotspot): focus moves to OPEN SKILL
+    var keyboard = performance.now() - lastEnter < 1500;
     open = { id: id, slugs: slugsFor(id), t0: performance.now() };
     if (!open.slugs.length) {
       open = null;

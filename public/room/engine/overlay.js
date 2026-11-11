@@ -270,7 +270,7 @@
    * overview descends first). On touch on a wall the first tap steps into the zone. The Today feature opens its
    * HUD without a move; the study wall calendar leads to the calendar wall (R23).
    */
-  function activate(d) {
+  function activate(d, how) {
     var it = ROOM.stateItem(d.item);
     var nav = ROOM.nav;
     var t = nav.target;
@@ -288,7 +288,42 @@
         return;
       }
     }
-    nav.request({ mode: 'skill', item: it.id }, { source: t && t.mode === 'overview' ? 'overview' : 'click', opener: opener });
+    // a skill object opens its hologram (engine/holo.js); double-click / Shift+Enter (how 'board') opens the skill view
+    var holo = how !== 'board' && !!(ROOM.holo && ROOM.skillOf(it));
+    nav.request({ mode: 'skill', item: it.id, holo: holo }, { source: t && t.mode === 'overview' ? 'overview' : 'click', opener: opener });
+  }
+
+  /**
+   * Hotspot click: a single mouse click waits one double-click interval (ROOM.holo.armClick keeps nav.busy true
+   * meanwhile) so a double-click can open the skill view instead; keyboard and touch activate at once.
+   */
+  var clickTimer = 0;
+  function onHotspotClick(b, e) {
+    var cur = findDrawable(b.dataset.id);
+    if (!cur) return;
+    var skill = !!ROOM.skillOf(ROOM.stateItem(cur.item));
+    if (e.detail >= 2) {
+      if (clickTimer) clearTimeout(clickTimer);
+      clickTimer = 0;
+      if (ROOM.holo) ROOM.holo.armClick(false);
+      if (!skill) return;
+      var t = ROOM.nav.target;
+      if (t && t.mode === 'skill' && t.holo && ROOM.nav.toBoard()) return;
+      activate(cur, 'board');
+      return;
+    }
+    if (e.detail === 1 && skill && !isTouch() && !ROOM.state.reducedMotion && ROOM.holo) {
+      if (clickTimer) clearTimeout(clickTimer);
+      ROOM.holo.armClick(true);
+      clickTimer = setTimeout(function () {
+        clickTimer = 0;
+        ROOM.holo.armClick(false);
+        var c = findDrawable(b.dataset.id);
+        if (c) activate(c);
+      }, 240);
+      return;
+    }
+    activate(cur);
   }
 
   // (Re)create the buttons when the scene changes; order them left to right by zone, then x.
@@ -308,9 +343,15 @@
         b.type = 'button';
         b.className = 'hs';
         b.dataset.id = d.id;
-        b.addEventListener('click', function () {
+        b.addEventListener('click', function (e) {
+          onHotspotClick(b, e);
+        });
+        b.addEventListener('keydown', function (e) {
+          // Shift+Enter: straight to the skill view
+          if (e.key !== 'Enter' || !e.shiftKey) return;
           var cur = findDrawable(b.dataset.id);
-          if (cur) activate(cur);
+          e.preventDefault();
+          if (cur) activate(cur, ROOM.skillOf(ROOM.stateItem(cur.item)) ? 'board' : undefined);
         });
         b.addEventListener('pointerenter', function (e) {
           if (e.pointerType === 'mouse') ROOM.render.setHover(b.dataset.id);

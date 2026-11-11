@@ -73,13 +73,14 @@ test("T opens Today; logging every core goal through the HUD is quick and reache
   await expect(page.getByRole("button", { name: /today's goals, 100%/i })).toBeVisible();
 });
 
-test("a skill hotspot opens its panel, and holding Shift shows the nameplates", async ({ page }) => {
+test("a double-click on a skill hotspot opens its panel, and holding Shift shows the nameplates", async ({ page }) => {
   await openRoom(page);
   // Art pass 4: the chess table stands in the window zone (key 4); its id stays library.chess.
   await page.keyboard.press("4");
   await expect(page).toHaveURL(/\/room\/window$/);
   await settled(page);
-  await page.locator('.hs[data-id="library.chess"]').click({ force: true });
+  // a single click opens the hologram (room-holo.spec.ts); a double-click goes straight to the skill view
+  await page.locator('.hs[data-id="library.chess"]').dblclick({ force: true });
   const panel = page.locator(".ui-panel");
   await expect(panel).toBeVisible();
   await expect(panel).toHaveAttribute("aria-label", "Chess");
@@ -321,7 +322,8 @@ test("v3.5: interruptions: Esc mid-dolly reverses, three Rights are one move, Ba
   await page.keyboard.press("4");
   await expect.poll(async () => (await place(page)).zone).toBe("window");
   await settled(page);
-  await page.locator('.hs[data-id="library.chess"]').click({ force: true });
+  // a single click opens the hologram (room-holo.spec.ts); a double-click goes straight to the skill view
+  await page.locator('.hs[data-id="library.chess"]').dblclick({ force: true });
   await expect(page.locator(".ui-panel")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.locator(".ui-panel")).toBeHidden();
