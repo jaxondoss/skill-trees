@@ -12,7 +12,8 @@ const ROOT = join(__dirname, "..", "..");
 const PROTO = join(ROOT, "docs", "redesign", "room-prototype");
 const CLIENT = join(ROOT, "src", "components", "room", "RoomClient.tsx");
 
-const isArt = (s: string) => /^(art[\w.-]*|test-fixture-art|data)\.js$/.test(s);
+// data.js and lyfta.js (the owner's Lyfta snapshot) are prototype-only data, like the art bundle
+const isArt = (s: string) => /^(art[\w.-]*|test-fixture-art|data|lyfta)\.js$/.test(s);
 
 function htmlScripts(file: string) {
   const html = readFileSync(join(PROTO, file), "utf8");

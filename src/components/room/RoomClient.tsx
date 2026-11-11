@@ -32,6 +32,7 @@ const SCRIPTS = [
   "engine/calendar.js",
   "engine/skill.js",
   "engine/overview.js",
+  "engine/holo.js",
   "ui/sound.js",
   "ui/strip.js",
   "ui/today.js",
@@ -194,6 +195,8 @@ export function RoomClient({ data }: { data: RoomData }) {
       <link rel="stylesheet" href="/room/ui/ui.css" precedence="room" />
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/room/ui/overview.css" precedence="room" />
+      {/* eslint-disable-next-line @next/next/no-css-tags */}
+      <link rel="stylesheet" href="/room/ui/holo.css" precedence="room" />
       <main id="room-stage" aria-label="Your room">
         <canvas id="room-canvas" role="img" aria-label="Pixel-art room. Use the object buttons, keys 1 to 7, the arrow keys, or the zone dots to look around." />
         <div id="room-hotspots" />

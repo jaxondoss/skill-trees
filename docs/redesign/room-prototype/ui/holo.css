@@ -1,0 +1,646 @@
+/* FORGE room: the skill hologram (engine/holo.js). Holo plates over the lit, centred object: pixel-snapped frames
+   (2 px = one art px), corner ticks, scanlines, the skill's category ramp (--hl-dark / --hl-mid / --hl-light, set
+   per panel from ROOM.art.palette.categories). Single dark look by choice: it is a hologram over a dimmed room.
+   Pull-up timeline (stepped, about 1.2 s): pulse 300 ms, plate 360 ms, panels fly out from 480 ms, tethers from
+   700 ms, content from 900 ms. .instant (reduced motion) shows the final state. */
+.holo {
+  --hl-void: #0c0a0c;
+  --hl-ink: #141517;
+  --hl-cream: #f4e6c4;
+  --hl-gold: #d9a441;
+  --hl-dim: #9a8a80;
+  --hl-dark: #621d1a;
+  --hl-mid: #d2211a;
+  --hl-light: #fc3827;
+  --hl-deep: color-mix(in srgb, var(--hl-dark) 55%, #0c0a0c);
+  --hl-fp: var(--f-pixel, 'Silkscreen', ui-monospace, 'Courier New', monospace);
+  --hl-fb: var(--f-body, 'VT323', ui-monospace, 'Courier New', monospace);
+  position: fixed;
+  inset: 0;
+  z-index: 28;
+  pointer-events: none;
+  color: var(--hl-cream);
+  font-family: var(--hl-fb);
+  -webkit-font-smoothing: none;
+}
+.holo[hidden] {
+  display: none;
+}
+.holo:focus {
+  outline: none;
+}
+body.holo-open #room-hotspots,
+body.holo-open #room-hotspots button {
+  pointer-events: none;
+}
+
+/* the energising pulse around the lifted object */
+.hl-pulse {
+  position: absolute;
+  left: var(--hx);
+  top: var(--hy);
+  width: var(--hs);
+  height: var(--hs);
+  margin: calc(var(--hs) / -2) 0 0 calc(var(--hs) / -2);
+  border: 2px solid var(--hl-light);
+  box-shadow: 0 0 12px var(--hl-light), inset 0 0 12px var(--hl-mid);
+  opacity: 0;
+}
+.holo.in .hl-pulse {
+  animation: hl-pulse 560ms steps(7) 280ms both;
+}
+@keyframes hl-pulse {
+  0% { opacity: 0; transform: scale(0.5); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+
+/* title plate above the object, controls under it */
+.hl-plate {
+  position: absolute;
+  transform: translateX(-50%);
+  text-align: center;
+  white-space: nowrap;
+}
+.hl-eyebrow {
+  margin: 0 0 4px;
+  font-family: var(--hl-fp);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--hl-light);
+}
+.hl-title {
+  margin: 0;
+  font-family: var(--hl-fp);
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 36px;
+  text-transform: uppercase;
+  color: var(--hl-cream);
+  text-shadow: 2px 0 0 var(--hl-ink), -2px 0 0 var(--hl-ink), 0 2px 0 var(--hl-ink), 0 -2px 0 var(--hl-ink), 0 4px 0 var(--hl-dark), 0 0 10px var(--hl-mid);
+}
+.hl-title.two {
+  font-size: 20px;
+  line-height: 24px;
+}
+.holo.in .hl-plate {
+  animation: hl-blink 240ms steps(3) 360ms both;
+}
+.hl-foot {
+  position: absolute;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: auto;
+  width: max-content;
+  max-width: 420px;
+}
+.holo.in .hl-foot {
+  animation: hl-blink 240ms steps(3) 820ms both;
+}
+.hl-open,
+.hl-close {
+  min-height: 32px;
+  padding: 4px 12px;
+  font-family: var(--hl-fp);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--hl-cream);
+  background: var(--hl-ink);
+  border: 2px solid var(--hl-light);
+  box-shadow: 0 0 0 2px var(--hl-ink), 0 0 10px var(--hl-mid);
+  cursor: pointer;
+}
+.hl-open:hover {
+  background: var(--hl-mid);
+}
+.hl-close {
+  border-color: var(--hl-dark);
+  box-shadow: 0 0 0 2px var(--hl-ink);
+}
+.hl-hint {
+  flex-basis: 100%;
+  margin: 2px 0 0;
+  text-align: center;
+  font-family: var(--hl-fp);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--hl-dim);
+}
+.holo :focus-visible {
+  outline: 2px solid var(--hl-cream);
+  outline-offset: 2px;
+}
+
+/* columns of nodes either side of the object */
+.hl-col {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.hl-col:empty {
+  display: none;
+}
+
+/* ---------- holo plates ---------- */
+.hl-panel {
+  position: relative;
+  pointer-events: auto;
+  padding: 10px 12px 10px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 2px, color-mix(in srgb, var(--hl-light) 6%, transparent) 2px 4px),
+    linear-gradient(180deg, rgba(14, 10, 12, 0.84), rgba(20, 12, 14, 0.9));
+  border: 2px solid var(--hl-mid);
+  box-shadow: 0 0 0 2px var(--hl-ink), 0 0 18px color-mix(in srgb, var(--hl-mid) 30%, transparent), inset 0 0 22px color-mix(in srgb, var(--hl-mid) 10%, transparent);
+}
+.hl-panel::before {
+  /* corner ticks */
+  content: "";
+  position: absolute;
+  inset: -8px;
+  pointer-events: none;
+  --c: var(--hl-cream);
+  background:
+    linear-gradient(var(--c), var(--c)) 0 0 / 10px 2px, linear-gradient(var(--c), var(--c)) 0 0 / 2px 10px,
+    linear-gradient(var(--c), var(--c)) 100% 0 / 10px 2px, linear-gradient(var(--c), var(--c)) 100% 0 / 2px 10px,
+    linear-gradient(var(--c), var(--c)) 0 100% / 10px 2px, linear-gradient(var(--c), var(--c)) 0 100% / 2px 10px,
+    linear-gradient(var(--c), var(--c)) 100% 100% / 10px 2px, linear-gradient(var(--c), var(--c)) 100% 100% / 2px 10px;
+  background-repeat: no-repeat;
+}
+.holo.in .hl-panel:not(.hl-shown) {
+  animation: hl-fly 400ms steps(8) calc(480ms + var(--hl-i, 0) * 70ms) both;
+}
+.holo.in .hl-panel:not(.hl-shown) > * {
+  animation: hl-blink 200ms steps(3) calc(900ms + var(--hl-i, 0) * 40ms) both;
+}
+@keyframes hl-fly {
+  0% { opacity: 0; transform: translate(var(--fx, 0), var(--fy, 0)) scale(0.12, 0.04); }
+  10% { opacity: 1; }
+  55% { transform: translate(0, 0) scale(1, 0.04); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes hl-blink {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.hl-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.hl-head h3 {
+  margin: 0;
+  font-family: var(--hl-fp);
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--hl-cream);
+  white-space: nowrap;
+}
+.hl-sub {
+  font-family: var(--hl-fp);
+  font-size: 10px;
+  color: var(--hl-dim);
+}
+.hl-seg {
+  display: inline-flex;
+  border: 2px solid var(--hl-dark);
+  background: var(--hl-ink);
+}
+.hl-seg button {
+  min-width: 44px;
+  min-height: 24px;
+  padding: 2px 6px;
+  border: 0;
+  background: none;
+  font-family: var(--hl-fp);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--hl-dim);
+  cursor: pointer;
+}
+.hl-seg button[aria-pressed="true"] {
+  background: var(--hl-mid);
+  color: var(--hl-cream);
+  box-shadow: inset 0 2px 0 var(--hl-light);
+}
+
+.hl-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 6px;
+}
+.hl-stat b {
+  display: block;
+  font-family: var(--hl-fp);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 20px;
+  color: var(--hl-cream);
+}
+.hl-stat b small {
+  margin-left: 4px;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: var(--hl-dim);
+}
+.hl-stat span {
+  font-size: 17px;
+  line-height: 16px;
+  color: var(--hl-dim);
+}
+.hl-body svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.hl-ax {
+  font-family: var(--hl-fp);
+  font-size: 8px;
+  fill: var(--hl-dim);
+}
+.hl-ax.now {
+  fill: var(--hl-cream);
+}
+.hl-ring-v {
+  font-family: var(--hl-fp);
+  font-size: 14px;
+  fill: var(--hl-cream);
+}
+.hl-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 4px;
+  font-family: var(--hl-fp);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hl-cream);
+}
+.hl-key i {
+  display: inline-block;
+  width: 12px;
+  height: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.hl-key .k-bar i {
+  height: 8px;
+  width: 8px;
+  background: var(--hl-mid);
+  box-shadow: inset 0 2px 0 var(--hl-light);
+}
+.hl-key .k-line i {
+  background: var(--hl-light);
+}
+.hl-key .k-gold i {
+  background: var(--hl-gold);
+}
+.hl-key .k-dash i {
+  background: repeating-linear-gradient(90deg, var(--hl-dim) 0 4px, transparent 4px 6px);
+}
+.hl-note,
+.hl-empty {
+  margin: 6px 0 0;
+  font-size: 18px;
+  line-height: 17px;
+  color: var(--hl-dim);
+}
+.hl-empty {
+  font-family: var(--hl-fp);
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--hl-cream);
+}
+.hl-tierbar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+.hl-tierbar span {
+  padding: 4px 0;
+  text-align: center;
+  font-family: var(--hl-fp);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hl-dim);
+  background: var(--hl-deep);
+}
+.hl-tierbar span.on {
+  color: var(--hl-cream);
+  background: var(--hl-mid);
+  box-shadow: inset 0 2px 0 var(--hl-light);
+}
+.hl-ex {
+  display: grid;
+  grid-template-columns: 1fr 80px;
+  gap: 8px;
+  align-items: center;
+  font-size: 17px;
+  line-height: 18px;
+}
+.hl-ex span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.hl-ex i {
+  height: 6px;
+  background: var(--hl-deep);
+  position: relative;
+}
+.hl-ex b {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--hl-light);
+}
+
+/* visual nodes */
+.hl-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hl-cap b {
+  display: block;
+  font-family: var(--hl-fp);
+  font-weight: 400;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--hl-cream);
+}
+.hl-cap span {
+  font-size: 17px;
+  line-height: 16px;
+  color: var(--hl-dim);
+}
+.hl-figs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 6px 0 2px;
+}
+.hl-figs figure {
+  margin: 0;
+  text-align: center;
+}
+.hl-figs canvas {
+  display: block;
+  width: 96px; /* 32 px art x 3 */
+  height: 165px;
+  image-rendering: pixelated;
+}
+.hl-figs figcaption,
+.hl-heatkey span {
+  font-family: var(--hl-fp);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--hl-dim);
+}
+.hl-heatkey {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.hl-heatkey i {
+  width: 14px;
+  height: 8px;
+}
+.hl-heatkey span {
+  margin: 0 4px;
+}
+.hl-heat {
+  display: grid;
+  grid-template-columns: repeat(7, 14px);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.hl-heat i {
+  width: 14px;
+  height: 14px;
+  background: var(--hl-deep);
+}
+.hl-heat i.l1 { background: var(--hl-dark); }
+.hl-heat i.l2 { background: var(--hl-mid); box-shadow: inset 0 2px 0 var(--hl-light); }
+.hl-heat i.l3 { background: var(--hl-light); box-shadow: inset 0 2px 0 var(--hl-cream); }
+.hl-heat i.now { outline: 2px solid var(--hl-cream); outline-offset: 0; }
+.hl-ladder {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+.hl-ladder i {
+  flex: 1;
+  height: 10px;
+  background: var(--hl-deep);
+}
+.hl-ladder i.on {
+  background: var(--hl-mid);
+  box-shadow: inset 0 2px 0 var(--hl-light);
+}
+.hl-ladder i.next {
+  box-shadow: inset 0 0 0 2px var(--hl-light);
+}
+.hl-next {
+  margin: 6px 0 0;
+  font-size: 17px;
+  line-height: 16px;
+  color: var(--hl-cream);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hl-next em {
+  margin-right: 6px;
+  font-style: normal;
+  font-family: var(--hl-fp);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: var(--hl-light);
+}
+.hl-due {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hl-due li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 18px;
+  line-height: 20px;
+}
+.hl-due span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.hl-due b {
+  font-family: var(--hl-fp);
+  font-weight: 400;
+  font-size: 10px;
+  color: var(--hl-light);
+}
+
+/* today */
+.hl-acts {
+  display: grid;
+  gap: 2px;
+}
+.hl-act {
+  display: grid;
+  grid-template-columns: 18px auto 1fr;
+  gap: 8px;
+  align-items: center;
+  min-height: 28px;
+  padding: 2px 6px;
+  width: 100%;
+  text-align: left;
+  background: rgba(20, 21, 23, 0.7);
+  border: 2px solid transparent;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.hl-act:hover {
+  border-color: var(--hl-dark);
+}
+.hl-act .box {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--hl-light);
+  background: var(--hl-ink);
+  position: relative;
+}
+.hl-act[aria-checked="true"] .box {
+  background: var(--hl-mid);
+}
+.hl-act[aria-checked="true"] .box::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 6px;
+  height: 6px;
+  background: var(--hl-cream);
+}
+.hl-act .t {
+  font-family: var(--hl-fp);
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--hl-cream);
+}
+.hl-act[aria-checked="true"] .t {
+  color: var(--hl-light);
+}
+.hl-act.planned .t::after {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+  background: var(--hl-gold);
+}
+.hl-act .s {
+  text-align: right;
+  font-size: 17px;
+  color: var(--hl-dim);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.hl-cat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 0;
+  font-size: 17px;
+  color: var(--hl-dim);
+}
+.hl-catpx {
+  width: 14px;
+  height: 12px;
+  image-rendering: pixelated;
+}
+
+/* tethers: 1 art px lines from each plate to the object, drawn in after the plates land */
+.hl-tethers {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+.hl-wire {
+  fill: none;
+  stroke-width: 2;
+  opacity: 0.85;
+}
+.holo.in .hl-wire {
+  stroke-dasharray: calc(var(--len) * 1px);
+  animation: hl-wire 240ms steps(6) calc(720ms + var(--hl-i, 0) * 60ms) both;
+}
+.holo.in .hl-node {
+  animation: hl-blink 120ms steps(2) calc(900ms + var(--hl-i, 0) * 60ms) both;
+}
+@keyframes hl-wire {
+  0% { stroke-dashoffset: calc(var(--len) * 1px); }
+  100% { stroke-dashoffset: 0; }
+}
+
+/* reduced motion: the final state at once */
+.holo.instant *,
+.holo.instant {
+  animation: none !important;
+}
+
+/* phone: the object up top, the nodes stack and scroll under it; 44 px targets */
+.holo.phone .hl-title {
+  font-size: 22px;
+  line-height: 26px;
+}
+.holo.phone .hl-title.two {
+  font-size: 14px;
+  line-height: 18px;
+}
+.holo.phone .hl-col.scroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  gap: 14px;
+  pointer-events: auto;
+  justify-content: flex-start !important;
+}
+.holo.phone .hl-foot {
+  position: static;
+  transform: none;
+  width: auto;
+  max-width: none;
+  margin-bottom: 4px;
+}
+.holo.phone .hl-open,
+.holo.phone .hl-close,
+.holo.phone .hl-act,
+.holo.phone .hl-seg button {
+  min-height: 44px;
+}
+.holo.phone .hl-panel::before {
+  inset: -6px;
+}

@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="ui/ui.css">
   <link rel="stylesheet" href="ui/overview.css">
+  <link rel="stylesheet" href="ui/holo.css">
 </head>
 <body>
   <main id="room-stage" aria-label="Jaxon's room">
@@ -20,6 +21,8 @@
   <div id="svh-probe" aria-hidden="true"></div>
 
   <script src="data.js"></script>
+  <!-- the owner's Lyfta workouts (scripts/room-lyfta-snapshot.mjs): prototype pages only, never public/room -->
+  <script src="lyfta.js" onerror="window.ROOM_LYFTA = null"></script>
   <!-- Art: art-v3.js (960x540 core) if it has been built, else art.js, else the engine's test fixture.
        Each fallback is written synchronously so every later script sees window.ROOM_ART. -->
   <script>window.ROOM_ART_V3_MISSING = false;</script>
@@ -46,6 +49,7 @@
   <script src="engine/calendar.js"></script>
   <script src="engine/skill.js"></script>
   <script src="engine/overview.js"></script>
+  <script src="engine/holo.js"></script>
   <script src="ui/sound.js"></script>
   <script src="ui/strip.js"></script>
   <script src="ui/today.js"></script>

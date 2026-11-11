@@ -291,11 +291,17 @@
       // A3: a tap picks the nearest item centre within reach (touch), else the zone under it
       var hit = touch ? nearestOverviewItem(cx, cy) : null;
       if (hit) {
-        nav().request({ mode: 'skill', item: hit }, { source: 'overview' });
+        var hitIt = ROOM.itemById(hit);
+        nav().request({ mode: 'skill', item: hit, holo: !!(ROOM.holo && hitIt && ROOM.skillOf(hitIt)) }, { source: 'overview' });
         return;
       }
       var p = ROOM.overview && ROOM.overview.placeAt ? ROOM.overview.placeAt(cx, cy) : null;
       if (p) nav().request(p, { source: 'overview' });
+      return;
+    }
+    // the hologram: a click on the room outside the lifted object closes it
+    if (t.mode === 'skill' && t.holo) {
+      if (!(ROOM.skill && ROOM.skill.hitHero(e.clientX, e.clientY))) nav().back();
       return;
     }
     if (t.mode === 'wall') {

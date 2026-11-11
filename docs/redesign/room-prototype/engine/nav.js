@@ -196,6 +196,8 @@
         sp.base = p.base;
         sp.baseZone = p.baseZone || null;
       }
+      // the hologram (engine/holo.js) is a skill place with the hero centred and holo panels instead of the board
+      if (sp && sp.mode === 'skill' && p.holo) sp.holo = true;
       return sp;
     }
     if (p.mode === 'zone') return zonePlace(p.zone);
@@ -322,6 +324,7 @@
     if (tween && !reduced() && now - tween.t0 < tween.dur) return true;
     if (boardDim.from !== boardDim.to && !reduced() && now - boardDim.t0 < MS.tween) return true;
     if (ROOM.skill && ROOM.skill.busy && ROOM.skill.busy()) return true;
+    if (ROOM.holo && ROOM.holo.busy && ROOM.holo.busy()) return true;
     return false;
   }
 
@@ -337,9 +340,11 @@
     if (!to) return false;
     if (to.mode === 'overview' && !overviewOn()) return false;
     if (!move && !pending && same(to, cur)) {
-      if (to.mode === 'skill' && !ROOM.state.panel) openBoard(to, opts);
+      if (to.mode === 'skill' && cur.holo && !to.holo) return toBoard();
+      if (to.mode === 'skill' && !cur.holo && !ROOM.state.panel) openBoard(to, opts);
       return false;
     }
+    if (move && to.mode === 'skill' && !to.holo && move.to.mode === 'skill' && move.to.holo && same(to, move.to)) return toBoard();
     var pol = policy(move ? { from: move.from, to: move.to, legs: move.legs, leg: move.i, pending: pending && pending.place, reversed: move.reversed, ahead: move.ahead } : null, to);
     if (pol === 'ignore') return false;
     if (pol === 'reverse') return reverse(opts);
@@ -380,6 +385,7 @@
     for (var i = Math.max(0, m.i); i < m.legs.length; i++) {
       var l = m.legs[i];
       if (i === m.i && l.r && R()) R().endLeg();
+      if ((l.kind === 'lift' || l.kind === 'swap') && ROOM.skill && ROOM.skill.setMode) ROOM.skill.setMode(l.to.holo ? 'holo' : 'board');
       if (l.kind === 'lift' && ROOM.skill && ROOM.skill.lift) ROOM.skill.lift(l.to.item, { instant: true, source: m.opts.source });
       if (l.kind === 'drop' && ROOM.skill && ROOM.skill.drop) ROOM.skill.drop({ instant: true });
       if (l.kind === 'swap' && ROOM.skill && ROOM.skill.swap) ROOM.skill.swap(l.to.item, { instant: true });
@@ -415,6 +421,7 @@
     Rr.applyPlace(l.to);
     var sk = ROOM.skill || {};
     var ms = 0;
+    if ((l.kind === 'lift' || l.kind === 'swap') && sk.setMode) sk.setMode(l.to.holo ? 'holo' : 'board');
     if (l.kind === 'lift') {
       startTween(l.from, l.to, MS.tween);
       ms = sk.lift ? sk.lift(l.to.item, { fromRectDev: itemRectDev(l.to.item), instant: false, source: m.opts.source }) || 0 : 0;
@@ -472,6 +479,10 @@
       return;
     }
     if (cur.mode === 'skill' && !m.reversed) openBoard(cur, m.opts);
+    if (boardAfter) {
+      boardAfter = false;
+      toBoard();
+    }
     if (ROOM.invalidate) ROOM.invalidate();
   }
 
@@ -575,6 +586,10 @@
   /* ------------------------------------------------------------------ boards */
   var closing = false;
   function openBoard(p, opts) {
+    if (p.holo) {
+      if (ROOM.holo && ROOM.skill && ROOM.skill.current() === p.item) ROOM.holo.show(p.item);
+      return;
+    }
     if (!ROOM.ui || typeof ROOM.ui.open !== 'function') return;
     if (ROOM.state.panel === p.item) return;
     // skill.js opens the board itself during LIFT (P3); this is the landing fallback
@@ -601,6 +616,26 @@
     var now = ROOM.now();
     boardDim = { k: k, from: boardDimK(now), to: k, t0: now };
     if (ROOM.invalidate) ROOM.invalidate();
+  }
+
+  /**
+   * Hologram -> the skill view of the same item, in place (OPEN SKILL, a double-click, Shift+Enter): no new history
+   * entry; the hero glides to its board spot. During the LIFT into the hologram it runs at landing.
+   */
+  var boardAfter = false;
+  function toBoard() {
+    if (move) {
+      if (move.to.mode !== 'skill' || !move.to.holo) return false;
+      boardAfter = true;
+      return true;
+    }
+    if (!cur || cur.mode !== 'skill' || !cur.holo) return false;
+    cur.holo = false;
+    if (ROOM.holo) ROOM.holo.hide({ instant: true });
+    if (ROOM.skill && ROOM.skill.toBoard) ROOM.skill.toBoard();
+    ROOM.emit('nav', { phase: 'board', place: cur });
+    if (ROOM.invalidate) ROOM.invalidate();
+    return true;
   }
 
   /* ------------------------------------------------------------------ input helpers */
@@ -777,6 +812,7 @@
     },
     ls: ls,
     request: request,
+    toBoard: toBoard,
     up: up,
     down: down,
     back: back,
