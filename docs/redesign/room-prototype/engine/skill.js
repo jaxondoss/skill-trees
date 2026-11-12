@@ -285,7 +285,9 @@
       var u = anim.dur > 0 ? clamp01(t / anim.dur) : 1;
       var a = anim.from, b = anim.to;
       var e = anim.ease(u);
-      var k = kAt(a.k, b.k, u);
+      // the zoom steps follow the eased flight (not the clock), so the size grows with the hero's travel instead of
+      // stepping on while it has nearly stopped (v3.5 motion pass)
+      var k = kAt(a.k, b.k, e);
       // the centre eases; the top-left is integer device px
       var ca = [a.x + (cur.aw * a.k) / 2, a.y + (cur.ah * a.k) / 2];
       var cb = [b.x + (cur.aw * b.k) / 2, b.y + (cur.ah * b.k) / 2];

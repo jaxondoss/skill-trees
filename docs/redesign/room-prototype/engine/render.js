@@ -1107,13 +1107,15 @@
     leg.B = [shot(to, spec.lsTo)];
     if (!contains(CAM.visibleRect(fromCam, view), R)) leg.A.unshift(snapAsShot(snap(spec.from, spec.lsFrom, R, CAM.snapZoom(fromCam.z, R.w, R.h, 6e6, maxTexture()))));
     if (!contains(CAM.visibleRect(toCam, view), R)) leg.B.unshift(snapAsShot(snap(to, spec.lsTo, R, CAM.snapZoom(toCam.z, R.w, R.h, 6e6, maxTexture()))));
-    leg.lead = to.mode === 'zone' && spec.from.mode === 'wall' && !ROOM.state.reducedMotion ? CAM.ANTICIPATE_MS : 0;
-    leg.dur = leg.lead + CAM.DOLLY_MS;
+    // v3.5 motion pass: no anticipation pull-back (it read as a stall then a jump); the length follows the screen
+    // distance the dolly covers (CAM.dollyMs), so a short slide is short and a long push-in does not race
+    leg.lead = 0;
+    leg.move = CAM.dollyMs(CAM.dollyDistance(leg.plan));
+    leg.dur = leg.move;
   }
   function drawDolly(leg, t) {
-    var u = Math.max(0, Math.min(1, (t - leg.lead) / CAM.DOLLY_MS));
-    var k = !leg.lead ? 1 : t < leg.lead ? CAM.anticipation(t) : CAM.release(u);
-    var tr = CAM.scaleAbout(CAM.dollyAt(leg.plan, u), k, view);
+    var u = Math.max(0, Math.min(1, t / leg.move));
+    var tr = CAM.dollyAt(leg.plan, u);
     var kB = CAM.smoothstep(0.2, 0.9, u);
     leg.u = u;
     leg.pose = { z: tr.z, tx: tr.tx, ty: tr.ty };
@@ -1422,11 +1424,21 @@
     }, 100); // ambient animation runs at 10 fps
   }
 
-  function tick() {
+  // rAF only: every frame samples the moves at its rAF timestamp (one time per frame, even pacing; a dropped frame
+  // simply lands the motion where that later time puts it). Under ROOM.debug.freeze() the frozen clock rules.
+  function tick(ts) {
     raf = 0;
     if (!view || !ctx) return;
+    ROOM.clock.frame(ROOM.clock.frozen || typeof ts !== 'number' ? null : ts);
+    try {
+      frameTick();
+    } finally {
+      ROOM.clock.frame(null);
+    }
+  }
+  function frameTick() {
     var now = ROOM.now();
-    var dt = Math.max(0, Math.min(100, now - lastTick));
+    var dt = Math.max(0, Math.min(67, now - lastTick)); // up to 4 dropped frames are made up
     lastTick = now;
     if (sceneDirty) {
       buildScene();
@@ -1459,7 +1471,7 @@
 
     // Phone pan: spring to the snap target after a release.
     if (view.mode === 'pan' && !ROOM.state.zone && pan.target != null && !pan.dragging) {
-      var r = CAM.springStep(pan.x, pan.v, pan.target, Math.min(0.05, dt / 1000));
+      var r = CAM.springStep(pan.x, pan.v, pan.target, dt / 1000); // exact for any dt: no slow-down on a dropped frame
       pan.x = r.x;
       pan.v = r.v;
       if (ROOM.state.reducedMotion || CAM.springSettled(pan.x, pan.v, pan.target)) {
