@@ -100,3 +100,66 @@ items 1, 4 and 19 above.
 - RISE / DESCEND into the overview are implemented and exercised against a synthetic overview; their numbers are taken
   at integration once the overview art (P4) is in.
 - Lift/drop/swap numbers above use the W0 skill-view stub (no hero yet); P3's hero adds its own lift.
+
+## 5. Display-rate pass (v3.5 motion pass, frame-timing harness)
+
+How: `scripts/room-frame-timing.mjs [out] [query] [--phone] [--only=a,b]` (headless Chromium, SwiftShader WebGL2,
+1280x800@1 or 390x844@2, el 4, clock frozen and stepped 16.7 ms). Per frame it records the camera pose of the running
+leg (zoom, centre, pan angle; `ROOM.nav.leg.pose`), the hero rect, the phone pan x, the pixel change and the wall
+cost of the frame. "acc" is the largest frame-to-frame change of screen speed (device px per frame, lower is
+smoother; a jump from rest to full speed on the first frame shows here), "start pop" the pixel change of the first
+frame (noise about 2), "stalls"/"jumps" frames that stop or leap against their neighbours, "req" the main-thread
+cost of the request call (snapshot builds) before the first frame. Before = b5d8873, after = c9eef9d.
+
+| Move | frames before -> after | acc before -> after | start pop before -> after | stalls+jumps before -> after |
+|---|---|---|---|---|
+| turn 90 | 38 -> 38 | 6.7 -> 6.7 | 0 -> 0 | 0 -> 0 |
+| turn 180 | 53 -> 53 | 6.9 -> 6.9 | 0 -> 0 | 0 -> 0 |
+| turn into a zone (TURN+ZOOM) | 38 -> 50 | 21.2 -> 12.8 | 0 -> 0 | 0 -> 0 |
+| zone to zone across walls | 38 -> 47 | 32.7 -> 22.3 | 0 -> 0 | 0 -> 0 |
+| zone to zone, same wall (dolly) | 26 -> 33 | 8.7 (first frame 119 px) -> 14.9 | **42.3** -> 0 | 0 -> 0 |
+| room to zone (dolly) | 31 -> 34 | **92.7** -> 14.8 | **12.9** -> 0 | 1 -> 0 |
+| zone to room (dolly) | 26 -> 34 | 8.4 (first frame 115 px) -> 14.1 | **38.1** -> 0 | 0 -> 0 |
+| rise / descend | 31 / 31 | 10.8 / 8.9 (unchanged) | 0 / 0 | 0 |
+| lift (skill view), hero | 21 -> 21 | **94.6** -> 42.2 | 1.6 -> 1.0 | 0 -> 0 |
+| drop, hero | 16 -> 16 | **107** -> 57.1 | 0.7 -> 2.2 | 1 -> 0 |
+| lift on another wall (turn + lift), hero | 60 -> 60 | 83.0 -> 28.5 | 0 -> 0 | 3 -> 0 |
+| hologram open, hero | 21 -> 21 | 62.3 -> 47.0 | 1.1 -> 0.7 | 1 -> 0 |
+| hologram close, hero | 37 -> 37 | 78.1 -> 49.8 | 1.1 -> 0.7 | 2 -> 2 (the hold before the drop) |
+| lift reversed mid-way, hero | 19 -> 19 | 143 -> 72.7 | 1.6 -> 1.0 | 1 -> 1 (the turn-around) |
+| turn, two more presses (retarget) | 119 -> 119 | 4.1 -> 4.1 | 0 -> 0 | 0 -> 0 |
+| turn, then a queued zone | 70 -> 70 | **75.0** -> 14.2 | 0 -> 0 | 3 -> 0 |
+| dolly reversed mid-way | 23 -> 23 | **92.7** -> 14.8 | 12.9 -> 0 | 2 -> 0 |
+| phone: into a zone / out | 31 / 26 -> 36 / 22 | 115 / 3.1 -> 16.3 / 11.2 | **12.2 / 16.2** -> 0 / 0 | 1 -> 0 |
+| phone: turns | unchanged | 13.4 / 13.9 | 0 | 0 |
+
+What was rough and why:
+- Every dolly (room <-> zone, zone <-> zone) started at full speed: easeOutCubic has its largest speed at u = 0, so
+  the first frame jumped 115 to 119 device px (pixel pop 38 to 42, the largest pop of any move). Stepping in from a
+  wall also ran an 80 ms pull-back first, which read as a stall followed by that jump (acc 93). Now: one curve that
+  starts and ends at rest (cubic run-up over 35 %, cubic settle, speed continuous), no pull-back, and a length that
+  follows the screen distance (380 to 680 ms; a zone step is about 520 ms).
+- The hero's lift had the same full-speed start (94 px on frame 1) and the drop hit the socket at full speed (107 px
+  on the last frame). Both curves now start and land at rest; the integer zoom steps follow the eased flight instead
+  of the clock, so the hero no longer keeps growing after it has nearly stopped.
+- Turns that also zoom (into a zone on another wall, zone to zone across walls) did a 1.5x to 2x zoom in the same
+  640 ms as a plain turn (peak 216 px per frame); they now get up to 200 ms more.
+- A move's clock started before its shots were built. Building them costs 100 to 400 ms of main thread in SwiftShader
+  (the request call; one to three wall masters plus the destination shot), so with a live clock the first drawn
+  frame was already that far into the move: a visible skip, and on a slow machine a whole 640 ms turn could land
+  before the next key press was read. That is the root cause of the "three Rights are one move" e2e flake (the
+  second press found the first turn landed and started a second move with its own history entry). A camera leg's
+  clock now starts when its planning is done.
+- Frames sampled moves at `performance.now()` inside the callback (jitter of whatever ran first); they now sample at
+  the rAF timestamp, one time for the whole frame (`ROOM.clock.frame`), and the pan spring advances by the real dt
+  (exact solution, up to 4 dropped frames made up) instead of being capped at 50 ms (it slowed down on a dropped frame).
+- Phone fling: a fast fling toward a near stop overshot it and swung back (critical damping overshoots when the
+  speed toward the target exceeds w x distance). The spring now stiffens just enough for that release, keeping the
+  release speed (no velocity jump).
+
+Not changed (measured fine or by design): turn yaw curves and retargets (velocity-matched Hermite, acc 4.1 over 119
+frames), rise/descend, stipple dissolves (no frame showed pixel change without camera motion beyond noise + 1.5:
+flicker count 0 on every move), reduced motion (every move still instant). Remaining: the request-call cost itself
+(100 to 400 ms in SwiftShader; masters are pre-warmed for neighbour walls on idle outside tests) still delays the
+first frame on slow machines, but no longer skips motion; the hero's stepped halo (3 Bayer steps) and the in-place
+rise on the phone (4 steps) are deliberate pixel-art steps.
