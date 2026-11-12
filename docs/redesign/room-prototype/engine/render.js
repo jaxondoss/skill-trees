@@ -1116,6 +1116,7 @@
     var tr = CAM.scaleAbout(CAM.dollyAt(leg.plan, u), k, view);
     var kB = CAM.smoothstep(0.2, 0.9, u);
     leg.u = u;
+    leg.pose = { z: tr.z, tx: tr.tx, ty: tr.ty };
     var paint = function (list) {
       return function (c) {
         clearVoid(c);
@@ -1230,6 +1231,7 @@
     var F = leg.f * zc, step = Math.max(2, Math.round(W / 640));
     var geo = { th: th, F: F, zc: zc, vx: vx, vy: vy, step: step };
     leg.u = p;
+    leg.pose = { th: th, F: F, z: zc, vx: vx, vy: vy };
     var paint = function (exact, which) {
       return function (c) {
         clearVoid(c);
@@ -1325,6 +1327,7 @@
     var cx = W / 2 + (leg.ax - W / 2) * e, cy = H / 2 + (leg.ay - H / 2) * e;
     var g = s / leg.sA;
     leg.u = u;
+    leg.pose = { s: s, cx: cx, cy: cy };
     var wall = function (c) {
       clearVoid(c);
       var x0 = Math.round(cx - (W / 2) * s), y0 = Math.round(cy - (H / 2) * s);

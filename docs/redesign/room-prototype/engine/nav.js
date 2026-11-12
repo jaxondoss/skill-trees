@@ -808,7 +808,7 @@
       return busy();
     },
     get leg() {
-      return move && move.leg && move.leg.r ? { kind: move.leg.kind, u: move.leg.r.u, dir: move.leg.r.dir } : null;
+      return move && move.leg && move.leg.r ? { kind: move.leg.kind, u: move.leg.r.u, dir: move.leg.r.dir, pose: move.leg.r.pose || null } : null;
     },
     ls: ls,
     request: request,
