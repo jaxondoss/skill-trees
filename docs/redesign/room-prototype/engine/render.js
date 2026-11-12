@@ -1107,15 +1107,18 @@
     leg.B = [shot(to, spec.lsTo)];
     if (!contains(CAM.visibleRect(fromCam, view), R)) leg.A.unshift(snapAsShot(snap(spec.from, spec.lsFrom, R, CAM.snapZoom(fromCam.z, R.w, R.h, 6e6, maxTexture()))));
     if (!contains(CAM.visibleRect(toCam, view), R)) leg.B.unshift(snapAsShot(snap(to, spec.lsTo, R, CAM.snapZoom(toCam.z, R.w, R.h, 6e6, maxTexture()))));
-    leg.lead = to.mode === 'zone' && spec.from.mode === 'wall' && !ROOM.state.reducedMotion ? CAM.ANTICIPATE_MS : 0;
-    leg.dur = leg.lead + CAM.DOLLY_MS;
+    // v3.5 motion pass: no anticipation pull-back (it read as a stall then a jump); the length follows the screen
+    // distance the dolly covers (CAM.dollyMs), so a short slide is short and a long push-in does not race
+    leg.lead = 0;
+    leg.move = CAM.dollyMs(CAM.dollyDistance(leg.plan));
+    leg.dur = leg.move;
   }
   function drawDolly(leg, t) {
-    var u = Math.max(0, Math.min(1, (t - leg.lead) / CAM.DOLLY_MS));
-    var k = !leg.lead ? 1 : t < leg.lead ? CAM.anticipation(t) : CAM.release(u);
-    var tr = CAM.scaleAbout(CAM.dollyAt(leg.plan, u), k, view);
+    var u = Math.max(0, Math.min(1, t / leg.move));
+    var tr = CAM.dollyAt(leg.plan, u);
     var kB = CAM.smoothstep(0.2, 0.9, u);
     leg.u = u;
+    leg.pose = { z: tr.z, tx: tr.tx, ty: tr.ty };
     var paint = function (list) {
       return function (c) {
         clearVoid(c);
@@ -1169,7 +1172,8 @@
     leg.th1 = leg.steps * (Math.PI / 2) * dir;
     leg.v0 = 0;
     leg.tStart = 0;
-    leg.dur = spec.dur || [0, 640, 900, 1100][leg.steps] || 900;
+    // a turn that also zooms (into or out of a zone) covers more screen: up to 200 ms longer (v3.5 motion pass)
+    leg.dur = spec.dur || ([0, 640, 900, 1100][leg.steps] || 900) + Math.round(200 * Math.min(1, Math.abs(Math.log(leg.z1 / leg.z0)) / 0.7));
     leg.dur0 = leg.dur;
   }
   function addMaster(leg, i, spec) {
@@ -1230,6 +1234,7 @@
     var F = leg.f * zc, step = Math.max(2, Math.round(W / 640));
     var geo = { th: th, F: F, zc: zc, vx: vx, vy: vy, step: step };
     leg.u = p;
+    leg.pose = { th: th, F: F, z: zc, vx: vx, vy: vy };
     var paint = function (exact, which) {
       return function (c) {
         clearVoid(c);
@@ -1325,6 +1330,7 @@
     var cx = W / 2 + (leg.ax - W / 2) * e, cy = H / 2 + (leg.ay - H / 2) * e;
     var g = s / leg.sA;
     leg.u = u;
+    leg.pose = { s: s, cx: cx, cy: cy };
     var wall = function (c) {
       clearVoid(c);
       var x0 = Math.round(cx - (W / 2) * s), y0 = Math.round(cy - (H / 2) * s);
@@ -1419,11 +1425,21 @@
     }, 100); // ambient animation runs at 10 fps
   }
 
-  function tick() {
+  // rAF only: every frame samples the moves at its rAF timestamp (one time per frame, even pacing; a dropped frame
+  // simply lands the motion where that later time puts it). Under ROOM.debug.freeze() the frozen clock rules.
+  function tick(ts) {
     raf = 0;
     if (!view || !ctx) return;
+    ROOM.clock.frame(ROOM.clock.frozen || typeof ts !== 'number' ? null : ts);
+    try {
+      frameTick();
+    } finally {
+      ROOM.clock.frame(null);
+    }
+  }
+  function frameTick() {
     var now = ROOM.now();
-    var dt = Math.max(0, Math.min(100, now - lastTick));
+    var dt = Math.max(0, Math.min(67, now - lastTick)); // up to 4 dropped frames are made up
     lastTick = now;
     if (sceneDirty) {
       buildScene();
@@ -1456,7 +1472,22 @@
 
     // Phone pan: spring to the snap target after a release.
     if (view.mode === 'pan' && !ROOM.state.zone && pan.target != null && !pan.dragging) {
-      var r = CAM.springStep(pan.x, pan.v, pan.target, Math.min(0.05, dt / 1000));
+      if (pan.wFor !== pan.target) {
+        // a fling that would reach its stop too fast to stop smoothly carries on to the next stop in its direction
+        // (when there is one); otherwise the spring stiffens just enough not to overshoot (v3.5 motion pass)
+        var w0 = CAM.springRate(pan.x, 0, pan.target);
+        if ((pan.x - pan.target) * pan.v < 0 && Math.abs(pan.v) > w0 * Math.abs(pan.x - pan.target)) {
+          var b = CAM.panBounds(view), stops = CAM.zoneStops(ROOM.zonesInView()), best = null;
+          for (var si = 0; si < stops.length; si++) {
+            var st = CAM.clamp(stops[si], b.min, b.max), d = (st - pan.target) * Math.sign(pan.v);
+            if (d > 0.5 && (best == null || Math.abs(st - pan.target) < Math.abs(best - pan.target))) best = st;
+          }
+          if (best != null) pan.target = best;
+        }
+        pan.wFor = pan.target;
+        pan.w = CAM.springRate(pan.x, pan.v, pan.target);
+      }
+      var r = CAM.springStep(pan.x, pan.v, pan.target, dt / 1000, pan.w); // exact for any dt: no slow-down on a dropped frame
       pan.x = r.x;
       pan.v = r.v;
       if (ROOM.state.reducedMotion || CAM.springSettled(pan.x, pan.v, pan.target)) {

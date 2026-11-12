@@ -420,10 +420,21 @@
 
   /* ------------------------------------------------------------------ clock (debug can freeze it) */
   var frozen = null;
+  var frameT = null; // the rAF timestamp of the frame being drawn (render.js tick): one time for the whole frame
   ROOM.now = function () {
-    return frozen != null ? frozen : performance.now();
+    return frozen != null ? frozen : frameT != null ? frameT : performance.now();
   };
   ROOM.clock = {
+    /** The time right now, ignoring the frame time: a leg starts when its planning (snapshot builds) is done. */
+    real: function () {
+      return frozen != null ? frozen : performance.now();
+    },
+    /** render.js: draw this frame at rAF time ts (null ends the frame). Never runs backwards. */
+    frame: function (ts) {
+      frameT = ts == null ? null : Math.max(ts, ROOM.clock.last || 0);
+      if (frameT != null) ROOM.clock.last = frameT;
+    },
+    last: 0,
     freeze: function () {
       frozen = performance.now();
     },

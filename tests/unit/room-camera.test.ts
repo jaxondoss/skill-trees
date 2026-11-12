@@ -269,6 +269,47 @@ describe("snapshot zoom and turn helpers (v3.5)", () => {
   });
 });
 
+describe("phone pan spring rate (v3.5 motion pass)", () => {
+  it("a fast fling toward a near stop lands without overshoot, keeping its release speed", () => {
+    const target = 100;
+    let x = 80, v = 900;
+    const w = C.springRate(x, v, target);
+    expect(w).toBeGreaterThan((2 * Math.PI) / 0.5);
+    let max = x;
+    for (let i = 0; i < 120; i++) {
+      ({ x, v } = C.springStep(x, v, target, 1 / 60, w));
+      max = Math.max(max, x);
+    }
+    expect(max).toBeLessThanOrEqual(target + 1e-6);
+    expect(Math.abs(x - target)).toBeLessThan(0.05);
+  });
+  it("keeps the 0.5 s spring when it would not overshoot", () => {
+    expect(C.springRate(0, 10, 100)).toBeCloseTo((2 * Math.PI) / 0.5);
+  });
+});
+
+describe("dolly easing and length (v3.5 motion pass)", () => {
+  it("starts and ends at rest, with a continuous speed and no overshoot", () => {
+    const e = C.easeDolly as (u: number) => number;
+    expect(e(0)).toBe(0);
+    expect(e(1)).toBe(1);
+    const h = 1e-4, v = (u: number) => (e(u + h) - e(u - h)) / (2 * h);
+    expect(v(h)).toBeLessThan(0.01);
+    expect(v(1 - h)).toBeLessThan(0.01);
+    expect(Math.abs(v(0.35 - 1e-3) - v(0.35 + 1e-3))).toBeLessThan(0.05);
+    let prev = 0;
+    for (let i = 1; i <= 100; i++) {
+      expect(e(i / 100)).toBeGreaterThanOrEqual(prev);
+      prev = e(i / 100);
+    }
+  });
+  it("lasts longer for longer moves, within 380..680 ms", () => {
+    expect(C.dollyMs(10)).toBe(380);
+    expect(C.dollyMs(1000)).toBeGreaterThan(C.dollyMs(400));
+    expect(C.dollyMs(1e6)).toBe(680);
+  });
+});
+
 describe("anticipation and phone pan depth", () => {
   it("pulls back about 3% over 80 ms, then releases with the push-in", () => {
     expect(C.anticipation(0)).toBe(1);

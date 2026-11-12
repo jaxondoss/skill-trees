@@ -262,11 +262,34 @@
    * Transform of the single dolly plane at progress u in [0, 1] (easeOutCubic). u = 0 and u = 1 are exactly the
    * rest transforms of the two cameras; in between the zoom is geometric about the pivot (or a lateral slide).
    */
+  /**
+   * Dolly easing (v3.5 motion pass): starts and ends at rest (the old easeOutCubic started at full speed: a jump on
+   * the first frame), accelerates over the first 35 % (cubic in) and settles over the rest (cubic out), with the
+   * speed continuous where they meet.
+   */
+  var DOLLY_PEAK = 0.35;
+  function easeDolly(u) {
+    u = clamp(u, 0, 1);
+    var a = DOLLY_PEAK;
+    if (u < a) return (u * u * u) / (a * a);
+    var s = (u - a) / (1 - a), k = 1 - s;
+    return a + (1 - a) * (1 - k * k * k);
+  }
+  /** The screen distance (device px) a dolly plan covers: zoom (log, over the half diagonal) plus the centre slide. */
+  function dollyDistance(plan) {
+    var v = plan.view, D = Math.hypot(v.Wd, v.Hd) / 2;
+    var zm = Math.max(plan.z0, plan.z1);
+    return Math.abs(Math.log(plan.z1 / plan.z0)) * D + Math.hypot(plan.c1.x - plan.c0.x, plan.c1.y - plan.c0.y) * zm;
+  }
+  /** Dolly length by distance: 380 ms for a short slide, about 520 ms for a zone step, at most 680 ms. */
+  function dollyMs(dist) {
+    return clamp(Math.round(340 * Math.pow(Math.max(1, dist) / 300, 0.35)), 380, 680);
+  }
   function dollyAt(plan, u) {
     var view = plan.view;
     if (u <= 0) return restTransform(plan.from, view, 0);
     if (u >= 1) return restTransform(plan.to, view, 0);
-    var e = easeOut(u);
+    var e = easeDolly(u);
     if (plan.lateral) {
       var cx = plan.c0.x + (plan.c1.x - plan.c0.x) * e;
       var cy = plan.c0.y + (plan.c1.y - plan.c0.y) * e;
@@ -345,14 +368,24 @@
    * Advance a critically damped spring (period 0.5 s) toward target by dt seconds, exactly:
    * x(t) - T = (A + B t) e^(-wt), A = x0 - T, B = v0 + w A.
    */
-  function springStep(x, v, target, dt) {
-    var w = (2 * Math.PI) / SPRING_PERIOD_S;
+  function springStep(x, v, target, dt, w) {
+    w = w || (2 * Math.PI) / SPRING_PERIOD_S;
     var A = x - target;
     var B = v + w * A;
     var ex = Math.exp(-w * dt);
     return { x: target + (A + B * dt) * ex, v: (v - w * B * dt) * ex };
   }
 
+  /**
+   * The spring rate for a release at (x, v) toward target (v3.5 motion pass): the 0.5 s spring, stiffened just enough
+   * that a fling toward a near stop does not overshoot it and swing back (critical damping overshoots when the speed
+   * toward the target exceeds w * distance). The release speed is kept as it is: no velocity jump.
+   */
+  function springRate(x, v, target) {
+    var w = (2 * Math.PI) / SPRING_PERIOD_S, A = x - target;
+    if (A * v < 0 && Math.abs(v) > w * Math.abs(A)) w = Math.min(150, Math.abs(v) / Math.abs(A));
+    return w;
+  }
   function springSettled(x, v, target) {
     return Math.abs(x - target) < 0.05 && Math.abs(v) < 0.5;
   }
@@ -419,6 +452,9 @@
     ZONE_FRACTION: ZONE_FRACTION,
     PAN_DEPTH: PAN_DEPTH,
     DOLLY_MS: DOLLY_MS,
+    easeDolly: easeDolly,
+    dollyDistance: dollyDistance,
+    dollyMs: dollyMs,
     ANTICIPATE_MS: ANTICIPATE_MS,
     ANTICIPATE_K: ANTICIPATE_K,
     FW_PHONE: FW_PHONE,
@@ -450,6 +486,7 @@
     nearestStop: nearestStop,
     snapTarget: snapTarget,
     springStep: springStep,
+    springRate: springRate,
     springSettled: springSettled,
     zoneAtX: zoneAtX,
     zoneStops: zoneStops,

@@ -91,13 +91,18 @@
   function clamp01(v) {
     return v < 0 ? 0 : v > 1 ? 1 : v;
   }
+  // v3.5 motion pass: both curves start and end at rest (the old easeOutCubic left at full speed, a 94 px jump on the
+  // first frame of a lift; easeInCubic hit the socket at full speed). easeOut: a quick 30 % run-up, a long settle;
+  // easeIn: its mirror image (slow start, quick fall, still landing at rest). The speed is continuous throughout.
+  var PEAK = 0.3;
   function easeOut(u) {
     u = clamp01(u);
-    return 1 - (1 - u) * (1 - u) * (1 - u);
+    if (u < PEAK) return (u * u * u) / (PEAK * PEAK);
+    var k = 1 - (u - PEAK) / (1 - PEAK);
+    return PEAK + (1 - PEAK) * (1 - k * k * k);
   }
   function easeIn(u) {
-    u = clamp01(u);
-    return u * u * u;
+    return 1 - easeOut(1 - clamp01(u));
   }
   /** Integer zoom at u on a flight from k0 to k1: every integer in between, equal slices of u. */
   function kAt(k0, k1, u) {
@@ -285,14 +290,16 @@
       var u = anim.dur > 0 ? clamp01(t / anim.dur) : 1;
       var a = anim.from, b = anim.to;
       var e = anim.ease(u);
-      var k = kAt(a.k, b.k, u);
+      // the zoom steps follow the eased flight (not the clock), so the size grows with the hero's travel instead of
+      // stepping on while it has nearly stopped (v3.5 motion pass)
+      var k = kAt(a.k, b.k, e);
       // the centre eases; the top-left is integer device px
       var ca = [a.x + (cur.aw * a.k) / 2, a.y + (cur.ah * a.k) / 2];
       var cb = [b.x + (cur.aw * b.k) / 2, b.y + (cur.ah * b.k) / 2];
       var cx = ca[0] + (cb[0] - ca[0]) * e, cy = ca[1] + (cb[1] - ca[1]) * e;
       var x = u >= 1 ? b.x : u <= 0 ? a.x : Math.round(cx - (cur.aw * k) / 2);
       var y = u >= 1 ? b.y : u <= 0 ? a.y : Math.round(cy - (cur.ah * k) / 2);
-      if (anim.rise) y += Math.round(anim.rise * (1 - stepK(u, 4))) * k;
+      if (anim.rise) y += Math.round(anim.rise * (1 - stepK(u, 16))) * k;
       s = {
         x: x, y: y, k: k,
         selK: a.selK + (b.selK - a.selK) * u,
@@ -444,19 +451,19 @@
     var dur = opts.dur || MS.lift;
     var from = roomRect(h);
     var halo = function (t) {
-      // socket, darkening, halo and pool come in over 120..360 ms in 3 Bayer steps (scaled to the leg)
+      // socket, darkening, halo and pool come in over 120..360 ms in 6 Bayer steps (scaled to the leg)
       var s = (t - dur / 3) / ((2 * dur) / 3);
-      return t < dur / 3 ? 0 : stepK(s + 1 / 3, 3);
+      return t < dur / 3 ? 0 : stepK(s + 1 / 6, 6);
     };
     if (!from) {
-      // not on screen: the hero materialises in place (4 Bayer steps, 3 art px rise), no flight
+      // not on screen: the hero materialises in place (8 Bayer steps, 3 art px rise), no flight
       var d2 = Math.min(dur, MS.inPlace);
       startAnim('inplace', { x: to.x, y: to.y, k: to.k, selK: 0, heroK: 0, haloK: 0 }, to, d2, {
         heroKAt: function (t) {
-          return stepK(t / d2 + 0.25, 4);
+          return stepK(t / d2 + 0.125, 8);
         },
         haloKAt: function (t) {
-          return stepK(t / d2 + 1 / 3, 3);
+          return stepK(t / d2 + 1 / 6, 6);
         },
         rise: 3,
         boardAt: phone ? 0 : Math.round(d2 * 0.66),
@@ -472,7 +479,7 @@
       // authored art differs from the room sprite: it dissolves in over the first two zoom steps
       heroKAt: h.meta.authored
         ? function (t, u) {
-          return stepK(u / Math.min(1, 2 / n), 4);
+          return stepK(u / Math.min(1, 2 / n), 8);
         }
         : function () {
           return 1;
@@ -536,7 +543,7 @@
     var to = roomRect(cur);
     var h = cur;
     var haloOut = function (t) {
-      return from.haloK * (1 - stepK(t / Math.min(dur, MS.dim), 3));
+      return from.haloK * (1 - stepK(t / Math.min(dur, MS.dim), 6));
     };
     if (!to) {
       // no room item on screen: dissolve out where it is
@@ -544,7 +551,7 @@
       startAnim('drop', from, gone, Math.min(dur, MS.inPlace), {
         ease: easeIn,
         heroKAt: function (t) {
-          return from.heroK * (1 - stepK(t / Math.min(dur, MS.inPlace) + 0.25, 4));
+          return from.heroK * (1 - stepK(t / Math.min(dur, MS.inPlace) + 0.125, 8));
         },
         haloKAt: function (t) {
           return Math.max(0, haloOut(t));
@@ -563,7 +570,7 @@
         ? function (t, u) {
           // authored art dissolves out over the last two zoom steps, onto the room item
           var w = Math.min(1, 2 / n);
-          return from.heroK * stepK((1 - u) / w, 4);
+          return from.heroK * stepK((1 - u) / w, 8);
         }
         : function () {
           return from.heroK;
@@ -615,10 +622,10 @@
       startAnim('drop', s, to, t, {
         ease: easeIn,
         heroKAt: function (tt, u) {
-          return cur.meta.authored || a.kind === 'inplace' ? h0 * stepK(1 - u, 4) : 1;
+          return cur.meta.authored || a.kind === 'inplace' ? h0 * stepK(1 - u, 8) : 1;
         },
         haloKAt: function (tt, u) {
-          return l0 * stepK(1 - u, 3);
+          return l0 * stepK(1 - u, 6);
         },
       });
     } else if (a.kind === 'drop') {
@@ -630,10 +637,10 @@
       startAnim('lift', s, { x: tgt.x, y: tgt.y, k: tgt.k, selK: 1, heroK: 1, haloK: 1 }, t, {
         ease: easeOut,
         heroKAt: function (tt, u) {
-          return h1 + (1 - h1) * stepK(u, 4);
+          return h1 + (1 - h1) * stepK(u, 8);
         },
         haloKAt: function (tt, u) {
-          return l1 + (1 - l1) * stepK(u, 3);
+          return l1 + (1 - l1) * stepK(u, 6);
         },
         boardAt: -1,
       });

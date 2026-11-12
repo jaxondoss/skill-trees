@@ -414,6 +414,9 @@
       if (m.i > 0 || m.queued) Rr.restNow();
       l.r = Rr.beginLeg({ kind: l.kind, from: l.from, to: l.to, lsFrom: lsFull(l.from), lsTo: lsFull(l.to), dir: l.dir });
       l.dur = l.r.dur;
+      // the leg's clock starts once its shots are built: a slow first frame (snapshot builds) never eats into the
+      // motion (on a slow device the first press used to land the whole turn before the next key: two moves)
+      l.t0 = ROOM.clock.real();
       return;
     }
     // live legs: the camera stays; the room renders live; the light state tweens
@@ -808,7 +811,7 @@
       return busy();
     },
     get leg() {
-      return move && move.leg && move.leg.r ? { kind: move.leg.kind, u: move.leg.r.u, dir: move.leg.r.dir } : null;
+      return move && move.leg && move.leg.r ? { kind: move.leg.kind, u: move.leg.r.u, dir: move.leg.r.dir, pose: move.leg.r.pose || null } : null;
     },
     ls: ls,
     request: request,
