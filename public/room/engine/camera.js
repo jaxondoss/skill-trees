@@ -262,11 +262,34 @@
    * Transform of the single dolly plane at progress u in [0, 1] (easeOutCubic). u = 0 and u = 1 are exactly the
    * rest transforms of the two cameras; in between the zoom is geometric about the pivot (or a lateral slide).
    */
+  /**
+   * Dolly easing (v3.5 motion pass): starts and ends at rest (the old easeOutCubic started at full speed: a jump on
+   * the first frame), accelerates over the first 35 % (cubic in) and settles over the rest (cubic out), with the
+   * speed continuous where they meet.
+   */
+  var DOLLY_PEAK = 0.35;
+  function easeDolly(u) {
+    u = clamp(u, 0, 1);
+    var a = DOLLY_PEAK;
+    if (u < a) return (u * u * u) / (a * a);
+    var s = (u - a) / (1 - a), k = 1 - s;
+    return a + (1 - a) * (1 - k * k * k);
+  }
+  /** The screen distance (device px) a dolly plan covers: zoom (log, over the half diagonal) plus the centre slide. */
+  function dollyDistance(plan) {
+    var v = plan.view, D = Math.hypot(v.Wd, v.Hd) / 2;
+    var zm = Math.max(plan.z0, plan.z1);
+    return Math.abs(Math.log(plan.z1 / plan.z0)) * D + Math.hypot(plan.c1.x - plan.c0.x, plan.c1.y - plan.c0.y) * zm;
+  }
+  /** Dolly length by distance: 380 ms for a short slide, about 520 ms for a zone step, at most 680 ms. */
+  function dollyMs(dist) {
+    return clamp(Math.round(340 * Math.pow(Math.max(1, dist) / 300, 0.35)), 380, 680);
+  }
   function dollyAt(plan, u) {
     var view = plan.view;
     if (u <= 0) return restTransform(plan.from, view, 0);
     if (u >= 1) return restTransform(plan.to, view, 0);
-    var e = easeOut(u);
+    var e = easeDolly(u);
     if (plan.lateral) {
       var cx = plan.c0.x + (plan.c1.x - plan.c0.x) * e;
       var cy = plan.c0.y + (plan.c1.y - plan.c0.y) * e;
@@ -419,6 +442,9 @@
     ZONE_FRACTION: ZONE_FRACTION,
     PAN_DEPTH: PAN_DEPTH,
     DOLLY_MS: DOLLY_MS,
+    easeDolly: easeDolly,
+    dollyDistance: dollyDistance,
+    dollyMs: dollyMs,
     ANTICIPATE_MS: ANTICIPATE_MS,
     ANTICIPATE_K: ANTICIPATE_K,
     FW_PHONE: FW_PHONE,

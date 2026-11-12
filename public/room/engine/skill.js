@@ -91,13 +91,18 @@
   function clamp01(v) {
     return v < 0 ? 0 : v > 1 ? 1 : v;
   }
+  // v3.5 motion pass: both curves start and end at rest (the old easeOutCubic left at full speed, a 94 px jump on the
+  // first frame of a lift; easeInCubic hit the socket at full speed). easeOut: a quick 30 % run-up, a long settle;
+  // easeIn: its mirror image (slow start, quick fall, still landing at rest). The speed is continuous throughout.
+  var PEAK = 0.3;
   function easeOut(u) {
     u = clamp01(u);
-    return 1 - (1 - u) * (1 - u) * (1 - u);
+    if (u < PEAK) return (u * u * u) / (PEAK * PEAK);
+    var k = 1 - (u - PEAK) / (1 - PEAK);
+    return PEAK + (1 - PEAK) * (1 - k * k * k);
   }
   function easeIn(u) {
-    u = clamp01(u);
-    return u * u * u;
+    return 1 - easeOut(1 - clamp01(u));
   }
   /** Integer zoom at u on a flight from k0 to k1: every integer in between, equal slices of u. */
   function kAt(k0, k1, u) {
@@ -285,7 +290,9 @@
       var u = anim.dur > 0 ? clamp01(t / anim.dur) : 1;
       var a = anim.from, b = anim.to;
       var e = anim.ease(u);
-      var k = kAt(a.k, b.k, u);
+      // the zoom steps follow the eased flight (not the clock), so the size grows with the hero's travel instead of
+      // stepping on while it has nearly stopped (v3.5 motion pass)
+      var k = kAt(a.k, b.k, e);
       // the centre eases; the top-left is integer device px
       var ca = [a.x + (cur.aw * a.k) / 2, a.y + (cur.ah * a.k) / 2];
       var cb = [b.x + (cur.aw * b.k) / 2, b.y + (cur.ah * b.k) / 2];
