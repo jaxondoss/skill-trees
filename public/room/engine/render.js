@@ -1473,6 +1473,17 @@
     // Phone pan: spring to the snap target after a release.
     if (view.mode === 'pan' && !ROOM.state.zone && pan.target != null && !pan.dragging) {
       if (pan.wFor !== pan.target) {
+        // a fling that would reach its stop too fast to stop smoothly carries on to the next stop in its direction
+        // (when there is one); otherwise the spring stiffens just enough not to overshoot (v3.5 motion pass)
+        var w0 = CAM.springRate(pan.x, 0, pan.target);
+        if ((pan.x - pan.target) * pan.v < 0 && Math.abs(pan.v) > w0 * Math.abs(pan.x - pan.target)) {
+          var b = CAM.panBounds(view), stops = CAM.zoneStops(ROOM.zonesInView()), best = null;
+          for (var si = 0; si < stops.length; si++) {
+            var st = CAM.clamp(stops[si], b.min, b.max), d = (st - pan.target) * Math.sign(pan.v);
+            if (d > 0.5 && (best == null || Math.abs(st - pan.target) < Math.abs(best - pan.target))) best = st;
+          }
+          if (best != null) pan.target = best;
+        }
         pan.wFor = pan.target;
         pan.w = CAM.springRate(pan.x, pan.v, pan.target);
       }

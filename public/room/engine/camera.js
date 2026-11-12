@@ -383,7 +383,7 @@
    */
   function springRate(x, v, target) {
     var w = (2 * Math.PI) / SPRING_PERIOD_S, A = x - target;
-    if (A * v < 0 && Math.abs(v) > w * Math.abs(A)) w = Math.min(60, Math.abs(v) / Math.abs(A));
+    if (A * v < 0 && Math.abs(v) > w * Math.abs(A)) w = Math.min(150, Math.abs(v) / Math.abs(A));
     return w;
   }
   function springSettled(x, v, target) {
