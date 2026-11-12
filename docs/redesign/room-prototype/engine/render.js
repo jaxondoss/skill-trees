@@ -1172,7 +1172,8 @@
     leg.th1 = leg.steps * (Math.PI / 2) * dir;
     leg.v0 = 0;
     leg.tStart = 0;
-    leg.dur = spec.dur || [0, 640, 900, 1100][leg.steps] || 900;
+    // a turn that also zooms (into or out of a zone) covers more screen: up to 200 ms longer (v3.5 motion pass)
+    leg.dur = spec.dur || ([0, 640, 900, 1100][leg.steps] || 900) + Math.round(200 * Math.min(1, Math.abs(Math.log(leg.z1 / leg.z0)) / 0.7));
     leg.dur0 = leg.dur;
   }
   function addMaster(leg, i, spec) {
