@@ -352,7 +352,7 @@ kkkkkkkkkk
 
 
 def mini_clock(B):
-    put(B, tpl(CLOCK), -13.2, 2.0, 9.8)
+    put(B, tpl(CLOCK), -13.15, 2.0, 2.2)
 
 
 GLOBE = """
@@ -488,7 +488,7 @@ kkk....kkk
 
 
 def mini_shoes(B):
-    put(B, tpl(SHOES), 13.4, 0.0, -7.2)
+    put(B, tpl(SHOES), 13.4, 0.0, -6.7)
 
 
 RELIC = """
