@@ -1472,7 +1472,11 @@
 
     // Phone pan: spring to the snap target after a release.
     if (view.mode === 'pan' && !ROOM.state.zone && pan.target != null && !pan.dragging) {
-      var r = CAM.springStep(pan.x, pan.v, pan.target, dt / 1000); // exact for any dt: no slow-down on a dropped frame
+      if (pan.wFor !== pan.target) {
+        pan.wFor = pan.target;
+        pan.w = CAM.springRate(pan.x, pan.v, pan.target);
+      }
+      var r = CAM.springStep(pan.x, pan.v, pan.target, dt / 1000, pan.w); // exact for any dt: no slow-down on a dropped frame
       pan.x = r.x;
       pan.v = r.v;
       if (ROOM.state.reducedMotion || CAM.springSettled(pan.x, pan.v, pan.target)) {

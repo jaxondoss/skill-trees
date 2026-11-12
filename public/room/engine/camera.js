@@ -368,14 +368,24 @@
    * Advance a critically damped spring (period 0.5 s) toward target by dt seconds, exactly:
    * x(t) - T = (A + B t) e^(-wt), A = x0 - T, B = v0 + w A.
    */
-  function springStep(x, v, target, dt) {
-    var w = (2 * Math.PI) / SPRING_PERIOD_S;
+  function springStep(x, v, target, dt, w) {
+    w = w || (2 * Math.PI) / SPRING_PERIOD_S;
     var A = x - target;
     var B = v + w * A;
     var ex = Math.exp(-w * dt);
     return { x: target + (A + B * dt) * ex, v: (v - w * B * dt) * ex };
   }
 
+  /**
+   * The spring rate for a release at (x, v) toward target (v3.5 motion pass): the 0.5 s spring, stiffened just enough
+   * that a fling toward a near stop does not overshoot it and swing back (critical damping overshoots when the speed
+   * toward the target exceeds w * distance). The release speed is kept as it is: no velocity jump.
+   */
+  function springRate(x, v, target) {
+    var w = (2 * Math.PI) / SPRING_PERIOD_S, A = x - target;
+    if (A * v < 0 && Math.abs(v) > w * Math.abs(A)) w = Math.min(60, Math.abs(v) / Math.abs(A));
+    return w;
+  }
   function springSettled(x, v, target) {
     return Math.abs(x - target) < 0.05 && Math.abs(v) < 0.5;
   }
@@ -476,6 +486,7 @@
     nearestStop: nearestStop,
     snapTarget: snapTarget,
     springStep: springStep,
+    springRate: springRate,
     springSettled: springSettled,
     zoneAtX: zoneAtX,
     zoneStops: zoneStops,

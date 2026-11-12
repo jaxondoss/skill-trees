@@ -94,7 +94,7 @@ async function record(name, src, steps = []) {
         p.hero = sk ? { x: sk.x + sk.w / 2, y: sk.y + sk.h / 2, w: sk.w, k: st.skill.k, heroK: st.skill.heroK, haloK: st.skill.haloK } : null;
         p.pan = st.pan.x;
         p.dimK = R.nav.ls().dimK;
-        p.busy = R.nav.busy;
+        p.busy = R.nav.busy || st.pan.target != null; // the phone pan spring is not a navigator move
         return p;
       };
       const rest = [thumb()];

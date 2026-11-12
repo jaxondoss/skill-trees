@@ -269,6 +269,25 @@ describe("snapshot zoom and turn helpers (v3.5)", () => {
   });
 });
 
+describe("phone pan spring rate (v3.5 motion pass)", () => {
+  it("a fast fling toward a near stop lands without overshoot, keeping its release speed", () => {
+    const target = 100;
+    let x = 80, v = 900;
+    const w = C.springRate(x, v, target);
+    expect(w).toBeGreaterThan((2 * Math.PI) / 0.5);
+    let max = x;
+    for (let i = 0; i < 120; i++) {
+      ({ x, v } = C.springStep(x, v, target, 1 / 60, w));
+      max = Math.max(max, x);
+    }
+    expect(max).toBeLessThanOrEqual(target + 1e-6);
+    expect(Math.abs(x - target)).toBeLessThan(0.05);
+  });
+  it("keeps the 0.5 s spring when it would not overshoot", () => {
+    expect(C.springRate(0, 10, 100)).toBeCloseTo((2 * Math.PI) / 0.5);
+  });
+});
+
 describe("dolly easing and length (v3.5 motion pass)", () => {
   it("starts and ends at rest, with a continuous speed and no overshoot", () => {
     const e = C.easeDolly as (u: number) => number;
