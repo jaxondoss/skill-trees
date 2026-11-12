@@ -1893,6 +1893,18 @@ def window_zone():
         for k in range(3):
             L(mid + 3, ay + 5 + k * 4, bx - 4, ay + 5 + k * 4, BOOKC[k * 3])
         shadow_fp(MX0, MX1, 0, 1.6)
+    with obj("crt-small"):  # stats (first: it stands right of the big set, further from the camera ray)
+        f = box3d(MX0 + 3.0, MX0 + 4.75, 1.7, 3.3, 0.3, 1.3, "SLATE_0", side="INK", top="SLATE_1")
+        (ax, ay), (bx, by), _, (dx, dy) = f["front"]
+        ax, ay, bx, dy = int(ax), int(ay), int(bx), int(dy)
+        R(ax + 1, ay + 1, bx - 1, dy - 3, "INK")
+        R(ax + 2, ay + 2, bx - 2, dy - 4, "TERRA_0!")
+        L(ax + 3, ay + 3, bx - 3, ay + 3, "CRT_0!")
+        G.screens["crt-small"] = (ax + 2, ay + 2, bx - 2, dy - 4)
+        P(bx - 3, dy - 2, "CRT_1!")
+        light((ax + bx) / 2, (ay + dy) / 2, 18, 16, 0.4)
+        with channel("crt"):
+            tint((ax + bx) / 2, (ay + dy) / 2 + 6, 18, 18, "red", (0.7, 0.55, 0.85)[af("crt")])
     with obj("crt-big"):  # Today
         f = box3d(MX0 + 0.3, MX0 + 2.9, 1.7, 3.9, 0.15, 1.45, "BROWN_1", side="INK", top="SLATE_0")
         (ax, ay), (bx, by), _, (dx, dy) = f["front"]
@@ -1911,18 +1923,6 @@ def window_zone():
         with channel("crt"):
             tint(cx_, cy_ - 4, 30, 22, "red", (0.9, 0.7, 1.15)[af("crt")])
         G.screens["crt-big"] = (ax + 3, ay + 3, bx - 8, dy - 4)
-    with obj("crt-small"):  # stats
-        f = box3d(MX0 + 3.0, MX0 + 4.75, 1.7, 3.3, 0.3, 1.3, "SLATE_0", side="INK", top="SLATE_1")
-        (ax, ay), (bx, by), _, (dx, dy) = f["front"]
-        ax, ay, bx, dy = int(ax), int(ay), int(bx), int(dy)
-        R(ax + 1, ay + 1, bx - 1, dy - 3, "INK")
-        R(ax + 2, ay + 2, bx - 2, dy - 4, "TERRA_0!")
-        L(ax + 3, ay + 3, bx - 3, ay + 3, "CRT_0!")
-        G.screens["crt-small"] = (ax + 2, ay + 2, bx - 2, dy - 4)
-        P(bx - 3, dy - 2, "CRT_1!")
-        light((ax + bx) / 2, (ay + dy) / 2, 18, 16, 0.4)
-        with channel("crt"):
-            tint((ax + bx) / 2, (ay + dy) / 2 + 6, 18, 18, "red", (0.7, 0.55, 0.85)[af("crt")])
     # chess: a big 8x8 board on its own stand, pieces mid-game, a stool beside it
     TX, TZ = 9.6, 2.8
     with obj("chess-table"):
@@ -2243,91 +2243,91 @@ def scene_left():
                 P(gx - 3, gy - 4, "CREAM")
                 light(gx, gy, 30, 26, 0.6)
                 tint(gx, gy, 32, 28, "violet", (1.0, 0.8, 1.2)[af("globe")])
-    with xshift(-1.8):
-        with obj("bed-rug"):
-            q = [pj(2.0, 0, 0.15), pj(10.6, 0, 0.15), pj(10.6, 0, 4.4), pj(2.0, 0, 4.4)]
-            POLY(q, "PLUM_1", "INK")
-            q2 = [pj(2.4, 0, 0.4), pj(10.3, 0, 0.4), pj(10.3, 0, 4.1), pj(2.4, 0, 4.1)]
-            PL(q2 + [q2[0]], "CREAM")
-            q3 = [pj(2.8, 0, 0.7), pj(9.9, 0, 0.7), pj(9.9, 0, 3.8), pj(2.8, 0, 3.8)]
-            PL(q3 + [q3[0]], "PLUM_2")
-            for k in range(9):
-                c = pj(3.4 + k * 0.78, 0, 4.0)
-                ss = sc(4.0) * 0.18
-                POLY([(c[0], c[1] - ss * 0.6), (c[0] + ss * 1.4, c[1]), (c[0], c[1] + ss * 0.6), (c[0] - ss * 1.4, c[1])], "TERRA_1")
-            a_, b_ = pj(2.0, 0, 4.4), pj(10.6, 0, 4.4)
-            for x in range(int(a_[0]) + 1, int(b_[0]), 3):
-                P(x, a_[1] + 1, "CREAM")
-    with xshift(-1.8):
-        with obj("headboard"):
-            lbox(10.6, 11.0, 0, 3.6, 0, 3.7, "OAK_1", side="OAK_0", top="OAK_2")
-            for z in (0.6, 1.4, 2.2, 3.0):
-                a_, b_ = pj(10.6, 3.3, z), pj(10.6, 1.4, z)
-                L(a_[0], a_[1], b_[0], b_[1], "OAK_DK")
-    with xshift(-1.8):
-        with obj("bed"):
-            X0, X1 = 4.0, 10.6
-            lbox(X0, X1, 0, 0.9, 0.0, 3.7, "OAK_1", side="OAK_0", top="OAK_2")
-            a_, b_ = pj(X0 + 0.3, 0.5, 3.71), pj(X1 - 0.3, 0.5, 3.71)
+    # the bed runs along the wall with its headboard on the kitchen side and the nightstand between the fridge and
+    # the headboard, so the camera (left of every piece here) sees the nightstand whole and nothing stands behind the
+    # tall headboard. Draw order follows the camera rays: rug, bed, headboard (it hides the bed's head end and the
+    # far pillow's corner), nightstand (in front of the headboard's outer face), then what stands on it.
+    BX0, BX1 = 3.55, 9.95        # bed frame, local ft
+    with obj("bed-rug"):
+        q = [pj(3.3, 0, 0.15), pj(10.0, 0, 0.15), pj(10.0, 0, 4.4), pj(3.3, 0, 4.4)]
+        POLY(q, "PLUM_1", "INK")
+        q2 = [pj(3.7, 0, 0.4), pj(9.7, 0, 0.4), pj(9.7, 0, 4.1), pj(3.7, 0, 4.1)]
+        PL(q2 + [q2[0]], "CREAM")
+        q3 = [pj(4.1, 0, 0.7), pj(9.3, 0, 0.7), pj(9.3, 0, 3.8), pj(4.1, 0, 3.8)]
+        PL(q3 + [q3[0]], "PLUM_2")
+        for k in range(9):
+            c = pj(4.3 + k * 0.65, 0, 4.0)
+            ss = sc(4.0) * 0.18
+            POLY([(c[0], c[1] - ss * 0.6), (c[0] + ss * 1.4, c[1]), (c[0], c[1] + ss * 0.6), (c[0] - ss * 1.4, c[1])], "TERRA_1")
+        a_, b_ = pj(3.3, 0, 4.4), pj(10.0, 0, 4.4)
+        for x in range(int(a_[0]) + 1, int(b_[0]), 3):
+            P(x, a_[1] + 1, "CREAM")
+    with obj("bed"):
+        X0, X1 = BX0, BX1
+        lbox(X0, X1, 0, 0.9, 0.0, 3.7, "OAK_1", side="OAK_0", top="OAK_2")
+        a_, b_ = pj(X0 + 0.3, 0.5, 3.71), pj(X1 - 0.3, 0.5, 3.71)
+        L(a_[0], a_[1], b_[0], b_[1], "OAK_DK")
+        # mattress
+        lbox(X0 + 0.05, X1 - 0.05, 0.8, 1.7, 0.1, 3.6, "CREAM", side="SLATE_2", top="CREAM")
+        # pillows at the head (left, against the headboard)
+        for k, (zz, c) in enumerate(((0.35, "SLATE_2"), (1.9, "CREAM"))):
+            a_, b_ = pj(X0 + 0.2, 2.6, zz + 1.5), pj(X0 + 1.6, 1.7, zz + 1.5)
+            ELL(a_[0], a_[1], b_[0], b_[1] + 2, c, "INK")
+            L(a_[0] + 3, a_[1] + 1, b_[0] - 3, a_[1] + 1, "CREAM")
+        # lilac quilt over the top and draped down the front, folded back at the pillows
+        qt = [pj(X0 + 1.8, 1.78, 0.1), pj(X1 - 0.05, 1.78, 0.1), pj(X1 - 0.05, 1.78, 3.62), pj(X0 + 1.8, 1.78, 3.62)]
+        POLY(qt, "VIOLET", "INK")
+        a_, b_ = pj(X0 + 1.8, 1.78, 3.62), pj(X1 - 0.05, 0.75, 3.75)
+        R(a_[0], a_[1], b_[0], b_[1], "VIOLET")
+        L(a_[0], a_[1] + 1, b_[0], a_[1] + 1, "PLUM_3")
+        L(a_[0], b_[1] - 1, b_[0], b_[1] - 1, "PLUM_1")
+        L(a_[0], b_[1], b_[0], b_[1], "INK")
+        L(a_[0], a_[1], a_[0], b_[1], "INK")
+        L(b_[0], a_[1], b_[0], b_[1], "INK")
+        for k in range(1, 9):        # quilt squares: stitches on the drape and the top
+            x = a_[0] + (b_[0] - a_[0]) * k / 9
+            L(x, a_[1] + 2, x, b_[1] - 2, "PLUM_2" if k % 2 else "VIOLET")
+            tq = pj(X0 + 1.8 + (X1 - 0.05 - X0 - 1.8) * k / 9, 1.78, 2.0)
+            P(tq[0], tq[1], "PLUM_3")
+        fb = [pj(X0 + 1.3, 1.82, 0.1), pj(X0 + 1.8, 1.82, 0.1), pj(X0 + 1.8, 1.82, 3.62), pj(X0 + 1.3, 1.82, 3.62)]
+        POLY(fb, "CREAM", "INK")    # sheet folded back
+        # folded slate throw across the foot
+        ft = [pj(X1 - 1.5, 1.86, 0.2), pj(X1 - 0.3, 1.86, 0.2), pj(X1 - 0.3, 1.86, 3.66), pj(X1 - 1.5, 1.86, 3.66)]
+        POLY(ft, "SLATE_1", "INK")
+        a_, b_ = pj(X1 - 1.5, 1.86, 3.66), pj(X1 - 0.3, 1.0, 3.8)
+        R(a_[0], a_[1], b_[0], b_[1], "SLATE_0")
+        L(a_[0], a_[1], b_[0], a_[1], "SLATE_2")
+        PL([(a_[0], a_[1]), (a_[0], b_[1]), (b_[0], b_[1]), (b_[0], a_[1])], "INK")
+        shadow_fp(X0, X1, 0, 3.7)
+    with obj("headboard"):
+        HX = BX0 - 0.4
+        lbox(HX, BX0, 0, 3.6, 0, 3.7, "OAK_1", side="OAK_0", top="OAK_2")
+        for z in (0.6, 1.4, 2.2, 3.0):
+            a_, b_ = pj(HX, 3.3, z), pj(HX, 1.4, z)
             L(a_[0], a_[1], b_[0], b_[1], "OAK_DK")
-            # mattress
-            lbox(X0 + 0.05, X1 - 0.05, 0.8, 1.7, 0.1, 3.6, "CREAM", side="SLATE_2", top="CREAM")
-            # pillows at the head (right)
-            for k, (zz, c) in enumerate(((0.35, "SLATE_2"), (1.9, "CREAM"))):
-                a_, b_ = pj(X1 - 1.6, 2.6, zz + 1.5), pj(X1 - 0.2, 1.7, zz + 1.5)
-                ELL(a_[0], a_[1], b_[0], b_[1] + 2, c, "INK")
-                L(a_[0] + 3, a_[1] + 1, b_[0] - 3, a_[1] + 1, "CREAM")
-            # lilac quilt over the top and draped down the front, folded back at the pillows
-            qt = [pj(X0 + 0.05, 1.78, 0.1), pj(X1 - 1.8, 1.78, 0.1), pj(X1 - 1.8, 1.78, 3.62), pj(X0 + 0.05, 1.78, 3.62)]
-            POLY(qt, "VIOLET", "INK")
-            a_, b_ = pj(X0 + 0.05, 1.78, 3.62), pj(X1 - 1.8, 0.75, 3.75)
-            R(a_[0], a_[1], b_[0], b_[1], "VIOLET")
-            L(a_[0], a_[1] + 1, b_[0], a_[1] + 1, "PLUM_3")
-            L(a_[0], b_[1] - 1, b_[0], b_[1] - 1, "PLUM_1")
-            L(a_[0], b_[1], b_[0], b_[1], "INK")
-            L(a_[0], a_[1], a_[0], b_[1], "INK")
-            L(b_[0], a_[1], b_[0], b_[1], "INK")
-            for k in range(1, 9):        # quilt squares: stitches on the drape and the top
-                x = a_[0] + (b_[0] - a_[0]) * k / 9
-                L(x, a_[1] + 2, x, b_[1] - 2, "PLUM_2" if k % 2 else "VIOLET")
-                tq = pj(X0 + (X1 - 1.8 - X0) * k / 9, 1.78, 2.0)
-                P(tq[0], tq[1], "PLUM_3")
-            fb = [pj(X1 - 1.8, 1.82, 0.1), pj(X1 - 1.3, 1.82, 0.1), pj(X1 - 1.3, 1.82, 3.62), pj(X1 - 1.8, 1.82, 3.62)]
-            POLY(fb, "CREAM", "INK")    # sheet folded back
-            # folded slate throw across the foot
-            ft = [pj(X0 + 0.3, 1.86, 0.2), pj(X0 + 1.5, 1.86, 0.2), pj(X0 + 1.5, 1.86, 3.66), pj(X0 + 0.3, 1.86, 3.66)]
-            POLY(ft, "SLATE_1", "INK")
-            a_, b_ = pj(X0 + 0.3, 1.86, 3.66), pj(X0 + 1.5, 1.0, 3.8)
-            R(a_[0], a_[1], b_[0], b_[1], "SLATE_0")
-            L(a_[0], a_[1], b_[0], a_[1], "SLATE_2")
-            PL([(a_[0], a_[1]), (a_[0], b_[1]), (b_[0], b_[1]), (b_[0], a_[1])], "INK")
-            shadow_fp(X0, X1, 0, 3.7)
-    with xshift(-0.2):
-        with obj("nightstand"):
-            lbox(9.6, 10.9, 0, 2.0, 0.05, 1.4, "OAK_1", side="OAK_0", top="OAK_2")
-            a_, b_ = pj(9.75, 1.3, 1.41), pj(10.75, 1.3, 1.41)
-            L(a_[0], a_[1], b_[0], b_[1], "OAK_DK")
-            m_ = pj(10.25, 1.6, 1.41)
-            R(m_[0] - 1, m_[1], m_[0] + 1, m_[1], "GOLD")
-            pass
-    with xshift(-0.2):
-        with obj("alarm-clock"):
-            cx_, cy_ = pj(10.0, 2.0, 0.8)
-            BOX(cx_ - 6, cy_ - 7, cx_ + 5, cy_, "CRT_0", hi="CRT_1", sh="TERRA_0")
-            R(cx_ - 4, cy_ - 5, cx_ + 3, cy_ - 2, "INK")
-            for dx in (-3, -1, 1, 2):
-                P(cx_ + dx, cy_ - 4, "CRT_1!")
-            P(cx_ - 1, cy_ - 3, "CRT_1!")
-            P(cx_ - 6, cy_ - 8, "GOLD")
-            P(cx_ + 5, cy_ - 8, "GOLD")
-            light(cx_, cy_ - 4, 12, 10, 0.25)
-    with xshift(-0.2):
-        with obj("star-jar"):
-            jx, jy = pj(10.55, 2.0, 0.5)
-            BOX(jx - 3, jy - 8, jx + 3, jy, "SLATE_1", hi="SLATE_2")
-            R(jx - 3, jy - 9, jx + 3, jy - 9, "OAK_2")
-            for dx, dy, c in ((-1, -2, "GOLD"), (0, -5, "PLUM_3"), (1, -1, "SUN"), (0, -3, "CREAM"), (-1, -6, "GOLD")):
-                P(jx + dx, jy + dy, c)
+    with obj("nightstand"):
+        NX0, NX1 = 1.8, 3.05
+        lbox(NX0, NX1, 0, 2.0, 0.05, 1.4, "OAK_1", side="OAK_0", top="OAK_2")
+        a_, b_ = pj(NX0 + 0.15, 1.3, 1.41), pj(NX1 - 0.15, 1.3, 1.41)
+        L(a_[0], a_[1], b_[0], b_[1], "OAK_DK")
+        m_ = pj((NX0 + NX1) / 2, 1.6, 1.41)
+        R(m_[0] - 1, m_[1], m_[0] + 1, m_[1], "GOLD")
+    with obj("star-jar"):            # behind the clock (nearer the wall), so it goes first
+        jx, jy = pj(2.8, 2.0, 0.45)
+        BOX(jx - 3, jy - 8, jx + 3, jy, "SLATE_1", hi="SLATE_2")
+        R(jx - 3, jy - 9, jx + 3, jy - 9, "OAK_2")
+        for dx, dy, c in ((-1, -2, "GOLD"), (0, -5, "PLUM_3"), (1, -1, "SUN"), (0, -3, "CREAM"), (-1, -6, "GOLD")):
+            P(jx + dx, jy + dy, c)
+    with obj("alarm-clock"):
+        cx_, cy_ = pj(2.2, 2.0, 0.85)
+        BOX(cx_ - 6, cy_ - 7, cx_ + 5, cy_, "CRT_0", hi="CRT_1", sh="TERRA_0")
+        R(cx_ - 4, cy_ - 5, cx_ + 3, cy_ - 2, "INK")
+        for dx in (-3, -1, 1, 2):
+            P(cx_ + dx, cy_ - 4, "CRT_1!")
+        P(cx_ - 1, cy_ - 3, "CRT_1!")
+        P(cx_ - 6, cy_ - 8, "GOLD")
+        P(cx_ + 5, cy_ - 8, "GOLD")
+        light(cx_, cy_ - 4, 12, 10, 0.25)
     with xshift(-2.2):
         with obj("corkboard-kitchen"):
             x0, y0 = pji(1.5, 8.9, 0)
@@ -2686,8 +2686,10 @@ def scene_right():
                 R(a_[0] - 2, a_[1] - 1, a_[0] + 2, a_[1], "CREAM")
     with xshift(2.0):
         with obj("pc-desk"):
-            f = lbox(-9.0, -4.4, 2.3, 2.65, 0, 2.6, "OAK_1", side="OAK_0", top="OAK_2")
+            # the drawer pedestal first: its top sits under the desk top, which must cover it (drawn the other way
+            # round, the pedestal's top face painted a raised block over the desk)
             (ax, ay), (bx, by), _, (dx, dy) = lbox(-5.9, -4.5, 0, 2.3, 0.2, 2.5, "OAK_0", side="OAK_DK", top="OAK_1")["front"]
+            lbox(-9.0, -4.4, 2.3, 2.65, 0, 2.6, "OAK_1", side="OAK_0", top="OAK_2")
             for k in range(3):
                 yy = ay + 2 + k * (dy - ay - 3) / 3
                 L(ax + 1, yy, bx - 1, yy, "INK")
@@ -2901,6 +2903,21 @@ def scene_right():
                 circ(cx_, cy_ - r_ + 9, 1, "SLATE_1")
             shadow_fp(RX0, RX1, 0.3, 2.3)
     with xshift(2.5):
+        with obj("shoe-shelf"):     # Running: a narrow sneaker shelf, one pair per shelf (drawn before the kettlebells,
+            # which stand nearer the camera; it ends clear of the bike's rear wheel)
+            f = lbox(3.55, 4.8, 0, 2.6, 0, 1.1, "OAK_1", side="OAK_0", top="OAK_2")
+            (ax, ay), (bx, by), _, (dx, dy) = f["front"]
+            rows = (ay + (dy - ay) / 3, ay + (dy - ay) * 2 / 3, dy - 2)
+            for yb in rows[:2]:
+                L(ax + 1, yb, bx - 1, yb, "OAK_DK")
+            L(ax + 1, rows[2], bx - 1, rows[2], "OAK_DK")
+            for y, c in zip(rows, ("CRT_1", "SLATE_2", "LEAF_3")):
+                x = (ax + bx) / 2 - 5
+                for j in (0, 9):
+                    POLY([(x + j - 4, y - 1), (x + j + 5, y - 1), (x + j + 5, y - 4), (x + j, y - 7), (x + j - 4, y - 6)], c, "INK")
+                    L(x + j - 4, y - 2, x + j + 5, y - 2, "CREAM")
+            shadow_fp(3.55, 4.8, 0, 1.1)
+    with xshift(2.5):
         with obj("kettlebells"):
             for k, (X, r_, c) in enumerate(((1.9, 5, "INK"), (2.6, 4, "CRT_0"), (3.2, 3, "LEAF_1"))):
                 x, y = pj(X, 0, 1.4)
@@ -2917,19 +2934,6 @@ def scene_right():
             P(x - 2, y - 11, "CREAM"); P(x + 1, y - 12, "CREAM")
             shadow_ell(x, y, 6, 2, k=1.0)
     with xshift(2.5):
-        with obj("shoe-shelf"):     # Running: a sneaker shelf, three pairs
-            f = lbox(3.5, 5.9, 0, 2.6, 0, 1.1, "OAK_1", side="OAK_0", top="OAK_2")
-            (ax, ay), (bx, by), _, (dx, dy) = f["front"]
-            for k, yb in enumerate((ay + (dy - ay) * 0.5, dy - 2)):
-                L(ax + 1, yb, bx - 1, yb, "OAK_DK")
-            for k, (u, row, c) in enumerate(((0.2, 0, "CRT_1"), (0.62, 0, "SLATE_2"), (0.35, 1, "LEAF_3"))):
-                x = ax + (bx - ax) * u
-                y = (ay + (dy - ay) * 0.5) if row == 0 else dy - 2
-                for j in (0, 9):
-                    POLY([(x + j - 4, y - 1), (x + j + 5, y - 1), (x + j + 5, y - 4), (x + j, y - 7), (x + j - 4, y - 6)], c, "INK")
-                    L(x + j - 4, y - 2, x + j + 5, y - 2, "CREAM")
-            shadow_fp(3.5, 5.9, 0, 1.1)
-    with xshift(2.5):
         with obj("gym-bag"):
             x, y = pj(4.6, 0, 2.7)
             POLY([(x - 12, y), (x - 13, y - 9), (x - 10, y - 12), (x + 10, y - 12), (x + 13, y - 9), (x + 12, y)], "NAVY", "INK")
@@ -2937,7 +2941,7 @@ def scene_right():
             PL([(x - 6, y - 12), (x - 3, y - 17), (x + 3, y - 17), (x + 6, y - 12)], "INK")
             R(x - 3, y - 7, x + 3, y - 5, "CRT_0")
             shadow_ell(x, y, 13, 2, k=1.0)
-    with xshift(2.0):
+    with xshift(2.2):
         with obj("bike"):  # Triathlon: side profile against the wall, tarp half draped (awake: tarp off)
             R_ = 1.15
             zb = 0.9
@@ -3086,13 +3090,18 @@ def scene_back():
         paint_can(-6.6, 1.6, 0.9, "SLATE_1", "TERRA_2", "TERRA_2")
         paint_can(-5.6, 1.2, 0.8, "SLATE_1", "CRT_1", "CRT_1")
         paint_can(-2.4, 2.4, 0.9, "SLATE_1", "GOLD", "GOLD")
+    # the olive tree stands against the wall behind the stool: draw it first, so the nearer stool covers it
+    olive_tree(-10.9, 1.4)
     # the stool with brush jars on it
     with obj("studio-stool", mat={"default": "wood_furniture"}):
         SXs, SZs = -8.6, 3.6
         for dx in (-0.55, 0.55):
             for dz in (-0.5, 0.5):
                 a, b = pj(SXs + dx, 0, SZs + dz), pj(SXs + dx * 0.8, 2.4, SZs + dz * 0.8)
-                L(a[0], a[1], b[0], b[1], "OAK_0")
+                # 2 px legs with an INK edge, so they read against the olive tree's pot behind the stool
+                L(a[0] + 1, a[1], b[0] + 1, b[1], "INK")
+                L(a[0] - 1, a[1], b[0] - 1, b[1], "INK")
+                L(a[0], a[1], b[0], b[1], "OAK_1")
         box3d(SXs - 0.75, SXs + 0.75, 2.4, 2.65, SZs - 0.7, SZs + 0.7, "OAK_1", side="OAK_0", top="OAK_2")
     with obj("brush-jars", mat={"default": "glass_crt", "OAK_1": "wood_furniture", "OAK_2": "wood_furniture", "TERRA_2": "plastic",
                                 "CRT_1": "plastic", "GOLD": "plastic"}):
@@ -3104,9 +3113,9 @@ def scene_back():
                 b = pj(X - 0.25 + j * 0.25, 3.9 - j * 0.12, 3.6)
                 L(a[0], a[1], b[0], b[1], "OAK_2")
                 P(b[0], b[1], c)
-    # canvases leaning on the wall near the right corner (backs and one painted face)
+    # canvases leaning on the wall near the right corner (backs and one painted face), clear of the corner plant's pot
     with obj("canvases", mat={"default": "fabric_cotton", "OAK_1": "wood_furniture", "OAK_0": "wood_furniture"}):
-        for k, (X0, X1, H, face) in enumerate(((10.2, 12.6, 4.4, None), (10.8, 12.4, 3.3, "sunset"), (11.2, 12.9, 2.5, None))):
+        for k, (X0, X1, H, face) in enumerate(((9.5, 11.9, 4.4, None), (10.1, 11.7, 3.3, "sunset"), (10.5, 12.2, 2.5, None))):
             zb = 0.25 + k * 0.35
             q = [pj(X0, 0, zb + 0.5), pj(X1, 0, zb + 0.5), pj(X1, H, zb), pj(X0, H, zb)]
             POLY(q, "OAK_1", "INK")
@@ -3118,16 +3127,21 @@ def scene_back():
                 R(min(a[0], b[0]) + 2, (a[1] + b[1]) // 2 + 3, max(a[0], b[0]) - 2, max(a[1], b[1]) - 2, "SLATE_1")
             else:
                 POLY(inner, "LINEN_1" if "LINEN_1" in N else "CREAM")
-    olive_tree(-10.9, 1.4)
 
 
 
 # ================================================================ scene assembly
 def world_scene():
-    """Geometry every view draws the same way (ceiling beams, strings of lights, hanging plants, corner pieces)."""
+    """Geometry every view draws the same way (ceiling beams, strings of lights, hanging plants; the corner pieces are world_floor)."""
     ceiling_beams()
     world_string_lights()
     world_hangers()
+
+
+def world_floor():
+    """The four corner pieces stand on the floor in the corners: every wall's furniture is nearer the camera than
+    they are (or beside them), so they are drawn before the wall scene and the furniture covers them, not the
+    other way round (a corner drawn last painted its plant and lamp over desks, ladders and stools)."""
     corner_pieces()
 
 
@@ -3143,6 +3157,7 @@ def build(tod="golden", tier=3, beam=False, ghost=False, view="front", margins=T
     G.ghost = ghost
     shell()
     G.shell_img = G.img.copy()       # the backdrop hotspots are judged against (TEXTURE_SPEC 5.13)
+    world_floor()
     fn = SCENES.get(view)
     if fn:
         fn()
@@ -4051,7 +4066,7 @@ def drift_sprites(tod):
 # until the cage gate fails. Only the bike is promoted: a thin frame really is ~0.4 ft deep. The chess table, cushion,
 # gut plant and bookcase would need 0.25..0.35 ft slabs (the bookcase's exact box is 1.2 ft deep) to pass: a cage
 # that lies about the object, so they keep the hot wire (D3 2.1.3 fallback).
-BOUNDS = {"gym.bike": [13.05, 0.0, -12.04, 13.45, 3.38, -7.34]}   # passes both base and awake
+BOUNDS = {"gym.bike": [13.05, 0.0, -12.24, 13.45, 3.38, -7.54]}   # passes both base and awake
 # wire shape per hotspot: 'hull' (default, the orthogonal hull) or 'bbox' (a diagonal plant gives a staircase hull)
 WIRE_SHAPE = {"kitchen.gut": "bbox"}
 CAGE_OVER, CAGE_UNDER = 5, -2          # cage gate: per side overshoot <= 5 art px and >= -2 (D3 2.1.3)
