@@ -4,6 +4,7 @@ import { IntegrationButtons, TestGemini } from "@/components/settings/Connection
 import { SettingsClient, type SettingsData } from "@/components/settings/SettingsClient";
 import { ADAPTERS } from "@/integrations/index";
 import type { IntegrationRow } from "@/lib/data/rows";
+import { logOut } from "@/app/login/actions";
 import { createClient } from "@/lib/supabase/server";
 
 type Search = Promise<Record<string, string | string[] | undefined>>;
@@ -15,6 +16,7 @@ export function SettingsDashboard({ searchParams }: { searchParams?: Search }) {
       <Settings />
       <Connections />
       <Integrations searchParams={searchParams} />
+      <Account />
     </>
   );
 }
@@ -50,12 +52,29 @@ async function Settings() {
   return <SettingsClient data={data} />;
 }
 
+/** Who is logged in, and the button that logs out on this device. */
+async function Account() {
+  await connection();
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const email = typeof data?.claims?.email === "string" ? data.claims.email : null;
+  return (
+    <section aria-label="Account" className="space-y-3">
+      <h2 className="text-[11px] font-medium tracking-wider text-muted uppercase">Account</h2>
+      <form action={logOut} className="glass flex min-h-11 items-center justify-between gap-3 px-4 py-2">
+        <span className="min-w-0 truncate text-xs text-muted">{email ? `Logged in as ${email}` : "Logged in"}</span>
+        <button type="submit" className="inline-flex min-h-11 shrink-0 items-center rounded-chip border border-border px-4 text-xs">
+          Log out
+        </button>
+      </form>
+    </section>
+  );
+}
+
 /** Which server keys are set (names only, never values), so a missing one is obvious. */
 const KEYS: { name: string; what: string; optional?: boolean }[] = [
   { name: "GEMINI_API_KEY", what: "Food photos, weekly debrief, reading tests" },
   { name: "LYFTA_API_KEY", what: "Lyfta workouts" },
-  { name: "FORGE_OWNER_EMAIL", what: "Automatic sign-in" },
-  { name: "FORGE_OWNER_PASSWORD", what: "Automatic sign-in" },
   { name: "STRAVA_CLIENT_ID", what: "Strava runs", optional: true },
   { name: "STRAVA_CLIENT_SECRET", what: "Strava runs", optional: true },
   { name: "INTEGRATIONS_KEY", what: "Encrypts Strava, Canvas and Google logins", optional: true },

@@ -1,40 +1,20 @@
 import { createServerClient } from "@supabase/ssr";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdmin } from "@/lib/admin";
-import { seedUserFromTemplate } from "@/seed/seedUser";
+import { LOGIN_PATH, safeNext } from "@/lib/auth/next";
 import { supabasePublicEnv } from "./env";
 
-/** Pages that render without a session: the setup notice shown when the owner sign-in is not configured. */
-const OPEN_PATHS = ["/setup"];
-/** Old entry points (magic link, walkthrough). The app now opens straight to the dashboard. */
-const RETIRED_PATHS = ["/login", "/onboarding", "/auth"];
+/** Pages that render without a session: the login screen. */
+const OPEN_PATHS = [LOGIN_PATH];
+/** Old entry points (magic link, walkthrough). They now go to the dashboard, or the login screen when signed out. */
+const RETIRED_PATHS = ["/onboarding", "/auth", "/setup"];
 
 const matches = (path: string, list: string[]) => list.some((p) => path === p || path.startsWith(`${p}/`));
 
 /**
- * FORGE has one user, so there is no sign-in screen: when there is no session, the server signs in the
- * owner account with FORGE_OWNER_EMAIL and FORGE_OWNER_PASSWORD (server-only env vars, never sent to
- * the browser) and sets the session cookie. Row level security still scopes every row to that account.
+ * Refreshes the session cookie. With no session, pages go to the login screen and API routes answer 401.
+ * Nobody is signed in automatically: every visitor has to log in with a Supabase account.
  */
-async function signInOwner(supabase: SupabaseClient): Promise<"ok" | "missing" | "failed"> {
-  const email = process.env.FORGE_OWNER_EMAIL;
-  const password = process.env.FORGE_OWNER_PASSWORD;
-  if (!email || !password) return "missing";
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) {
-    console.error(`Owner sign-in failed: ${error.message}`);
-    return "failed";
-  }
-  try {
-    await seedUserFromTemplate(supabase);
-  } catch (e) {
-    console.error(e);
-  }
-  return "ok";
-}
-
-/** Refreshes the session cookie, signing the owner in when there is none. */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -63,15 +43,20 @@ export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   if (!signedIn && !matches(path, OPEN_PATHS)) {
-    const result = await signInOwner(supabase);
-    if (result !== "ok") return redirectKeepingCookies(request, response, "/setup", { reason: result });
+    if (path.startsWith("/api/")) return NextResponse.json({ error: "Sign in again." }, { status: 401 });
+    const next = path === "/" ? "" : `${path}${request.nextUrl.search}`;
+    return redirectKeepingCookies(request, response, LOGIN_PATH, next ? { next } : {});
+  }
+  if (signedIn && matches(path, OPEN_PATHS)) {
+    const to = new URL(safeNext(request.nextUrl.searchParams.get("next")), request.nextUrl.origin);
+    return redirectKeepingCookies(request, response, to.pathname, Object.fromEntries(to.searchParams));
   }
 
   if (matches(path, RETIRED_PATHS)) return redirectKeepingCookies(request, response, "/");
   // The admin view exists only for ADMIN_EMAILS: everyone else gets the app's 404 (with a real 404 status; the
   // page checks again under its Suspense boundary, where a 404 can no longer change the status).
   if (matches(path, ["/admin"])) {
-    const email = signedIn ? data?.claims?.email : process.env.FORGE_OWNER_EMAIL;
+    const email = data?.claims?.email;
     if (!isAdmin({ email: typeof email === "string" ? email : null })) {
       const url = request.nextUrl.clone();
       url.pathname = "/_not-found-admin";
