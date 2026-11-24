@@ -95,7 +95,8 @@ test("settings lists every integration with what it needs and its manual fallbac
   await expect(list).toContainText("STRAVA_CLIENT_ID");
   const keys = page.getByRole("region", { name: "Connection check" });
   await expect(keys).toContainText("GEMINI_API_KEY");
-  await expect(keys.locator("li", { hasText: "FORGE_OWNER_EMAIL" })).toContainText("Set");
+  await expect(keys).not.toContainText("FORGE_OWNER");
+  await expect(keys.locator("li", { hasText: "ADMIN_EMAILS" })).toContainText("Set");
   await expect(list).toContainText("Canvas personal access token");
   await expect(list.getByRole("link", { name: "Add assignments on the Academics page" })).toHaveAttribute("href", "/s/academics");
 });

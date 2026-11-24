@@ -7,9 +7,9 @@ visualization for every skill, empty starting lists for new accounts, and the jo
 ## For Jaxon
 - Connections (2026-10-20): open Settings. "Connection check" shows which keys Vercel has. Tap Test Gemini,
   then Connect Lyfta (pick lb or kg to match Lyfta). Strava is built later, once its keys are in.
-0. No more magic link: the app signs you in on its own. Once: in Supabase > Authentication > Users, add a
-   user with your email and a password (Auto confirm). In Vercel > Environment Variables, add
-   FORGE_OWNER_EMAIL and FORGE_OWNER_PASSWORD, then redeploy. Also set the Supabase Site URL to
+0. Real login (2026-11-24): the app no longer signs anyone in on its own; it shows a login screen. Log in with
+   your Supabase user (Authentication > Users, email and password). Remove FORGE_OWNER_EMAIL and
+   FORGE_OWNER_PASSWORD from Vercel, and turn off new sign-ups in Supabase. Also set the Supabase Site URL to
    `https://skill-trees-seven.vercel.app` (it was missing `https://`, which caused "requested path is invalid").
 1. Open the app and look at the board on the laptop and the phone. Note anything that feels off.
 2. Decide on your own lists: Settings > Starting content > "Start with empty lists" clears the starter

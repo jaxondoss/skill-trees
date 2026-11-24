@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 import { resetUser, signIn, sql } from "./helpers";
-import { AUTH_COOKIE, USER_ID } from "./stack/config.mjs";
 
 test.describe("dashboard with real data", () => {
   test.beforeEach(async ({ page }) => {
@@ -78,18 +77,9 @@ test.describe("dashboard with real data", () => {
   });
 });
 
-test("opening the app with no session signs the owner in and lands on the dashboard", async ({ page }) => {
-  resetUser();
-  sql(`update public.profiles set onboarded_at = null where user_id = '${USER_ID}'`);
-  await page.goto("/board");
-  await expect(page).toHaveURL("http://localhost:3200/board");
-  await expect(page.locator("#today")).toBeVisible();
-  expect((await page.context().cookies()).some((c) => c.name.startsWith(AUTH_COOKIE))).toBe(true);
-  expect(sql(`select onboarded_at is not null from public.profiles where user_id = '${USER_ID}'`)).toBe("t");
-});
-
-test("the old login and onboarding addresses open the dashboard", async ({ page }) => {
-  for (const path of ["/login", "/onboarding", "/auth/callback?code=x"]) {
+test("the old onboarding and setup addresses open the dashboard", async ({ page }) => {
+  await signIn(page);
+  for (const path of ["/onboarding", "/auth/callback?code=x", "/setup"]) {
     await page.goto(path);
     await expect(page).toHaveURL("http://localhost:3200/");
   }

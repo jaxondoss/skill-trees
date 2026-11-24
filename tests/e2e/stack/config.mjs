@@ -5,8 +5,8 @@ import { createHmac } from "node:crypto";
 export const JWT_SECRET = "forge-e2e-only-secret-not-used-anywhere-else";
 export const USER_ID = "e2e00000-0000-4000-8000-000000000001";
 export const USER_EMAIL = "e2e@forge.test";
-/** The owner password the app signs in with automatically (FORGE_OWNER_PASSWORD in the stack). */
-export const OWNER_PASSWORD = "forge-e2e-owner-password";
+/** The e2e user's password for the login form (the auth stub accepts only this one). */
+export const USER_PASSWORD = "forge-e2e-owner-password";
 
 export const PG_PORT = 54339;
 export const POSTGREST_PORT = 54331;

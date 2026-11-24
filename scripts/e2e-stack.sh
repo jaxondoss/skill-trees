@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Boots the full app against a local stand-in for Supabase, for Playwright:
 #   Postgres (real migrations) + PostgREST + tests/e2e/stack/gateway.mjs (auth stub and REST proxy)
-# then serves the app on the e2e port. One seeded user; tests sign in with a cookie.
+# then serves the app on the e2e port. One seeded user; tests sign in with a cookie or the login form.
 # E2E_MODE=start serves a production build instead of next dev.
 set -euo pipefail
 source "$(dirname "$0")/lib/pg.sh"
@@ -58,8 +58,6 @@ PIDS+=($!)
 unset GEMINI_API_KEY ANTHROPIC_API_KEY LYFTA_API_KEY STRAVA_CLIENT_ID STRAVA_CLIENT_SECRET
 export NEXT_PUBLIC_SUPABASE_URL="$(cfg SUPABASE_URL)"
 export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$(cfg ANON_KEY)"
-export FORGE_OWNER_EMAIL="$(cfg USER_EMAIL)"
-export FORGE_OWNER_PASSWORD="$(cfg OWNER_PASSWORD)"
 # The e2e user is the admin (tests/e2e/admin.spec.ts signs a second email in to check the 404).
 export ADMIN_EMAILS="$(cfg USER_EMAIL)"
 cd "$ROOT"

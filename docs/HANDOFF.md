@@ -13,7 +13,7 @@ Never invent third-party API endpoints. Talk to Jaxon simply. He is near his wee
 efficient (Haiku/Gemini for grunt work, Claude for thinking).
 
 ## App state (live on main)
-- No login: proxy signs in the owner with FORGE_OWNER_EMAIL / FORGE_OWNER_PASSWORD; no onboarding.
+- Login: /login (email and password, Supabase auth). With no session the proxy sends pages to /login and API routes get 401; no onboarding.
 - The v3 room is the home screen: `/` and `/room/<zone>` (real data, real logging, relics). The v2 board
   (statue, Today, skills, calendar) moved to `/board`. Skill pages `/s/[slug]`, `/c/[slug]`, `/overall`,
   `/review`, `/settings` (with a Connection check of env keys and Test Gemini).
